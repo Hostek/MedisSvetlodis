@@ -44,7 +44,7 @@ const Page: NextPage = () => {
     )
 
     return (
-        <div>
+        <div className="bg-blue-300">
             <div>fetching: {String(fetching)}</div>
             <div>queryFetching: {String(queryFetching)}</div>
             <form onSubmit={handleSubmit}>
