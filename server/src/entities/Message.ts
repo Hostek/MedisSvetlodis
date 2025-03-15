@@ -4,16 +4,16 @@ import {
     Column,
     CreateDateColumn,
     Entity,
-    OneToMany,
+    ManyToOne,
     PrimaryGeneratedColumn,
     Relation,
     UpdateDateColumn,
 } from "typeorm"
-import { Message } from "./Message.js"
+import { User } from "./User.js"
 
 @ObjectType()
 @Entity()
-export class User extends BaseEntity {
+export class Message extends BaseEntity {
     @Field(() => Int)
     @PrimaryGeneratedColumn()
     id!: number
@@ -26,19 +26,15 @@ export class User extends BaseEntity {
     @UpdateDateColumn()
     updatedAt: Date
 
-    @Column()
-    password!: string
+    @Field(() => Int)
+    @Column("int")
+    creatorId: number
+
+    @Field(() => User)
+    @ManyToOne(() => User, (user) => user.messages)
+    creator: Relation<User>
 
     @Field(() => String)
-    @Column({ unique: true })
-    email!: string
-
-    @Field(() => String)
-    @Column({ unique: true })
-    username: string
-
-    @OneToMany(() => Message, (m) => m.creator, {
-        onDelete: "CASCADE",
-    })
-    messages: Relation<Message>[]
+    @Column("text")
+    content: string
 }
