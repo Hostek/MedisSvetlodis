@@ -1,5 +1,8 @@
 "use client"
-import { useCreateMessageMutation } from "@/generated/graphql"
+import {
+    useCreateMessageMutation,
+    useGetAllMessagesQuery,
+} from "@/generated/graphql"
 import { createUrqlClient } from "@/utils/createUrqlClient"
 import { NextPage } from "next"
 import { withUrqlClient } from "next-urql"
@@ -8,6 +11,7 @@ import { useCallback, useState } from "react"
 const Page: NextPage = () => {
     const [content, setContent] = useState("")
     const [{ fetching }, createMessage] = useCreateMessageMutation()
+    const [{ fetching: queryFetching, data }] = useGetAllMessagesQuery()
 
     const handleSubmit = useCallback<React.FormEventHandler<HTMLFormElement>>(
         async (e) => {
@@ -26,6 +30,7 @@ const Page: NextPage = () => {
     return (
         <div>
             <div>fetching: {String(fetching)}</div>
+            <div>queryFetching: {String(queryFetching)}</div>
             <form onSubmit={handleSubmit}>
                 Content msg:
                 <input
@@ -37,7 +42,13 @@ const Page: NextPage = () => {
 
             <div>
                 Messages:
-                <div></div>
+                <div>
+                    {data
+                        ? data.getAllMessages.map((msg) => (
+                              <div key={msg.id}>{msg.content}</div>
+                          ))
+                        : null}
+                </div>
             </div>
         </div>
     )
