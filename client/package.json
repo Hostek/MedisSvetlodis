@@ -6,20 +6,29 @@
         "dev": "next dev",
         "build": "next build",
         "start": "next start",
-        "lint": "next lint"
+        "lint": "next lint",
+        "gen-graphql": "graphql-codegen --config codegen.yml"
     },
     "dependencies": {
+        "@urql/core": "^5.1.1",
+        "@urql/exchange-graphcache": "^7.2.3",
+        "graphql-codegen": "^0.4.0",
+        "next": "15.2.2",
         "react": "^19.0.0",
         "react-dom": "^19.0.0",
-        "next": "15.2.2"
+        "urql": "^4.2.2"
     },
     "devDependencies": {
-        "typescript": "^5",
+        "@eslint/eslintrc": "^3",
+        "@graphql-codegen/cli": "^5.0.5",
+        "@graphql-codegen/typescript": "^4.1.5",
+        "@graphql-codegen/typescript-operations": "^4.5.1",
+        "@graphql-codegen/typescript-urql": "^4.0.0",
         "@types/node": "^20",
         "@types/react": "^19",
         "@types/react-dom": "^19",
         "eslint": "^9",
         "eslint-config-next": "15.2.2",
-        "@eslint/eslintrc": "^3"
+        "typescript": "^5"
     }
 }

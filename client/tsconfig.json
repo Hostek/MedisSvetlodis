@@ -17,6 +17,11 @@
             "@/*": ["./src/*"]
         }
     },
-    "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
+    "include": [
+        "next-env.d.ts",
+        "**/*.ts",
+        "**/*.tsx",
+        "src/utils/createUrqlClient.ts.o"
+    ],
     "exclude": ["node_modules"]
 }
