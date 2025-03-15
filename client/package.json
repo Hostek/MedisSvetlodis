@@ -7,7 +7,8 @@
         "build": "next build",
         "start": "next start",
         "lint": "next lint",
-        "gen-graphql": "graphql-codegen --config codegen.yml"
+        "gen-graphql": "graphql-codegen --config codegen.yml",
+        "gen-env": "gen-env-types .env.local -o src/generated/env.d.ts -e ."
     },
     "dependencies": {
         "@urql/core": "^5.1.1",
@@ -29,6 +30,7 @@
         "@types/react-dom": "^19",
         "eslint": "^9",
         "eslint-config-next": "15.2.2",
+        "gen-env-types": "^1.3.4",
         "typescript": "^5"
     }
 }
