@@ -1,10 +1,11 @@
-import { fetchExchange } from "@urql/core"
+import { fetchExchange, subscriptionExchange } from "@urql/core"
 import { cacheExchange, Resolver } from "@urql/exchange-graphcache"
 import { stringifyVariables } from "urql"
 import { LogoutMutation, UserDocument, UserQuery } from "../generated/graphql"
 import { betterUpdateQuery } from "./betterUpdateQuery"
 import { cachePusher } from "./cachePusher"
 import { areObjectsEqual } from "./isEqual"
+import { createClient as createWSClient } from "graphql-ws"
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const cursorPagination = (
@@ -151,6 +152,10 @@ const cursorPagination = (
     }
 }
 
+const wsClient = createWSClient({
+    url: "ws://localhost:3001/graphql",
+})
+
 export const createUrqlClient = (ssrExchange: any) => ({
     // url: "http://localhost:3001/graphql",
     url: process.env.NEXT_PUBLIC_GRAPHQL_URL,
@@ -161,6 +166,7 @@ export const createUrqlClient = (ssrExchange: any) => ({
         cacheExchange({
             keys: {
                 FieldError: () => null,
+                Message: (data) => data.id as any,
             },
             resolvers: {
                 Query: {},
@@ -183,5 +189,16 @@ export const createUrqlClient = (ssrExchange: any) => ({
         }),
         ssrExchange,
         fetchExchange,
+        subscriptionExchange({
+            forwardSubscription(request) {
+                const input = { ...request, query: request.query || "" }
+                return {
+                    subscribe(sink) {
+                        const unsubscribe = wsClient.subscribe(input, sink)
+                        return { unsubscribe }
+                    },
+                }
+            },
+        }),
     ],
 })

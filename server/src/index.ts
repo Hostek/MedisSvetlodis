@@ -13,11 +13,18 @@ import { AppDataSource } from "./DataSource.js"
 import { HelloResolver } from "./resolvers/hello.js"
 import { UserResolver } from "./resolvers/user.js"
 import { MessageResolver } from "./resolvers/message.js"
+import { createServer } from "http"
+import { ApolloServerPluginDrainHttpServer } from "@apollo/server/plugin/drainHttpServer"
+import { WebSocketServer } from "ws"
+import { useServer } from "graphql-ws/use/ws"
+import { pubSub } from "./pubSub.js"
+// import { useServer } from "graphql-ws/dist/use/ws"
 
 await AppDataSource.initialize()
 
 const app = express()
 const port = parseInt(process.env.PORT)
+const httpServer = createServer(app)
 
 const cors_options = {
     origin: [
@@ -32,7 +39,7 @@ const cors_options = {
 app.use(cors(cors_options))
 app.options("*", cors(cors_options))
 
-const redisClient = new Redis(process.env.REDIS_URL)
+const redisClient = new Redis.default(process.env.REDIS_URL)
 app.set("trust proxy", 1)
 
 // new RedisStore()
@@ -62,16 +69,46 @@ app.use(
     }) as any
 )
 
+const wsServer = new WebSocketServer({
+    // This is the `httpServer` we created in a previous step.
+    server: httpServer,
+    // Pass a different path here if app.use
+    // serves expressMiddleware at a different path
+    path: "/graphql",
+})
+
+const schema = await buildSchema({
+    resolvers: [HelloResolver, UserResolver, MessageResolver],
+    validate: false,
+    pubSub: pubSub,
+})
+
+// Hand in the schema we just created and have the
+// WebSocketServer start listening.
+const serverCleanup = useServer({ schema }, wsServer)
+
 const apolloServer = new ApolloServer({
-    schema: await buildSchema({
-        resolvers: [HelloResolver, UserResolver, MessageResolver],
-        validate: false,
-    }),
+    schema: schema,
     // context: ({ req, res }) => ({
     //     req,
     //     res,
     //     redis: redisClient,
     // }),
+    plugins: [
+        // Proper shutdown for the HTTP server.
+        ApolloServerPluginDrainHttpServer({ httpServer }),
+
+        // Proper shutdown for the WebSocket server.
+        {
+            async serverWillStart() {
+                return {
+                    async drainServer() {
+                        await serverCleanup.dispose()
+                    },
+                }
+            },
+        },
+    ],
 })
 
 await apolloServer.start()
@@ -94,6 +131,6 @@ app.get("/", (_req, res) => {
     return res.send("Hello World!")
 })
 
-app.listen(port, () => {
+httpServer.listen(port, () => {
     console.log(`Running on port ${port}`)
 })

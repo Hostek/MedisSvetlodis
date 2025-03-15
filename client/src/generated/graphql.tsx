@@ -74,6 +74,11 @@ export type Query = {
   user?: Maybe<User>;
 };
 
+export type Subscription = {
+  __typename?: 'Subscription';
+  messageAdded: Message;
+};
+
 export type User = {
   __typename?: 'User';
   createdAt: Scalars['String']['output'];
@@ -109,6 +114,11 @@ export type UserQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type UserQuery = { __typename?: 'Query', user?: { __typename?: 'User', username: string, updatedAt: string, id: number, email: string, createdAt: string } | null };
+
+export type MessageAddedSubscriptionVariables = Exact<{ [key: string]: never; }>;
+
+
+export type MessageAddedSubscription = { __typename?: 'Subscription', messageAdded: { __typename?: 'Message', content: string, createdAt: string, creatorId: number, id: number, updatedAt: string } };
 
 export const MessageFragmentFragmentDoc = gql`
     fragment MessageFragment on Message {
@@ -167,4 +177,15 @@ export const UserDocument = gql`
 
 export function useUserQuery(options?: Omit<Urql.UseQueryArgs<UserQueryVariables>, 'query'>) {
   return Urql.useQuery<UserQuery, UserQueryVariables>({ query: UserDocument, ...options });
+};
+export const MessageAddedDocument = gql`
+    subscription MessageAdded {
+  messageAdded {
+    ...MessageFragment
+  }
+}
+    ${MessageFragmentFragmentDoc}`;
+
+export function useMessageAddedSubscription<TData = MessageAddedSubscription>(options?: Omit<Urql.UseSubscriptionArgs<MessageAddedSubscriptionVariables>, 'query'>, handler?: Urql.SubscriptionHandler<MessageAddedSubscription, TData>) {
+  return Urql.useSubscription<MessageAddedSubscription, TData, MessageAddedSubscriptionVariables>({ query: MessageAddedDocument, ...options }, handler);
 };
