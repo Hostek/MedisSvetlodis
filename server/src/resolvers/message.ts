@@ -1,5 +1,5 @@
 import { Message } from "../entities/Message.js"
-import { Query, Resolver } from "type-graphql"
+import { Arg, Int, Mutation, Query, Resolver } from "type-graphql"
 
 @Resolver()
 export class MessageResolver {
@@ -8,5 +8,21 @@ export class MessageResolver {
         const res = await Message.find()
 
         return res
+    }
+
+    @Mutation(() => Boolean)
+    async createMessage(
+        @Arg("creatorId", () => Int) creatorId: number,
+        @Arg("content") content: string
+    ) {
+        await Message.createQueryBuilder()
+            .insert()
+            .values({
+                content,
+                creatorId,
+            })
+            .execute()
+
+        return true
     }
 }
