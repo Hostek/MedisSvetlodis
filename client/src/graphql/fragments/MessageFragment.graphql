@@ -1,0 +1,7 @@
+fragment MessageFragment on Message {
+    content
+    createdAt
+    creatorId
+    id
+    updatedAt
+}

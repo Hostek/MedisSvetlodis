@@ -12,6 +12,7 @@ import { COOKIE_NAME, isInProduction, TEN_YEARS } from "./constants.js"
 import { AppDataSource } from "./DataSource.js"
 import { HelloResolver } from "./resolvers/hello.js"
 import { UserResolver } from "./resolvers/user.js"
+import { MessageResolver } from "./resolvers/message.js"
 
 await AppDataSource.initialize()
 
@@ -63,7 +64,7 @@ app.use(
 
 const apolloServer = new ApolloServer({
     schema: await buildSchema({
-        resolvers: [HelloResolver, UserResolver],
+        resolvers: [HelloResolver, UserResolver, MessageResolver],
         validate: false,
     }),
     // context: ({ req, res }) => ({

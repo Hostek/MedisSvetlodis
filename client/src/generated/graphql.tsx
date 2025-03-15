@@ -30,6 +30,16 @@ export type LoginResponse = {
   user?: Maybe<User>;
 };
 
+export type Message = {
+  __typename?: 'Message';
+  content: Scalars['String']['output'];
+  createdAt: Scalars['String']['output'];
+  creator: User;
+  creatorId: Scalars['Int']['output'];
+  id: Scalars['Int']['output'];
+  updatedAt: Scalars['String']['output'];
+};
+
 export type Mutation = {
   __typename?: 'Mutation';
   login: LoginResponse;
@@ -52,6 +62,7 @@ export type MutationRegisterArgs = {
 
 export type Query = {
   __typename?: 'Query';
+  getAllMessages: Array<Message>;
   hello: Scalars['String']['output'];
   user?: Maybe<User>;
 };
@@ -65,6 +76,8 @@ export type User = {
   username: Scalars['String']['output'];
 };
 
+export type MessageFragmentFragment = { __typename?: 'Message', content: string, createdAt: string, creatorId: number, id: number, updatedAt: string };
+
 export type UserFragmentFragment = { __typename?: 'User', username: string, updatedAt: string, id: number, email: string, createdAt: string };
 
 export type LogoutMutationVariables = Exact<{ [key: string]: never; }>;
@@ -72,11 +85,25 @@ export type LogoutMutationVariables = Exact<{ [key: string]: never; }>;
 
 export type LogoutMutation = { __typename?: 'Mutation', logout: boolean };
 
+export type GetAllMessagesQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetAllMessagesQuery = { __typename?: 'Query', getAllMessages: Array<{ __typename?: 'Message', content: string, createdAt: string, creatorId: number, id: number, updatedAt: string }> };
+
 export type UserQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type UserQuery = { __typename?: 'Query', user?: { __typename?: 'User', username: string, updatedAt: string, id: number, email: string, createdAt: string } | null };
 
+export const MessageFragmentFragmentDoc = gql`
+    fragment MessageFragment on Message {
+  content
+  createdAt
+  creatorId
+  id
+  updatedAt
+}
+    `;
 export const UserFragmentFragmentDoc = gql`
     fragment UserFragment on User {
   username
@@ -94,6 +121,17 @@ export const LogoutDocument = gql`
 
 export function useLogoutMutation() {
   return Urql.useMutation<LogoutMutation, LogoutMutationVariables>(LogoutDocument);
+};
+export const GetAllMessagesDocument = gql`
+    query GetAllMessages {
+  getAllMessages {
+    ...MessageFragment
+  }
+}
+    ${MessageFragmentFragmentDoc}`;
+
+export function useGetAllMessagesQuery(options?: Omit<Urql.UseQueryArgs<GetAllMessagesQueryVariables>, 'query'>) {
+  return Urql.useQuery<GetAllMessagesQuery, GetAllMessagesQueryVariables>({ query: GetAllMessagesDocument, ...options });
 };
 export const UserDocument = gql`
     query User {
