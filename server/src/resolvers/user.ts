@@ -1,10 +1,9 @@
+import { verifyOAuthProof } from "@hostek/shared"
 import argon2 from "argon2"
 import { Arg, Ctx, Mutation, Query, Resolver } from "type-graphql"
-import xss from "xss"
-import { COOKIE_NAME, errors, isInProduction } from "../constants.js"
+import { COOKIE_NAME } from "../constants.js"
 import { User } from "../entities/User.js"
 import { LoginResponse, MyContext } from "../types.js"
-import { validateEmailAndPasswordAndUsername } from "../utils/validateEmailAndPassword.js"
 
 @Resolver()
 export class UserResolver {
@@ -33,109 +32,106 @@ export class UserResolver {
         return user
     }
 
-    @Mutation(() => LoginResponse!)
-    async register(
-        @Arg("email") email: string,
-        @Arg("password") password: string,
-        @Arg("username") username: string,
-        @Ctx() { req }: MyContext
-    ): Promise<LoginResponse> {
-        username = xss(username)
-
-        const validation = validateEmailAndPasswordAndUsername(
-            password,
-            email,
-            username
-        )
-
-        if (validation !== -1) {
-            return { errors: [validation] }
+    // Shared registration logic
+    private async registerUser(input: {
+        email: string
+        username?: string
+        password?: string
+        oauthProvider?: string
+    }) {
+        const existingUser = await User.findOne({
+            where: { email: input.email },
+        })
+        if (existingUser) {
+            throw new Error("User already exists")
         }
 
-        const hashed_password = await argon2.hash(password)
+        const user = User.create({
+            email: input.email,
+            username: input.username || input.email.split("@")[0], // Default name
+            password: input.password ? await argon2.hash(input.password) : "",
+            // oauthProvider: input.oauthProvider,
+        })
 
-        let user
-        try {
-            const result = await User.create({
+        await user.save()
+        return user
+    }
+
+    @Mutation(() => LoginResponse)
+    async login(
+        @Arg("email") email: string,
+        @Arg("oauthProof", { nullable: true }) oauthProof: string,
+        @Arg("password", { nullable: true }) password: string,
+        @Ctx() { req }: MyContext
+    ): Promise<LoginResponse> {
+        let user = await User.findOne({ where: { email } })
+
+        // Handle OAuth flow
+        if (oauthProof) {
+            if (password) throw new Error("Password not allowed with OAuth")
+
+            const isValidProof = await verifyOAuthProof(
+                oauthProof,
                 email,
-                password: hashed_password,
-                username: xss(username),
-                // ban: "no",
-                // type: "user",
-            }).save()
+                process.env.OAUTH_PROOF_SECRET!
+            )
 
-            user = result
-        } catch (error) {
-            if (error.errno == 1062) {
-                if (error.sqlMessage.includes("@")) {
-                    return {
-                        errors: [{ message: errors.emailTaken }],
-                    }
-                } else {
-                    return {
-                        errors: [
-                            {
-                                message: errors.usernameTaken,
-                            },
-                        ],
-                    }
+            if (!isValidProof) {
+                return { errors: [{ message: "Invalid OAuth proof" }] }
+            }
+
+            // Auto-register if user doesn't exist
+            if (!user) {
+                try {
+                    user = await this.registerUser({
+                        email,
+                    })
+                } catch (error) {
+                    return { errors: [{ message: "Registration failed" }] }
                 }
             }
 
-            return {
-                errors: [{ message: errors.unknownError }],
-            }
+            req.session.userId = user.id
+            return { user }
         }
 
-        req.session.userId = user.id
+        // Handle password flow
+        if (!user) return { errors: [{ message: "User not found" }] }
+        if (!password) return { errors: [{ message: "Password required" }] }
 
+        const isValid = await argon2.verify(user.password!, password)
+        if (!isValid) return { errors: [{ message: "Invalid password" }] }
+
+        req.session.userId = user.id
         return { user }
     }
 
-    @Mutation(() => LoginResponse!)
-    async login(
+    @Mutation(() => LoginResponse)
+    async register(
         @Arg("email") email: string,
         @Arg("password") password: string,
         @Ctx() { req }: MyContext
     ): Promise<LoginResponse> {
-        const user = await User.findOne({
-            where: { email },
-        })
-        if (!user) {
-            return {
-                errors: [
-                    isInProduction
-                        ? {
-                              message: errors.incorrectEmail,
-                          }
-                        : {
-                              message: errors.emailDoesNotExist,
-                          },
-                ],
-            }
-        }
+        try {
+            const user = await this.registerUser({
+                email,
+                password,
+            })
 
-        const isPasswordValid = await argon2.verify(user.password, password)
-
-        if (!isPasswordValid) {
+            req.session.userId = user.id
+            return { user }
+        } catch (error) {
             return {
                 errors: [
                     {
-                        message: errors.incorrectPassword,
+                        message:
+                            error instanceof Error
+                                ? error.message
+                                : "Registration failed",
                     },
                 ],
             }
         }
-
-        // if (user.ban === "yes") {
-        //     return {
-        //         errors: [{ message: "errors.userBanned" }],
-        //     }
-        // }
-
-        req.session.userId = user.id
-
-        return { user }
     }
 
     @Mutation(() => Boolean)

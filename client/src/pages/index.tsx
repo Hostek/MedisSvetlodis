@@ -8,6 +8,7 @@ import { createUrqlClient } from "@/utils/createUrqlClient"
 import { NextPage } from "next"
 import { withUrqlClient } from "next-urql"
 import { useCallback, useEffect, useState } from "react"
+import { Button } from "@heroui/react"
 
 const Page: NextPage = () => {
     const [content, setContent] = useState("")
@@ -44,7 +45,7 @@ const Page: NextPage = () => {
     )
 
     return (
-        <div>
+        <div className="bg-amber-950 text-red-400">
             <div>fetching: {String(fetching)}</div>
             <div>queryFetching: {String(queryFetching)}</div>
             <form onSubmit={handleSubmit}>
@@ -53,7 +54,9 @@ const Page: NextPage = () => {
                     value={content}
                     onChange={(e) => setContent(e.currentTarget.value)}
                 />
-                <button type="submit">Submit</button>
+                <Button type="submit" color="primary">
+                    Submit
+                </Button>
             </form>
 
             <div>

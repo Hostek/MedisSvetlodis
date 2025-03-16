@@ -1,0 +1,19 @@
+{
+    "name": "@hostek/shared",
+    "version": "1.0.1",
+    "license": "MIT",
+    "author": "Hostek",
+    "main": "dist/index.js",
+    "types": "dist/types/index.d.ts",
+    "scripts": {
+        "build": "tsc",
+        "watch": "tsc -w"
+    },
+    "dependencies": {
+        "jsonwebtoken": "^9.0.2",
+        "@hostek/config": "1.0.0"
+    },
+    "devDependencies": {
+        "@types/jsonwebtoken": "^9.0.9"
+    }
+}
