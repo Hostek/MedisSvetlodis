@@ -11,6 +11,7 @@ declare global {
       CLIENT_URL: string;
       COOKIE_DOMAIN: string;
       REDIS_URL: string;
+      OAUTH_PROOF_SECRET: string;
     }
   }
 }

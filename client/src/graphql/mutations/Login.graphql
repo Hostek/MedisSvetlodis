@@ -1,0 +1,10 @@
+mutation Login($email: String!, $oauthProof: String) {
+    login(email: $email, oauthProof: $oauthProof) {
+        user {
+            ...UserFragment
+        }
+        errors {
+            ...ErrorFragment
+        }
+    }
+}

@@ -4,10 +4,20 @@ import { Button, Card, Input, Form } from "@heroui/react"
 import { withUrqlClient } from "next-urql"
 import Link from "next/link"
 import { GitHub } from "react-feather"
+import { signIn, signOut } from "next-auth/react"
 
 function Page() {
     return (
         <div className="min-h-screen bg-gray-800 flex items-center justify-center p-4">
+            <div
+                style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                }}
+            >
+                <button onClick={() => signOut()}>logout</button>
+            </div>
             <Card className="w-full max-w-md p-8 space-y-6">
                 <div className="text-center">
                     <h1 className="text-3xl font-bold text-white">
@@ -61,7 +71,13 @@ function Page() {
                     </div>
                 </div>
 
-                <Button className="w-full" variant="bordered">
+                <Button
+                    className="w-full"
+                    variant="bordered"
+                    onPress={() => {
+                        signIn("github")
+                    }}
+                >
                     <GitHub />
                     Login with GitHub
                 </Button>

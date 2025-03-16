@@ -26,7 +26,7 @@ export class User extends BaseEntity {
     @UpdateDateColumn()
     updatedAt: Date
 
-    @Column()
+    @Column(() => String)
     password!: string
 
     @Field(() => String)

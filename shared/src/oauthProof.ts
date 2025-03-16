@@ -1,8 +1,6 @@
 import { sign, verify } from "jsonwebtoken"
 
-const PROOF_SECRET = process.env.OAUTH_PROOF_SECRET
-
-export function generateOAuthProof(email: string) {
+export function generateOAuthProof(email: string, PROOF_SECRET: string) {
     return sign(
         { email, timestamp: Date.now() },
         PROOF_SECRET,
@@ -10,7 +8,11 @@ export function generateOAuthProof(email: string) {
     )
 }
 
-export async function verifyOAuthProof(proof: string, email: string) {
+export async function verifyOAuthProof(
+    proof: string,
+    email: string,
+    PROOF_SECRET: string
+) {
     try {
         const decoded = verify(proof, PROOF_SECRET) as { email: string }
         return decoded.email === email
