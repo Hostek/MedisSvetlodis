@@ -68,7 +68,7 @@ const Page: NextPage = () => {
 
     return (
         <>
-            <Navbar className="flex justify-between items-center mb-4">
+            <Navbar className="flex justify-center items-center mb-4">
                 <NavbarContent className="text-foreground">
                     <NavbarItem>
                         <span className="font-medium">User: </span>
@@ -83,7 +83,7 @@ const Page: NextPage = () => {
                     </NavbarItem>
                 </NavbarContent>
             </Navbar>
-            <div className="max-w-md mx-auto p-6 space-y-6">
+            <div className="max-w-screen-md mx-auto p-6 space-y-6">
                 <div className="space-y-4">
                     <h2 className="text-lg font-medium text-foreground">
                         Messages
