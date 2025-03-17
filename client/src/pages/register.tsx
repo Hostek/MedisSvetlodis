@@ -1,14 +1,14 @@
 // pages/register.tsx
+import { useRegisterMutation } from "@/generated/graphql"
 import { createUrqlClient } from "@/utils/createUrqlClient"
-import { Button, Card, Input, Form } from "@heroui/react"
+import { Button, Card, Form, Input } from "@heroui/react"
+import { errors } from "@hostek/shared"
+import { signIn } from "next-auth/react"
 import { withUrqlClient } from "next-urql"
 import Link from "next/link"
-import { GitHub } from "react-feather"
-import { signIn, signOut } from "next-auth/react"
 import { useRouter } from "next/router"
 import { FormEventHandler, useCallback, useMemo, useState } from "react"
-import { useRegisterMutation } from "@/generated/graphql"
-import { errors } from "@hostek/shared"
+import { GitHub } from "react-feather"
 
 function Page() {
     const [password, setPassword] = useState("")
@@ -54,15 +54,6 @@ function Page() {
 
     return (
         <div className="min-h-screen bg-gray-800 flex items-center justify-center p-4">
-            <div
-                style={{
-                    position: "absolute",
-                    top: 0,
-                    left: 0,
-                }}
-            >
-                <button onClick={() => signOut()}>logout</button>
-            </div>
             <Card className="w-full max-w-md p-8 space-y-6">
                 <div className="text-center">
                     <h1 className="text-3xl font-bold text-white">

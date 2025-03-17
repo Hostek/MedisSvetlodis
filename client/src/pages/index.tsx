@@ -4,12 +4,14 @@ import {
     useGetAllMessagesQuery,
     useMessageAddedSubscription,
 } from "@/generated/graphql"
+import { useIsAuth } from "@/hooks/isAuth"
 import { createUrqlClient } from "@/utils/createUrqlClient"
-import { NextPage } from "next"
-import { withUrqlClient } from "next-urql"
-import { useCallback, useEffect, useState } from "react"
 import { Button } from "@heroui/react"
+import { NextPage } from "next"
+import { signOut } from "next-auth/react"
+import { withUrqlClient } from "next-urql"
 import Link from "next/link"
+import { useCallback, useEffect, useState } from "react"
 
 const Page: NextPage = () => {
     const [content, setContent] = useState("")
@@ -45,9 +47,16 @@ const Page: NextPage = () => {
         [createMessage, content]
     )
 
+    const user = useIsAuth()
+
+    if (!user) {
+        return null
+    }
+
     return (
         <div className="bg-amber-950 text-red-400">
             <Link href="/login">login</Link>
+            <button onClick={() => signOut()}>logout</button>
             <div>fetching: {String(fetching)}</div>
             <div>queryFetching: {String(queryFetching)}</div>
             <form onSubmit={handleSubmit}>
