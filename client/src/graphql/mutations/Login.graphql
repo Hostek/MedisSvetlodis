@@ -1,10 +1,5 @@
 mutation Login($email: String!, $oauthProof: String, $password: String) {
     login(email: $email, oauthProof: $oauthProof, password: $password) {
-        user {
-            ...UserFragment
-        }
-        errors {
-            ...ErrorFragment
-        }
+        ...LoginResponseFragment
     }
 }
