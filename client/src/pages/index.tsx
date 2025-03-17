@@ -9,6 +9,7 @@ import { NextPage } from "next"
 import { withUrqlClient } from "next-urql"
 import { useCallback, useEffect, useState } from "react"
 import { Button } from "@heroui/react"
+import Link from "next/link"
 
 const Page: NextPage = () => {
     const [content, setContent] = useState("")
@@ -46,6 +47,7 @@ const Page: NextPage = () => {
 
     return (
         <div className="bg-amber-950 text-red-400">
+            <Link href="/login">login</Link>
             <div>fetching: {String(fetching)}</div>
             <div>queryFetching: {String(queryFetching)}</div>
             <form onSubmit={handleSubmit}>

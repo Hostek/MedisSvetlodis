@@ -5,8 +5,17 @@ import { withUrqlClient } from "next-urql"
 import Link from "next/link"
 import { GitHub } from "react-feather"
 import { signIn, signOut } from "next-auth/react"
+import { useRouter } from "next/router"
+import { useMemo } from "react"
 
 function Page() {
+    const Router = useRouter()
+
+    const error = useMemo<string | null>(() => {
+        if (typeof Router.query.error === "string") return Router.query.error
+        return null
+    }, [Router])
+
     return (
         <div className="min-h-screen bg-gray-800 flex items-center justify-center p-4">
             <div
@@ -58,6 +67,12 @@ function Page() {
                     <Button type="submit" className="w-full" color="primary">
                         Sign In
                     </Button>
+
+                    {error && (
+                        <div className="w-full text-red-500">
+                            Error: {error}
+                        </div>
+                    )}
                 </Form>
 
                 <div className="relative">

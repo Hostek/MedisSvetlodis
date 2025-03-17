@@ -38,12 +38,13 @@ export class UserResolver {
         username?: string
         password?: string
         oauthProvider?: string
-    }) {
+    }): Promise<User> {
         const existingUser = await User.findOne({
             where: { email: input.email },
         })
         if (existingUser) {
             throw new Error("User already exists")
+            // return { errors: [{ message: "User already exists" }] }
         }
 
         const user = User.create({
@@ -54,6 +55,7 @@ export class UserResolver {
         })
 
         await user.save()
+        // return { user }
         return user
     }
 
@@ -68,7 +70,10 @@ export class UserResolver {
 
         // Handle OAuth flow
         if (oauthProof) {
-            if (password) throw new Error("Password not allowed with OAuth")
+            if (password)
+                return {
+                    errors: [{ message: "Password not allowed with OAuth" }],
+                }
 
             const isValidProof = await verifyOAuthProof(
                 oauthProof,
@@ -87,7 +92,16 @@ export class UserResolver {
                         email,
                     })
                 } catch (error) {
-                    return { errors: [{ message: "Registration failed" }] }
+                    return {
+                        errors: [
+                            {
+                                message:
+                                    error instanceof Error
+                                        ? error.message
+                                        : "Registration failed",
+                            },
+                        ],
+                    }
                 }
             }
 
@@ -98,8 +112,10 @@ export class UserResolver {
         // Handle password flow
         if (!user) return { errors: [{ message: "User not found" }] }
         if (!password) return { errors: [{ message: "Password required" }] }
+        if (user.password === "" || user.password.length < 3)
+            return { errors: [{ message: "Please, use OAuth provider" }] }
 
-        const isValid = await argon2.verify(user.password!, password)
+        const isValid = await argon2.verify(user.password, password)
         if (!isValid) return { errors: [{ message: "Invalid password" }] }
 
         req.session.userId = user.id
