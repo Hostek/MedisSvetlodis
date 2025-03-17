@@ -8,7 +8,6 @@ import { useIsAuth } from "@/hooks/isAuth"
 import { createUrqlClient } from "@/utils/createUrqlClient"
 import { Button } from "@heroui/react"
 import { NextPage } from "next"
-import { signOut } from "next-auth/react"
 import { withUrqlClient } from "next-urql"
 import Link from "next/link"
 import { useCallback, useEffect, useState } from "react"
@@ -47,7 +46,7 @@ const Page: NextPage = () => {
         [createMessage, content]
     )
 
-    const user = useIsAuth()
+    const { user } = useIsAuth()
 
     if (!user) {
         return null
@@ -56,7 +55,8 @@ const Page: NextPage = () => {
     return (
         <div className="bg-amber-950 text-red-400">
             <Link href="/login">login</Link>
-            <button onClick={() => signOut()}>logout</button>
+            <br />
+            <Link href="/logout">logout</Link>
             <div>fetching: {String(fetching)}</div>
             <div>queryFetching: {String(queryFetching)}</div>
             <form onSubmit={handleSubmit}>
