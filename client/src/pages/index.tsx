@@ -7,7 +7,8 @@ import {
 } from "@/generated/graphql"
 import { useIsAuth } from "@/hooks/isAuth"
 import { createUrqlClient } from "@/utils/createUrqlClient"
-import { Button } from "@heroui/react"
+import { formatUniversalDate } from "@/utils/formatTimestamp"
+import { Button, Card, CardBody, CardHeader } from "@heroui/react"
 import { NextPage } from "next"
 import { withUrqlClient } from "next-urql"
 import Link from "next/link"
@@ -67,10 +68,17 @@ const Page: NextPage = () => {
                 Messages:
                 <div>
                     {messages.map((msg) => (
-                        <div key={msg.id}>
-                            {msg.creator.username} posted this msg: |{" "}
-                            {msg.content}
-                        </div>
+                        <Card key={msg.id}>
+                            <CardHeader>
+                                <span>{msg.creator.username}</span>
+                                <span> – </span>
+                                <span>
+                                    {formatUniversalDate(msg.createdAt)} – 
+                                    {msg.createdAt}
+                                </span>
+                            </CardHeader>
+                            <CardBody>{msg.content}</CardBody>
+                        </Card>
                     ))}
                 </div>
             </div>
