@@ -8,7 +8,17 @@ import {
 import { useIsAuth } from "@/hooks/isAuth"
 import { createUrqlClient } from "@/utils/createUrqlClient"
 import { formatUniversalDate } from "@/utils/formatTimestamp"
-import { Button, Card, CardBody, CardHeader } from "@heroui/react"
+import {
+    Button,
+    Card,
+    CardBody,
+    CardHeader,
+    Form,
+    Input,
+    Navbar,
+    NavbarContent,
+    NavbarItem,
+} from "@heroui/react"
 import { NextPage } from "next"
 import { withUrqlClient } from "next-urql"
 import Link from "next/link"
@@ -20,6 +30,8 @@ const Page: NextPage = () => {
     const [{ fetching: queryFetching, data }] = useGetAllMessagesQuery()
     const [{ data: newMsgData }] = useMessageAddedSubscription()
     const { user } = useIsAuth()
+
+    console.log({ fetching, queryFetching })
 
     // Combine initial messages + subscription updates
     const [messages, setMessages] = useState<
@@ -55,45 +67,63 @@ const Page: NextPage = () => {
     }
 
     return (
-        <div className="bg-amber-950 text-red-400">
-            <Link href="/login">login</Link>
-            <br />
-            <Link href="/logout">logout</Link>
-            <br />
-            <div>u are: {user.username}</div>
-            <div>fetching: {String(fetching)}</div>
-            <div>queryFetching: {String(queryFetching)}</div>
-
-            <div>
-                Messages:
-                <div>
-                    {messages.map((msg) => (
-                        <Card key={msg.id}>
-                            <CardHeader>
-                                <span>{msg.creator.username}</span>
-                                <span> – </span>
-                                <span>
-                                    {formatUniversalDate(msg.createdAt)} – 
-                                    {msg.createdAt}
-                                </span>
-                            </CardHeader>
-                            <CardBody>{msg.content}</CardBody>
-                        </Card>
-                    ))}
+        <>
+            <Navbar className="flex justify-between items-center mb-4">
+                <NavbarContent className="text-foreground">
+                    <NavbarItem>
+                        <span className="font-medium">User: </span>
+                        {user.username}
+                    </NavbarItem>
+                </NavbarContent>
+                <NavbarContent justify="end">
+                    <NavbarItem>
+                        <Link href="/logout" color="danger">
+                            Logout
+                        </Link>
+                    </NavbarItem>
+                </NavbarContent>
+            </Navbar>
+            <div className="max-w-md mx-auto p-6 space-y-6">
+                <div className="space-y-4">
+                    <h2 className="text-lg font-medium text-foreground">
+                        Messages
+                    </h2>
+                    <div className="space-y-3">
+                        {messages.map((msg) => (
+                            <Card
+                                key={msg.id}
+                                shadow="sm"
+                                className="border-none"
+                            >
+                                <CardHeader className="flex justify-between pb-0">
+                                    <span className="font-bold text-foreground">
+                                        {msg.creator.username}
+                                    </span>
+                                    <span className="text-sm text-default-500">
+                                        {formatUniversalDate(msg.createdAt)}
+                                    </span>
+                                </CardHeader>
+                                <CardBody className="py-2">
+                                    {msg.content}
+                                </CardBody>
+                            </Card>
+                        ))}
+                    </div>
                 </div>
-            </div>
 
-            <form onSubmit={handleSubmit}>
-                Content msg:
-                <input
-                    value={content}
-                    onChange={(e) => setContent(e.currentTarget.value)}
-                />
-                <Button type="submit" color="primary">
-                    Submit
-                </Button>
-            </form>
-        </div>
+                <Form onSubmit={handleSubmit} className="space-y-4">
+                    <Input
+                        label="Message content"
+                        value={content}
+                        onChange={(e) => setContent(e.target.value)}
+                        fullWidth
+                    />
+                    <Button type="submit" color="primary" className="w-full">
+                        Submit
+                    </Button>
+                </Form>
+            </div>
+        </>
     )
 }
 
