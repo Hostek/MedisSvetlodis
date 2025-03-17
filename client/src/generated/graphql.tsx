@@ -105,6 +105,7 @@ export type CreateMessageMutation = { __typename?: 'Mutation', createMessage: bo
 export type LoginMutationVariables = Exact<{
   email: Scalars['String']['input'];
   oauthProof?: InputMaybe<Scalars['String']['input']>;
+  password?: InputMaybe<Scalars['String']['input']>;
 }>;
 
 
@@ -163,8 +164,8 @@ export function useCreateMessageMutation() {
   return Urql.useMutation<CreateMessageMutation, CreateMessageMutationVariables>(CreateMessageDocument);
 };
 export const LoginDocument = gql`
-    mutation Login($email: String!, $oauthProof: String) {
-  login(email: $email, oauthProof: $oauthProof) {
+    mutation Login($email: String!, $oauthProof: String, $password: String) {
+  login(email: $email, oauthProof: $oauthProof, password: $password) {
     user {
       ...UserFragment
     }

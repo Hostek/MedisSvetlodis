@@ -6,15 +6,49 @@ import Link from "next/link"
 import { GitHub } from "react-feather"
 import { signIn, signOut } from "next-auth/react"
 import { useRouter } from "next/router"
-import { useMemo } from "react"
+import { FormEventHandler, useCallback, useMemo, useState } from "react"
+import { useLoginMutation } from "@/generated/graphql"
+import { errors } from "@hostek/shared"
 
 function Page() {
+    const [password, setPassword] = useState("")
+    const [email, setEmail] = useState("")
+    // const [errors, setErrors] = useState({})
+
     const Router = useRouter()
 
+    const [loginError, setLoginError] = useState<string | null>(null)
+
     const error = useMemo<string | null>(() => {
+        if (loginError) return loginError
         if (typeof Router.query.error === "string") return Router.query.error
         return null
-    }, [Router])
+    }, [Router, loginError])
+
+    const [{ fetching }, login] = useLoginMutation()
+
+    const handleSubmit = useCallback<FormEventHandler<HTMLFormElement>>(
+        async (e) => {
+            e.preventDefault()
+
+            setLoginError(null)
+
+            const res = await login({ email, password })
+
+            if (!res.data) {
+                return setLoginError(errors.unknownError)
+            }
+
+            if (res.data.login.errors) {
+                return setLoginError(res.data.login.errors[0].message)
+            }
+
+            if (res.data.login.user) {
+                Router.push("/")
+            }
+        },
+        [login, setLoginError, email, password, Router]
+    )
 
     return (
         <div className="min-h-screen bg-gray-800 flex items-center justify-center p-4">
@@ -37,7 +71,7 @@ function Page() {
                     </p>
                 </div>
 
-                <Form className="space-y-4">
+                <Form className="space-y-4" onSubmit={handleSubmit}>
                     <div className="w-full">
                         <Input
                             id="email"
@@ -48,6 +82,8 @@ function Page() {
                             label="Email"
                             labelPlacement="outside"
                             fullWidth
+                            value={email}
+                            onValueChange={setEmail}
                         />
                     </div>
 
@@ -61,10 +97,17 @@ function Page() {
                             label="Password"
                             labelPlacement="outside"
                             fullWidth
+                            value={password}
+                            onValueChange={setPassword}
                         />
                     </div>
 
-                    <Button type="submit" className="w-full" color="primary">
+                    <Button
+                        type="submit"
+                        className="w-full"
+                        color="primary"
+                        disabled={fetching}
+                    >
                         Sign In
                     </Button>
 
