@@ -1,16 +1,21 @@
-"use client"
+import { useLogoutMutation } from "@/generated/graphql"
 import { createUrqlClient } from "@/utils/createUrqlClient"
 import { NextPage } from "next"
-import { signOut } from "next-auth/react"
 import { withUrqlClient } from "next-urql"
+import { useRouter } from "next/router"
+import { useEffect } from "react"
 
 const Page: NextPage = () => {
-    return (
-        <div>
-            Hello World!
-            <button onClick={() => signOut()}>logout</button>
-        </div>
-    )
+    const Router = useRouter()
+    const [, logout] = useLogoutMutation()
+
+    useEffect(() => {
+        logout({}).then(() => {
+            Router.replace("/login")
+        })
+    }, [Router, logout])
+
+    return null
 }
 
 export default withUrqlClient(createUrqlClient)(Page)

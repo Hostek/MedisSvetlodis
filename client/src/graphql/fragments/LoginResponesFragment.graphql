@@ -1,0 +1,8 @@
+fragment LoginResponseFragment on LoginResponse {
+    user {
+        ...UserFragment
+    }
+    errors {
+        ...ErrorFragment
+    }
+}

@@ -88,9 +88,15 @@ export type User = {
   username: Scalars['String']['output'];
 };
 
+export type CreatorFragmentFragment = { __typename?: 'User', username: string, id: number };
+
 export type ErrorFragmentFragment = { __typename?: 'FieldError', message: string };
 
+export type LoginResponseFragmentFragment = { __typename?: 'LoginResponse', user?: { __typename?: 'User', username: string, updatedAt: string, id: number, email: string, createdAt: string } | null, errors?: Array<{ __typename?: 'FieldError', message: string }> | null };
+
 export type MessageFragmentFragment = { __typename?: 'Message', content: string, createdAt: string, creatorId: number, id: number, updatedAt: string };
+
+export type MessageWithCreatorFragmentFragment = { __typename?: 'Message', content: string, createdAt: string, creatorId: number, id: number, updatedAt: string, creator: { __typename?: 'User', username: string, id: number } };
 
 export type UserFragmentFragment = { __typename?: 'User', username: string, updatedAt: string, id: number, email: string, createdAt: string };
 
@@ -105,6 +111,7 @@ export type CreateMessageMutation = { __typename?: 'Mutation', createMessage: bo
 export type LoginMutationVariables = Exact<{
   email: Scalars['String']['input'];
   oauthProof?: InputMaybe<Scalars['String']['input']>;
+  password?: InputMaybe<Scalars['String']['input']>;
 }>;
 
 
@@ -115,10 +122,18 @@ export type LogoutMutationVariables = Exact<{ [key: string]: never; }>;
 
 export type LogoutMutation = { __typename?: 'Mutation', logout: boolean };
 
+export type RegisterMutationVariables = Exact<{
+  password: Scalars['String']['input'];
+  email: Scalars['String']['input'];
+}>;
+
+
+export type RegisterMutation = { __typename?: 'Mutation', register: { __typename?: 'LoginResponse', user?: { __typename?: 'User', username: string, updatedAt: string, id: number, email: string, createdAt: string } | null, errors?: Array<{ __typename?: 'FieldError', message: string }> | null } };
+
 export type GetAllMessagesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetAllMessagesQuery = { __typename?: 'Query', getAllMessages: Array<{ __typename?: 'Message', content: string, createdAt: string, creatorId: number, id: number, updatedAt: string }> };
+export type GetAllMessagesQuery = { __typename?: 'Query', getAllMessages: Array<{ __typename?: 'Message', content: string, createdAt: string, creatorId: number, id: number, updatedAt: string, creator: { __typename?: 'User', username: string, id: number } }> };
 
 export type UserQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -128,22 +143,8 @@ export type UserQuery = { __typename?: 'Query', user?: { __typename?: 'User', us
 export type MessageAddedSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MessageAddedSubscription = { __typename?: 'Subscription', messageAdded: { __typename?: 'Message', content: string, createdAt: string, creatorId: number, id: number, updatedAt: string } };
+export type MessageAddedSubscription = { __typename?: 'Subscription', messageAdded: { __typename?: 'Message', content: string, createdAt: string, creatorId: number, id: number, updatedAt: string, creator: { __typename?: 'User', username: string, id: number } } };
 
-export const ErrorFragmentFragmentDoc = gql`
-    fragment ErrorFragment on FieldError {
-  message
-}
-    `;
-export const MessageFragmentFragmentDoc = gql`
-    fragment MessageFragment on Message {
-  content
-  createdAt
-  creatorId
-  id
-  updatedAt
-}
-    `;
 export const UserFragmentFragmentDoc = gql`
     fragment UserFragment on User {
   username
@@ -153,6 +154,46 @@ export const UserFragmentFragmentDoc = gql`
   createdAt
 }
     `;
+export const ErrorFragmentFragmentDoc = gql`
+    fragment ErrorFragment on FieldError {
+  message
+}
+    `;
+export const LoginResponseFragmentFragmentDoc = gql`
+    fragment LoginResponseFragment on LoginResponse {
+  user {
+    ...UserFragment
+  }
+  errors {
+    ...ErrorFragment
+  }
+}
+    ${UserFragmentFragmentDoc}
+${ErrorFragmentFragmentDoc}`;
+export const MessageFragmentFragmentDoc = gql`
+    fragment MessageFragment on Message {
+  content
+  createdAt
+  creatorId
+  id
+  updatedAt
+}
+    `;
+export const CreatorFragmentFragmentDoc = gql`
+    fragment CreatorFragment on User {
+  username
+  id
+}
+    `;
+export const MessageWithCreatorFragmentFragmentDoc = gql`
+    fragment MessageWithCreatorFragment on Message {
+  ...MessageFragment
+  creator {
+    ...CreatorFragment
+  }
+}
+    ${MessageFragmentFragmentDoc}
+${CreatorFragmentFragmentDoc}`;
 export const CreateMessageDocument = gql`
     mutation CreateMessage($content: String!, $creatorId: Int!) {
   createMessage(content: $content, creatorId: $creatorId)
@@ -163,18 +204,12 @@ export function useCreateMessageMutation() {
   return Urql.useMutation<CreateMessageMutation, CreateMessageMutationVariables>(CreateMessageDocument);
 };
 export const LoginDocument = gql`
-    mutation Login($email: String!, $oauthProof: String) {
-  login(email: $email, oauthProof: $oauthProof) {
-    user {
-      ...UserFragment
-    }
-    errors {
-      ...ErrorFragment
-    }
+    mutation Login($email: String!, $oauthProof: String, $password: String) {
+  login(email: $email, oauthProof: $oauthProof, password: $password) {
+    ...LoginResponseFragment
   }
 }
-    ${UserFragmentFragmentDoc}
-${ErrorFragmentFragmentDoc}`;
+    ${LoginResponseFragmentFragmentDoc}`;
 
 export function useLoginMutation() {
   return Urql.useMutation<LoginMutation, LoginMutationVariables>(LoginDocument);
@@ -188,13 +223,24 @@ export const LogoutDocument = gql`
 export function useLogoutMutation() {
   return Urql.useMutation<LogoutMutation, LogoutMutationVariables>(LogoutDocument);
 };
+export const RegisterDocument = gql`
+    mutation Register($password: String!, $email: String!) {
+  register(password: $password, email: $email) {
+    ...LoginResponseFragment
+  }
+}
+    ${LoginResponseFragmentFragmentDoc}`;
+
+export function useRegisterMutation() {
+  return Urql.useMutation<RegisterMutation, RegisterMutationVariables>(RegisterDocument);
+};
 export const GetAllMessagesDocument = gql`
     query GetAllMessages {
   getAllMessages {
-    ...MessageFragment
+    ...MessageWithCreatorFragment
   }
 }
-    ${MessageFragmentFragmentDoc}`;
+    ${MessageWithCreatorFragmentFragmentDoc}`;
 
 export function useGetAllMessagesQuery(options?: Omit<Urql.UseQueryArgs<GetAllMessagesQueryVariables>, 'query'>) {
   return Urql.useQuery<GetAllMessagesQuery, GetAllMessagesQueryVariables>({ query: GetAllMessagesDocument, ...options });
@@ -213,10 +259,10 @@ export function useUserQuery(options?: Omit<Urql.UseQueryArgs<UserQueryVariables
 export const MessageAddedDocument = gql`
     subscription MessageAdded {
   messageAdded {
-    ...MessageFragment
+    ...MessageWithCreatorFragment
   }
 }
-    ${MessageFragmentFragmentDoc}`;
+    ${MessageWithCreatorFragmentFragmentDoc}`;
 
 export function useMessageAddedSubscription<TData = MessageAddedSubscription>(options?: Omit<Urql.UseSubscriptionArgs<MessageAddedSubscriptionVariables>, 'query'>, handler?: Urql.SubscriptionHandler<MessageAddedSubscription, TData>) {
   return Urql.useSubscription<MessageAddedSubscription, TData, MessageAddedSubscriptionVariables>({ query: MessageAddedDocument, ...options }, handler);

@@ -1,5 +1,5 @@
-// pages/login.tsx
-import { useLoginMutation } from "@/generated/graphql"
+// pages/register.tsx
+import { useRegisterMutation } from "@/generated/graphql"
 import { createUrqlClient } from "@/utils/createUrqlClient"
 import { Button, Card, Form, Input } from "@heroui/react"
 import { errors } from "@hostek/shared"
@@ -12,42 +12,44 @@ import { GitHub } from "react-feather"
 
 function Page() {
     const [password, setPassword] = useState("")
+    const [passwordVerify, setPasswordVerify] = useState("")
     const [email, setEmail] = useState("")
-    // const [errors, setErrors] = useState({})
+    const [registerError, setRegisterError] = useState<string | null>(null)
 
     const Router = useRouter()
 
-    const [loginError, setLoginError] = useState<string | null>(null)
-
     const error = useMemo<string | null>(() => {
-        if (loginError) return loginError
+        if (registerError) return registerError
         if (typeof Router.query.error === "string") return Router.query.error
         return null
-    }, [Router, loginError])
+    }, [Router, registerError])
 
-    const [{ fetching }, login] = useLoginMutation()
+    const [{ fetching }, register] = useRegisterMutation()
 
     const handleSubmit = useCallback<FormEventHandler<HTMLFormElement>>(
         async (e) => {
             e.preventDefault()
+            setRegisterError(null)
 
-            setLoginError(null)
+            if (password !== passwordVerify) {
+                return setRegisterError("Passwords do not match!")
+            }
 
-            const res = await login({ email, password })
+            const res = await register({ email, password })
 
             if (!res.data) {
-                return setLoginError(errors.unknownError)
+                return setRegisterError(errors.unknownError)
             }
 
-            if (res.data.login.errors) {
-                return setLoginError(res.data.login.errors[0].message)
+            if (res.data.register.errors) {
+                return setRegisterError(res.data.register.errors[0].message)
             }
 
-            if (res.data.login.user) {
+            if (res.data.register.user) {
                 Router.push("/")
             }
         },
-        [login, setLoginError, email, password, Router]
+        [register, setRegisterError, email, password, Router, passwordVerify]
     )
 
     return (
@@ -55,11 +57,9 @@ function Page() {
             <Card className="w-full max-w-md p-8 space-y-6">
                 <div className="text-center">
                     <h1 className="text-3xl font-bold text-white">
-                        Welcome Back
+                        Create an Account
                     </h1>
-                    <p className="mt-2 text-gray-600">
-                        Sign in to your account
-                    </p>
+                    <p className="mt-2 text-gray-600">Sign up to get started</p>
                 </div>
 
                 <Form className="space-y-4" onSubmit={handleSubmit}>
@@ -93,13 +93,28 @@ function Page() {
                         />
                     </div>
 
+                    <div className="w-full">
+                        <Input
+                            id="verify-password"
+                            type="password"
+                            placeholder="••••••••"
+                            className="mt-1"
+                            isRequired
+                            label="Repeat Password"
+                            labelPlacement="outside"
+                            fullWidth
+                            value={passwordVerify}
+                            onValueChange={setPasswordVerify}
+                        />
+                    </div>
+
                     <Button
                         type="submit"
                         className="w-full"
                         color="primary"
                         disabled={fetching}
                     >
-                        Sign In
+                        Sign Up
                     </Button>
 
                     {error && (
@@ -128,16 +143,16 @@ function Page() {
                     }}
                 >
                     <GitHub />
-                    Login with GitHub
+                    Sign up with GitHub
                 </Button>
 
                 <p className="text-center text-sm text-gray-600">
-                    Don&apos;t have an account?{" "}
+                    Already have an account?{" "}
                     <Link
-                        href="/register"
+                        href="/login"
                         className="font-medium text-primary-600 hover:text-primary-500"
                     >
-                        Sign up
+                        Sign in
                     </Link>
                 </p>
             </Card>

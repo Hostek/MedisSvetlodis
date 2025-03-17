@@ -1,24 +1,41 @@
 "use client"
 import {
+    MessageWithCreatorFragmentFragment,
     useCreateMessageMutation,
     useGetAllMessagesQuery,
     useMessageAddedSubscription,
 } from "@/generated/graphql"
+import { useIsAuth } from "@/hooks/isAuth"
 import { createUrqlClient } from "@/utils/createUrqlClient"
+import { formatUniversalDate } from "@/utils/formatTimestamp"
+import {
+    Button,
+    Card,
+    CardBody,
+    CardHeader,
+    Form,
+    Input,
+    Navbar,
+    NavbarContent,
+    NavbarItem,
+} from "@heroui/react"
 import { NextPage } from "next"
 import { withUrqlClient } from "next-urql"
+import Link from "next/link"
 import { useCallback, useEffect, useState } from "react"
-import { Button } from "@heroui/react"
 
 const Page: NextPage = () => {
     const [content, setContent] = useState("")
     const [{ fetching }, createMessage] = useCreateMessageMutation()
     const [{ fetching: queryFetching, data }] = useGetAllMessagesQuery()
     const [{ data: newMsgData }] = useMessageAddedSubscription()
+    const { user } = useIsAuth()
+
+    console.log({ fetching, queryFetching })
 
     // Combine initial messages + subscription updates
     const [messages, setMessages] = useState<
-        Array<{ id: number; content: string }>
+        MessageWithCreatorFragmentFragment[]
     >([])
 
     // Initialize with data from the initial query
@@ -38,36 +55,75 @@ const Page: NextPage = () => {
     const handleSubmit = useCallback<React.FormEventHandler<HTMLFormElement>>(
         async (e) => {
             e.preventDefault()
-            await createMessage({ content, creatorId: 1 })
+            if (!user) return
+            await createMessage({ content, creatorId: user.id })
             setContent("") // Clear input after submission
         },
-        [createMessage, content]
+        [createMessage, content, user]
     )
 
-    return (
-        <div className="bg-amber-950 text-red-400">
-            <div>fetching: {String(fetching)}</div>
-            <div>queryFetching: {String(queryFetching)}</div>
-            <form onSubmit={handleSubmit}>
-                Content msg:
-                <input
-                    value={content}
-                    onChange={(e) => setContent(e.currentTarget.value)}
-                />
-                <Button type="submit" color="primary">
-                    Submit
-                </Button>
-            </form>
+    if (!user) {
+        return null
+    }
 
-            <div>
-                Messages:
-                <div>
-                    {messages.map((msg) => (
-                        <div key={msg.id}>{msg.content}</div>
-                    ))}
+    return (
+        <>
+            <Navbar className="flex justify-center items-center mb-4">
+                <NavbarContent className="text-foreground">
+                    <NavbarItem>
+                        <span className="font-medium">User: </span>
+                        {user.username}
+                    </NavbarItem>
+                </NavbarContent>
+                <NavbarContent justify="end">
+                    <NavbarItem>
+                        <Link href="/logout" color="danger">
+                            Logout
+                        </Link>
+                    </NavbarItem>
+                </NavbarContent>
+            </Navbar>
+            <div className="max-w-screen-md mx-auto p-6 space-y-6">
+                <div className="space-y-4">
+                    <h2 className="text-lg font-medium text-foreground">
+                        Messages
+                    </h2>
+                    <div className="space-y-3">
+                        {messages.map((msg) => (
+                            <Card
+                                key={msg.id}
+                                shadow="sm"
+                                className="border-none"
+                            >
+                                <CardHeader className="flex justify-between pb-0">
+                                    <span className="font-bold text-foreground">
+                                        {msg.creator.username}
+                                    </span>
+                                    <span className="text-sm text-default-500">
+                                        {formatUniversalDate(msg.createdAt)}
+                                    </span>
+                                </CardHeader>
+                                <CardBody className="py-2">
+                                    {msg.content}
+                                </CardBody>
+                            </Card>
+                        ))}
+                    </div>
                 </div>
+
+                <Form onSubmit={handleSubmit} className="space-y-4">
+                    <Input
+                        label="Message content"
+                        value={content}
+                        onChange={(e) => setContent(e.target.value)}
+                        fullWidth
+                    />
+                    <Button type="submit" color="primary" className="w-full">
+                        Submit
+                    </Button>
+                </Form>
             </div>
-        </div>
+        </>
     )
 }
 

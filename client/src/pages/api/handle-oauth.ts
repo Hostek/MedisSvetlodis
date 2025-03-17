@@ -1,6 +1,11 @@
 import { NextApiRequest, NextApiResponse } from "next"
 import { print } from "graphql/language/printer"
-import { LoginDocument, LoginMutationVariables } from "@/generated/graphql"
+import {
+    LoginDocument,
+    LoginMutationVariables,
+    useLoginMutation,
+} from "@/generated/graphql"
+import { errors } from "@hostek/shared"
 
 type Data = {
     name: string
@@ -34,19 +39,29 @@ export default async function handler(
         credentials: "include",
     })
 
-    console.log({ response })
+    // console.log({ response })
 
     // Handle errors
     if (response.status !== 200) {
         return res.redirect("/login?error=oauth_failed")
     }
 
-    const { data } = await response.json()
+    const r = (await response.json()) as ReturnType<typeof useLoginMutation>[0]
 
-    console.log({ errors: data.login.errors })
+    const data = r.data
+
+    // console.log({ errors: data.login.errors })
+
+    if (!data) {
+        return res.redirect(
+            `/login?error=${encodeURIComponent(errors.unknownError)}`
+        )
+    }
 
     if (data.login.errors) {
-        return res.redirect("/login?error=oauth_failed")
+        return res.redirect(
+            `/login?error=${encodeURIComponent(data.login.errors[0].message)}`
+        )
     }
 
     // Extract the session cookie from GraphQL response
