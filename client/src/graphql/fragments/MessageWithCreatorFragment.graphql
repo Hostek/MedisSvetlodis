@@ -1,0 +1,6 @@
+fragment MessageWithCreatorFragment on Message {
+    ...MessageFragment
+    creator {
+        ...CreatorFragment
+    }
+}

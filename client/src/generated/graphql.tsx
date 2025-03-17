@@ -88,11 +88,15 @@ export type User = {
   username: Scalars['String']['output'];
 };
 
+export type CreatorFragmentFragment = { __typename?: 'User', username: string, id: number };
+
 export type ErrorFragmentFragment = { __typename?: 'FieldError', message: string };
 
 export type LoginResponseFragmentFragment = { __typename?: 'LoginResponse', user?: { __typename?: 'User', username: string, updatedAt: string, id: number, email: string, createdAt: string } | null, errors?: Array<{ __typename?: 'FieldError', message: string }> | null };
 
 export type MessageFragmentFragment = { __typename?: 'Message', content: string, createdAt: string, creatorId: number, id: number, updatedAt: string };
+
+export type MessageWithCreatorFragmentFragment = { __typename?: 'Message', content: string, createdAt: string, creatorId: number, id: number, updatedAt: string, creator: { __typename?: 'User', username: string, id: number } };
 
 export type UserFragmentFragment = { __typename?: 'User', username: string, updatedAt: string, id: number, email: string, createdAt: string };
 
@@ -129,7 +133,7 @@ export type RegisterMutation = { __typename?: 'Mutation', register: { __typename
 export type GetAllMessagesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetAllMessagesQuery = { __typename?: 'Query', getAllMessages: Array<{ __typename?: 'Message', content: string, createdAt: string, creatorId: number, id: number, updatedAt: string }> };
+export type GetAllMessagesQuery = { __typename?: 'Query', getAllMessages: Array<{ __typename?: 'Message', content: string, createdAt: string, creatorId: number, id: number, updatedAt: string, creator: { __typename?: 'User', username: string, id: number } }> };
 
 export type UserQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -139,7 +143,7 @@ export type UserQuery = { __typename?: 'Query', user?: { __typename?: 'User', us
 export type MessageAddedSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MessageAddedSubscription = { __typename?: 'Subscription', messageAdded: { __typename?: 'Message', content: string, createdAt: string, creatorId: number, id: number, updatedAt: string } };
+export type MessageAddedSubscription = { __typename?: 'Subscription', messageAdded: { __typename?: 'Message', content: string, createdAt: string, creatorId: number, id: number, updatedAt: string, creator: { __typename?: 'User', username: string, id: number } } };
 
 export const UserFragmentFragmentDoc = gql`
     fragment UserFragment on User {
@@ -175,6 +179,21 @@ export const MessageFragmentFragmentDoc = gql`
   updatedAt
 }
     `;
+export const CreatorFragmentFragmentDoc = gql`
+    fragment CreatorFragment on User {
+  username
+  id
+}
+    `;
+export const MessageWithCreatorFragmentFragmentDoc = gql`
+    fragment MessageWithCreatorFragment on Message {
+  ...MessageFragment
+  creator {
+    ...CreatorFragment
+  }
+}
+    ${MessageFragmentFragmentDoc}
+${CreatorFragmentFragmentDoc}`;
 export const CreateMessageDocument = gql`
     mutation CreateMessage($content: String!, $creatorId: Int!) {
   createMessage(content: $content, creatorId: $creatorId)
@@ -218,10 +237,10 @@ export function useRegisterMutation() {
 export const GetAllMessagesDocument = gql`
     query GetAllMessages {
   getAllMessages {
-    ...MessageFragment
+    ...MessageWithCreatorFragment
   }
 }
-    ${MessageFragmentFragmentDoc}`;
+    ${MessageWithCreatorFragmentFragmentDoc}`;
 
 export function useGetAllMessagesQuery(options?: Omit<Urql.UseQueryArgs<GetAllMessagesQueryVariables>, 'query'>) {
   return Urql.useQuery<GetAllMessagesQuery, GetAllMessagesQueryVariables>({ query: GetAllMessagesDocument, ...options });
@@ -240,10 +259,10 @@ export function useUserQuery(options?: Omit<Urql.UseQueryArgs<UserQueryVariables
 export const MessageAddedDocument = gql`
     subscription MessageAdded {
   messageAdded {
-    ...MessageFragment
+    ...MessageWithCreatorFragment
   }
 }
-    ${MessageFragmentFragmentDoc}`;
+    ${MessageWithCreatorFragmentFragmentDoc}`;
 
 export function useMessageAddedSubscription<TData = MessageAddedSubscription>(options?: Omit<Urql.UseSubscriptionArgs<MessageAddedSubscriptionVariables>, 'query'>, handler?: Urql.SubscriptionHandler<MessageAddedSubscription, TData>) {
   return Urql.useSubscription<MessageAddedSubscription, TData, MessageAddedSubscriptionVariables>({ query: MessageAddedDocument, ...options }, handler);

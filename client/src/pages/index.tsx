@@ -1,5 +1,6 @@
 "use client"
 import {
+    MessageWithCreatorFragmentFragment,
     useCreateMessageMutation,
     useGetAllMessagesQuery,
     useMessageAddedSubscription,
@@ -17,10 +18,11 @@ const Page: NextPage = () => {
     const [{ fetching }, createMessage] = useCreateMessageMutation()
     const [{ fetching: queryFetching, data }] = useGetAllMessagesQuery()
     const [{ data: newMsgData }] = useMessageAddedSubscription()
+    const { user } = useIsAuth()
 
     // Combine initial messages + subscription updates
     const [messages, setMessages] = useState<
-        Array<{ id: number; content: string }>
+        MessageWithCreatorFragmentFragment[]
     >([])
 
     // Initialize with data from the initial query
@@ -40,13 +42,12 @@ const Page: NextPage = () => {
     const handleSubmit = useCallback<React.FormEventHandler<HTMLFormElement>>(
         async (e) => {
             e.preventDefault()
-            await createMessage({ content, creatorId: 1 })
+            if (!user) return
+            await createMessage({ content, creatorId: user.id })
             setContent("") // Clear input after submission
         },
-        [createMessage, content]
+        [createMessage, content, user]
     )
-
-    const { user } = useIsAuth()
 
     if (!user) {
         return null
@@ -57,8 +58,23 @@ const Page: NextPage = () => {
             <Link href="/login">login</Link>
             <br />
             <Link href="/logout">logout</Link>
+            <br />
+            <div>u are: {user.username}</div>
             <div>fetching: {String(fetching)}</div>
             <div>queryFetching: {String(queryFetching)}</div>
+
+            <div>
+                Messages:
+                <div>
+                    {messages.map((msg) => (
+                        <div key={msg.id}>
+                            {msg.creator.username} posted this msg: |{" "}
+                            {msg.content}
+                        </div>
+                    ))}
+                </div>
+            </div>
+
             <form onSubmit={handleSubmit}>
                 Content msg:
                 <input
@@ -69,15 +85,6 @@ const Page: NextPage = () => {
                     Submit
                 </Button>
             </form>
-
-            <div>
-                Messages:
-                <div>
-                    {messages.map((msg) => (
-                        <div key={msg.id}>{msg.content}</div>
-                    ))}
-                </div>
-            </div>
         </div>
     )
 }
