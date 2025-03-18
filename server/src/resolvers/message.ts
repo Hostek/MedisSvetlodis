@@ -8,12 +8,15 @@ import {
     Resolver,
     Root,
     Subscription,
+    UseMiddleware,
 } from "type-graphql"
 import { errors } from "@hostek/shared"
+import { isAuth } from "../middleware/isAuth.js"
 
 @Resolver()
 export class MessageResolver {
     @Query(() => [Message])
+    @UseMiddleware(isAuth)
     async getAllMessages(): Promise<Message[]> {
         const res = await Message.createQueryBuilder("m")
             .leftJoinAndSelect("m.creator", "creator")
@@ -23,6 +26,7 @@ export class MessageResolver {
     }
 
     @Mutation(() => Boolean)
+    @UseMiddleware(isAuth)
     async createMessage(
         @Arg("creatorId", () => Int) creatorId: number,
         @Arg("content") content: string
@@ -61,6 +65,7 @@ export class MessageResolver {
         // For dynamic topics, use: topics: ({ args }) => `MESSAGE_ADDED_${args.channel}`
         // filter: ({ payload, args }) => args.channel === payload.channelId, // Optional filtering
     })
+    @UseMiddleware(isAuth)
     messageAdded(
         @Root() messagePayload: Message
         // @Args() args: { channel: string } // Optional arguments
