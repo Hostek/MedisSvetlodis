@@ -1,4 +1,6 @@
+import { getEmailError, getPasswordError } from "@hostek/shared"
 import { EmailRegex, UsernameRegex, errors } from "../constants.js"
+// import { LoginResponse } from "../types.js"
 
 export function validateEmailAndPassword(password: string, email: string) {
     if (email.length > 250) {
@@ -48,4 +50,22 @@ export function validateEmailAndPasswordAndUsername(
     }
 
     return -1
+}
+
+// use regex... (...)
+
+export function verifyEmailAndPassword(
+    email: string,
+    password: string | null
+): string | null {
+    let tmp_x: string | null = null
+    if (password) {
+        tmp_x = getPasswordError(password)
+        if (tmp_x) return tmp_x
+    }
+
+    tmp_x = getEmailError(email)
+    if (tmp_x) return tmp_x
+
+    return null
 }

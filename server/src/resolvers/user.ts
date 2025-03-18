@@ -4,6 +4,7 @@ import { Arg, Ctx, Mutation, Query, Resolver } from "type-graphql"
 import { COOKIE_NAME } from "../constants.js"
 import { User } from "../entities/User.js"
 import { LoginResponse, MyContext } from "../types.js"
+import { verifyEmailAndPassword } from "../utils/validateEmailAndPassword.js"
 
 @Resolver()
 export class UserResolver {
@@ -66,6 +67,11 @@ export class UserResolver {
         @Arg("password", { nullable: true }) password: string,
         @Ctx() { req }: MyContext
     ): Promise<LoginResponse> {
+        const areErrors = verifyEmailAndPassword(email, password)
+        if (areErrors) {
+            return { errors: [{ message: areErrors }] }
+        }
+
         let user = await User.findOne({ where: { email } })
 
         // Handle OAuth flow
@@ -128,6 +134,11 @@ export class UserResolver {
         @Arg("password") password: string,
         @Ctx() { req }: MyContext
     ): Promise<LoginResponse> {
+        const areErrors = verifyEmailAndPassword(email, password)
+        if (areErrors) {
+            return { errors: [{ message: areErrors }] }
+        }
+
         try {
             const user = await this.registerUser({
                 email,
