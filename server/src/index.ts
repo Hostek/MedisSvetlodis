@@ -1,23 +1,23 @@
 import { ApolloServer } from "@apollo/server"
 import { expressMiddleware } from "@apollo/server/express4"
+import { ApolloServerPluginDrainHttpServer } from "@apollo/server/plugin/drainHttpServer"
+import RedisStore from "connect-redis"
 import cors from "cors"
 import "dotenv-safe/config.js"
 import express from "express"
 import session from "express-session"
-import RedisStore from "connect-redis"
+import { useServer } from "graphql-ws/use/ws"
+import { createServer } from "http"
 import "reflect-metadata"
 import { buildSchema } from "type-graphql"
+import { WebSocketServer } from "ws"
 import { COOKIE_NAME, isInProduction, TEN_YEARS } from "./constants.js"
 import { AppDataSource, redisClient } from "./DataSource.js"
-import { HelloResolver } from "./resolvers/hello.js"
-import { UserResolver } from "./resolvers/user.js"
-import { MessageResolver } from "./resolvers/message.js"
-import { createServer } from "http"
-import { ApolloServerPluginDrainHttpServer } from "@apollo/server/plugin/drainHttpServer"
-import { WebSocketServer } from "ws"
-import { useServer } from "graphql-ws/use/ws"
 import { pubSub } from "./pubSub.js"
-import { RateLimiterRedis } from "rate-limiter-flexible"
+import { generalRateLimiter } from "./rateLimiters.js"
+import { HelloResolver } from "./resolvers/hello.js"
+import { MessageResolver } from "./resolvers/message.js"
+import { UserResolver } from "./resolvers/user.js"
 
 await AppDataSource.initialize()
 
@@ -93,15 +93,6 @@ const getClientIdentifier = (req: express.Request): string => {
     // 4. Ultimate fallback for rare cases
     return "unknown-ip"
 }
-
-// General rate limiter for all GraphQL requests
-const generalRateLimiter = new RateLimiterRedis({
-    storeClient: redisClient,
-    keyPrefix: "graphql_general",
-    points: 300, // requests
-    duration: 15 * 60, // 15 minutes
-    blockDuration: 15 * 60, // Block for 15 minutes if exceeded
-})
 
 const generalLimiterMiddleware = async (
     req: express.Request,

@@ -19,6 +19,7 @@ import {
     NavbarContent,
     NavbarItem,
 } from "@heroui/react"
+import { getMessageError } from "@hostek/shared"
 import { NextPage } from "next"
 import { withUrqlClient } from "next-urql"
 import Link from "next/link"
@@ -26,6 +27,7 @@ import { useCallback, useEffect, useState } from "react"
 
 const Page: NextPage = () => {
     const [content, setContent] = useState("")
+    const [error, setError] = useState("")
     const [{ fetching }, createMessage] = useCreateMessageMutation()
     const [{ fetching: queryFetching, data }] = useGetAllMessagesQuery()
     const [{ data: newMsgData }] = useMessageAddedSubscription()
@@ -55,9 +57,17 @@ const Page: NextPage = () => {
     const handleSubmit = useCallback<React.FormEventHandler<HTMLFormElement>>(
         async (e) => {
             e.preventDefault()
+
             if (!user) return
+
+            const msg_errors = getMessageError(content)
+            if (msg_errors) {
+                setError(msg_errors)
+                return
+            }
+
             await createMessage({ content, creatorId: user.id })
-            setContent("") // Clear input after submission
+            setContent("")
         },
         [createMessage, content, user]
     )
@@ -118,6 +128,11 @@ const Page: NextPage = () => {
                         onChange={(e) => setContent(e.target.value)}
                         fullWidth
                     />
+                    {error && (
+                        <div className="w-full text-red-500">
+                            Error: {error}
+                        </div>
+                    )}
                     <Button type="submit" color="primary" className="w-full">
                         Submit
                     </Button>

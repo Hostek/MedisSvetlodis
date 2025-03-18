@@ -1,6 +1,15 @@
 import { RateLimiterRedis } from "rate-limiter-flexible"
 import { redisClient } from "./DataSource.js"
 
+// General rate limiter for all GraphQL requests
+export const generalRateLimiter = new RateLimiterRedis({
+    storeClient: redisClient,
+    keyPrefix: "graphql_general",
+    points: 300, // requests
+    duration: 15 * 60, // 15 minutes
+    blockDuration: 15 * 60, // Block for 15 minutes if exceeded
+})
+
 export const loginRateLimiter = new RateLimiterRedis({
     storeClient: redisClient,
     keyPrefix: "login_attempts",

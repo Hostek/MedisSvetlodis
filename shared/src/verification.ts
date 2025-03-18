@@ -1,6 +1,7 @@
 import {
     EmailRegex,
     errors,
+    MAX_MESSAGE_LENGTH,
     PASSWORD_MIN_LENGTH,
     PasswordRegex,
 } from "./constants"
@@ -19,6 +20,14 @@ export const getPasswordError = (value: string) => {
 export const getEmailError = (value: string) => {
     if (!EmailRegex.test(value)) {
         return errors.badEmail
+    }
+
+    return null
+}
+
+export const getMessageError = (value: string) => {
+    if (value.length > MAX_MESSAGE_LENGTH) {
+        return errors.tooLongMessage
     }
 
     return null

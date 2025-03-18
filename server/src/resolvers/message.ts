@@ -10,7 +10,7 @@ import {
     Subscription,
     UseMiddleware,
 } from "type-graphql"
-import { errors } from "@hostek/shared"
+import { errors, getMessageError } from "@hostek/shared"
 import { isAuth } from "../middleware/isAuth.js"
 
 @Resolver()
@@ -31,6 +31,11 @@ export class MessageResolver {
         @Arg("creatorId", () => Int) creatorId: number,
         @Arg("content") content: string
     ) {
+        const msg_error = getMessageError(content)
+        if (msg_error) {
+            return false
+        }
+
         const insertResult = await Message.createQueryBuilder()
             .insert()
             .into(Message)
