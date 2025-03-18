@@ -1,5 +1,6 @@
 // pages/login.tsx
 import { useLoginMutation } from "@/generated/graphql"
+import { useIsNotAuth } from "@/hooks/useIsNotAuth"
 import { FormErrors } from "@/types"
 import { createUrqlClient } from "@/utils/createUrqlClient"
 import { NormalizeError } from "@/utils/normalizeError"
@@ -13,6 +14,8 @@ import { FormEventHandler, useCallback, useMemo, useState } from "react"
 import { GitHub } from "react-feather"
 
 function Page() {
+    useIsNotAuth()
+
     const [password, setPassword] = useState("")
     const [email, setEmail] = useState("")
     // const [errors, setErrors] = useState({})
