@@ -1,5 +1,15 @@
+export const PASSWORD_MIN_LENGTH = 8
+export const MAX_MESSAGE_LENGTH = 2000
+
 export const errors = {
     unknownError: "Unknown Error",
+    passwordTooShort: `Password should be atleast ${PASSWORD_MIN_LENGTH} characters long`,
+    badPassword: "This password is not allowed",
+    badEmail: "Incorrect email",
+    passwordMismatch: "Passwords do not match",
+    tooManyRequests: "Too many login attempts. Please try again later.",
+    tooLongMessage: `Message cannot be longer than ${MAX_MESSAGE_LENGTH} characters`,
+    messageNotEmpty: "Message shouldn't be empty",
 }
 
 export const EmailRegex =

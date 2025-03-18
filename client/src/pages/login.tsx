@@ -1,19 +1,25 @@
 // pages/login.tsx
+import ContinueWith from "@/components/login/ContinueWith"
+import OAuthButtons from "@/components/OAuthButtons"
 import { useLoginMutation } from "@/generated/graphql"
+import { useIsNotAuth } from "@/hooks/useIsNotAuth"
+import { FormErrors } from "@/types"
 import { createUrqlClient } from "@/utils/createUrqlClient"
+import { NormalizeError } from "@/utils/normalizeError"
 import { Button, Card, Form, Input } from "@heroui/react"
-import { errors } from "@hostek/shared"
-import { signIn } from "next-auth/react"
+import { errors, getEmailError, getPasswordError } from "@hostek/shared"
 import { withUrqlClient } from "next-urql"
 import Link from "next/link"
 import { useRouter } from "next/router"
 import { FormEventHandler, useCallback, useMemo, useState } from "react"
-import { GitHub } from "react-feather"
 
 function Page() {
+    useIsNotAuth()
+
     const [password, setPassword] = useState("")
     const [email, setEmail] = useState("")
     // const [errors, setErrors] = useState({})
+    const [form_errors, setFormErrors] = useState<FormErrors>({})
 
     const Router = useRouter()
 
@@ -32,6 +38,27 @@ function Page() {
             e.preventDefault()
 
             setLoginError(null)
+            setFormErrors({})
+
+            const newErrors: FormErrors = {}
+            const passwordError = getPasswordError(password)
+
+            if (passwordError) {
+                newErrors.password = passwordError
+            }
+
+            const emailError = getEmailError(email)
+            if (emailError) {
+                newErrors.email = emailError
+            }
+
+            const newErrorsKeys = Object.keys(newErrors)
+            if (newErrorsKeys.length > 0) {
+                setFormErrors(newErrors)
+                setLoginError(NormalizeError(newErrors[newErrorsKeys[0]]))
+
+                return
+            }
 
             const res = await login({ email, password })
 
@@ -44,6 +71,7 @@ function Page() {
             }
 
             if (res.data.login.user) {
+                setFormErrors({})
                 Router.push("/")
             }
         },
@@ -62,7 +90,11 @@ function Page() {
                     </p>
                 </div>
 
-                <Form className="space-y-4" onSubmit={handleSubmit}>
+                <Form
+                    className="space-y-4"
+                    onSubmit={handleSubmit}
+                    validationErrors={form_errors}
+                >
                     <div className="w-full">
                         <Input
                             id="email"
@@ -90,6 +122,7 @@ function Page() {
                             fullWidth
                             value={password}
                             onValueChange={setPassword}
+                            errorMessage={getPasswordError(password)}
                         />
                     </div>
 
@@ -109,27 +142,9 @@ function Page() {
                     )}
                 </Form>
 
-                <div className="relative">
-                    <div className="absolute inset-0 flex items-center">
-                        <div className="w-full border-t border-gray-300"></div>
-                    </div>
-                    <div className="relative flex justify-center text-sm">
-                        <span className="px-2 bg-slate-950 text-gray-500">
-                            Or continue with
-                        </span>
-                    </div>
-                </div>
+                <ContinueWith />
 
-                <Button
-                    className="w-full"
-                    variant="bordered"
-                    onPress={() => {
-                        signIn("github")
-                    }}
-                >
-                    <GitHub />
-                    Login with GitHub
-                </Button>
+                <OAuthButtons />
 
                 <p className="text-center text-sm text-gray-600">
                     Don&apos;t have an account?{" "}

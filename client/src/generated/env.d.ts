@@ -7,6 +7,8 @@ declare global {
       GITHUB_ID: string;
       OAUTH_PROOF_SECRET: string;
       NEXTAUTH_SECRET: string;
+      GITLAB_ID: string;
+      GITLAB_SECRET: string;
     }
   }
 }

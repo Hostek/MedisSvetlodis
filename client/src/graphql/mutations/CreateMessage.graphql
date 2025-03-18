@@ -1,3 +1,5 @@
 mutation CreateMessage($content: String!, $creatorId: Int!) {
-    createMessage(content: $content, creatorId: $creatorId)
+    createMessage(content: $content, creatorId: $creatorId) {
+        ...ErrorFragment
+    }
 }

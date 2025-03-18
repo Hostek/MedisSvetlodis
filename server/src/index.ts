@@ -1,24 +1,23 @@
 import { ApolloServer } from "@apollo/server"
 import { expressMiddleware } from "@apollo/server/express4"
+import { ApolloServerPluginDrainHttpServer } from "@apollo/server/plugin/drainHttpServer"
+import RedisStore from "connect-redis"
 import cors from "cors"
 import "dotenv-safe/config.js"
 import express from "express"
 import session from "express-session"
-import RedisStore from "connect-redis"
-import Redis from "ioredis"
+import { useServer } from "graphql-ws/use/ws"
+import { createServer } from "http"
 import "reflect-metadata"
 import { buildSchema } from "type-graphql"
-import { COOKIE_NAME, isInProduction, TEN_YEARS } from "./constants.js"
-import { AppDataSource } from "./DataSource.js"
-import { HelloResolver } from "./resolvers/hello.js"
-import { UserResolver } from "./resolvers/user.js"
-import { MessageResolver } from "./resolvers/message.js"
-import { createServer } from "http"
-import { ApolloServerPluginDrainHttpServer } from "@apollo/server/plugin/drainHttpServer"
 import { WebSocketServer } from "ws"
-import { useServer } from "graphql-ws/use/ws"
+import { COOKIE_NAME, isInProduction, TEN_YEARS } from "./constants.js"
+import { AppDataSource, redisClient } from "./DataSource.js"
 import { pubSub } from "./pubSub.js"
-// import { useServer } from "graphql-ws/dist/use/ws"
+import { generalRateLimiter } from "./rateLimiters.js"
+import { HelloResolver } from "./resolvers/hello.js"
+import { MessageResolver } from "./resolvers/message.js"
+import { UserResolver } from "./resolvers/user.js"
 
 await AppDataSource.initialize()
 
@@ -39,7 +38,6 @@ const cors_options = {
 app.use(cors(cors_options))
 app.options("*", cors(cors_options))
 
-const redisClient = new Redis.default(process.env.REDIS_URL)
 app.set("trust proxy", 1)
 
 // new RedisStore()
@@ -68,6 +66,47 @@ app.use(
         },
     }) as any
 )
+
+const getClientIdentifier = (req: express.Request): string => {
+    // 1. Try standard Express IP (respects 'trust proxy')
+    if (req.ip) return req.ip
+
+    // 2. Check X-Forwarded-For header (common proxy header)
+    const xForwardedFor = req.headers["x-forwarded-for"]
+    if (Array.isArray(xForwardedFor)) {
+        return xForwardedFor[0].split(",")[0].trim()
+    } else if (typeof xForwardedFor === "string") {
+        return xForwardedFor.split(",")[0].trim()
+    }
+
+    // 3. Fallback to socket remote address
+    if (req.socket.remoteAddress) {
+        return req.socket.remoteAddress
+    }
+
+    // Cloudflare specific
+    const cfConnectingIp = req.headers["cf-connecting-ip"]
+    if (typeof cfConnectingIp === "string") {
+        return cfConnectingIp
+    }
+
+    // 4. Ultimate fallback for rare cases
+    return "unknown-ip"
+}
+
+const generalLimiterMiddleware = async (
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+) => {
+    try {
+        const clientIp = getClientIdentifier(req)
+        await generalRateLimiter.consume(clientIp)
+        next()
+    } catch (error) {
+        res.status(429).json({ error: "Too many requests" })
+    }
+}
 
 const wsServer = new WebSocketServer({
     // This is the `httpServer` we created in a previous step.
@@ -116,6 +155,7 @@ await apolloServer.start()
 // apolloServer.applyMiddleware({ app, cors: false })
 app.use(
     "/graphql",
+    generalLimiterMiddleware,
     cors<cors.CorsRequest>(cors_options),
     express.json({ limit: "10mb" }),
     expressMiddleware(apolloServer, {
@@ -123,6 +163,7 @@ app.use(
             req,
             res,
             redis: redisClient,
+            ip: getClientIdentifier(req),
         }),
     })
 )

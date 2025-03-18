@@ -8,12 +8,16 @@ import {
     Resolver,
     Root,
     Subscription,
+    UseMiddleware,
 } from "type-graphql"
-import { errors } from "@hostek/shared"
+import { errors, getMessageError } from "@hostek/shared"
+import { isAuth } from "../middleware/isAuth.js"
+import { FieldError } from "../types.js"
 
 @Resolver()
 export class MessageResolver {
     @Query(() => [Message])
+    @UseMiddleware(isAuth)
     async getAllMessages(): Promise<Message[]> {
         const res = await Message.createQueryBuilder("m")
             .leftJoinAndSelect("m.creator", "creator")
@@ -22,11 +26,17 @@ export class MessageResolver {
         return res
     }
 
-    @Mutation(() => Boolean)
+    @Mutation(() => FieldError, { nullable: true })
+    @UseMiddleware(isAuth)
     async createMessage(
         @Arg("creatorId", () => Int) creatorId: number,
         @Arg("content") content: string
-    ) {
+    ): Promise<FieldError | null> {
+        const msg_error = getMessageError(content)
+        if (msg_error) {
+            return { message: msg_error }
+        }
+
         const insertResult = await Message.createQueryBuilder()
             .insert()
             .into(Message)
@@ -53,7 +63,7 @@ export class MessageResolver {
             console.error("wtf")
         }
 
-        return true
+        return null
     }
 
     @Subscription(() => Message, {
@@ -61,6 +71,7 @@ export class MessageResolver {
         // For dynamic topics, use: topics: ({ args }) => `MESSAGE_ADDED_${args.channel}`
         // filter: ({ payload, args }) => args.channel === payload.channelId, // Optional filtering
     })
+    @UseMiddleware(isAuth)
     messageAdded(
         @Root() messagePayload: Message
         // @Args() args: { channel: string } // Optional arguments
