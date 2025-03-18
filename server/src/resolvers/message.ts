@@ -12,6 +12,7 @@ import {
 } from "type-graphql"
 import { errors, getMessageError } from "@hostek/shared"
 import { isAuth } from "../middleware/isAuth.js"
+import { FieldError } from "../types.js"
 
 @Resolver()
 export class MessageResolver {
@@ -25,15 +26,15 @@ export class MessageResolver {
         return res
     }
 
-    @Mutation(() => Boolean)
+    @Mutation(() => FieldError, { nullable: true })
     @UseMiddleware(isAuth)
     async createMessage(
         @Arg("creatorId", () => Int) creatorId: number,
         @Arg("content") content: string
-    ) {
+    ): Promise<FieldError | null> {
         const msg_error = getMessageError(content)
         if (msg_error) {
-            return false
+            return { message: msg_error }
         }
 
         const insertResult = await Message.createQueryBuilder()
@@ -62,7 +63,7 @@ export class MessageResolver {
             console.error("wtf")
         }
 
-        return true
+        return null
     }
 
     @Subscription(() => Message, {

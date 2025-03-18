@@ -42,7 +42,7 @@ export type Message = {
 
 export type Mutation = {
   __typename?: 'Mutation';
-  createMessage: Scalars['Boolean']['output'];
+  createMessage?: Maybe<FieldError>;
   login: LoginResponse;
   logout: Scalars['Boolean']['output'];
   register: LoginResponse;
@@ -106,7 +106,7 @@ export type CreateMessageMutationVariables = Exact<{
 }>;
 
 
-export type CreateMessageMutation = { __typename?: 'Mutation', createMessage: boolean };
+export type CreateMessageMutation = { __typename?: 'Mutation', createMessage?: { __typename?: 'FieldError', message: string } | null };
 
 export type LoginMutationVariables = Exact<{
   email: Scalars['String']['input'];
@@ -196,9 +196,11 @@ export const MessageWithCreatorFragmentFragmentDoc = gql`
 ${CreatorFragmentFragmentDoc}`;
 export const CreateMessageDocument = gql`
     mutation CreateMessage($content: String!, $creatorId: Int!) {
-  createMessage(content: $content, creatorId: $creatorId)
+  createMessage(content: $content, creatorId: $creatorId) {
+    ...ErrorFragment
+  }
 }
-    `;
+    ${ErrorFragmentFragmentDoc}`;
 
 export function useCreateMessageMutation() {
   return Urql.useMutation<CreateMessageMutation, CreateMessageMutationVariables>(CreateMessageDocument);

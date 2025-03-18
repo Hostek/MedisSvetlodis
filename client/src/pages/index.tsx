@@ -19,7 +19,7 @@ import {
     NavbarContent,
     NavbarItem,
 } from "@heroui/react"
-import { getMessageError } from "@hostek/shared"
+import { errors, getMessageError } from "@hostek/shared"
 import { NextPage } from "next"
 import { withUrqlClient } from "next-urql"
 import Link from "next/link"
@@ -66,7 +66,16 @@ const Page: NextPage = () => {
                 return
             }
 
-            await createMessage({ content, creatorId: user.id })
+            const res = await createMessage({ content, creatorId: user.id })
+
+            if (res.error || !res.data) {
+                return setError(errors.unknownError)
+            }
+
+            if (res.data.createMessage?.message) {
+                return setError(res.data.createMessage.message)
+            }
+
             setContent("")
         },
         [createMessage, content, user]
