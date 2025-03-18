@@ -18,7 +18,7 @@ import { ApolloServerPluginDrainHttpServer } from "@apollo/server/plugin/drainHt
 import { WebSocketServer } from "ws"
 import { useServer } from "graphql-ws/use/ws"
 import { pubSub } from "./pubSub.js"
-// import { useServer } from "graphql-ws/dist/use/ws"
+import { RateLimiterRedis } from "rate-limiter-flexible"
 
 await AppDataSource.initialize()
 
@@ -69,6 +69,56 @@ app.use(
     }) as any
 )
 
+const getClientIdentifier = (req: express.Request): string => {
+    // 1. Try standard Express IP (respects 'trust proxy')
+    if (req.ip) return req.ip
+
+    // 2. Check X-Forwarded-For header (common proxy header)
+    const xForwardedFor = req.headers["x-forwarded-for"]
+    if (Array.isArray(xForwardedFor)) {
+        return xForwardedFor[0].split(",")[0].trim()
+    } else if (typeof xForwardedFor === "string") {
+        return xForwardedFor.split(",")[0].trim()
+    }
+
+    // 3. Fallback to socket remote address
+    if (req.socket.remoteAddress) {
+        return req.socket.remoteAddress
+    }
+
+    // Cloudflare specific
+    const cfConnectingIp = req.headers["cf-connecting-ip"]
+    if (typeof cfConnectingIp === "string") {
+        return cfConnectingIp
+    }
+
+    // 4. Ultimate fallback for rare cases
+    return "unknown-ip"
+}
+
+// General rate limiter for all GraphQL requests
+const generalRateLimiter = new RateLimiterRedis({
+    storeClient: redisClient,
+    keyPrefix: "graphql_general",
+    points: 300, // requests
+    duration: 15 * 60, // 15 minutes
+    blockDuration: 15 * 60, // Block for 15 minutes if exceeded
+})
+
+const generalLimiterMiddleware = async (
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+) => {
+    try {
+        const clientIp = getClientIdentifier(req)
+        await generalRateLimiter.consume(clientIp)
+        next()
+    } catch (error) {
+        res.status(429).json({ error: "Too many requests" })
+    }
+}
+
 const wsServer = new WebSocketServer({
     // This is the `httpServer` we created in a previous step.
     server: httpServer,
@@ -116,6 +166,7 @@ await apolloServer.start()
 // apolloServer.applyMiddleware({ app, cors: false })
 app.use(
     "/graphql",
+    generalLimiterMiddleware,
     cors<cors.CorsRequest>(cors_options),
     express.json({ limit: "10mb" }),
     expressMiddleware(apolloServer, {
@@ -123,6 +174,7 @@ app.use(
             req,
             res,
             redis: redisClient,
+            ip: getClientIdentifier(req),
         }),
     })
 )

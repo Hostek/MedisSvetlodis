@@ -26,6 +26,7 @@ export interface MyContext {
     req: Request
     res: Response
     redis: Redis
+    ip: string
 }
 
 export type Probably<T> = T | undefined | null
