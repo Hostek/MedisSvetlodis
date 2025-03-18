@@ -5,6 +5,7 @@ export const errors = {
     passwordTooShort: `Password should be atleast ${PASSWORD_MIN_LENGTH} characters long`,
     badPassword: "This password is not allowed",
     badEmail: "Incorrect email",
+    passwordMismatch: "Passwords do not match",
 }
 
 export const EmailRegex =

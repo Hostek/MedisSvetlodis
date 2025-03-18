@@ -1,8 +1,10 @@
 // pages/register.tsx
 import { useRegisterMutation } from "@/generated/graphql"
+import { FormErrors } from "@/types"
 import { createUrqlClient } from "@/utils/createUrqlClient"
+import { NormalizeError } from "@/utils/normalizeError"
 import { Button, Card, Form, Input } from "@heroui/react"
-import { errors } from "@hostek/shared"
+import { errors, getEmailError, getPasswordError } from "@hostek/shared"
 import { signIn } from "next-auth/react"
 import { withUrqlClient } from "next-urql"
 import Link from "next/link"
@@ -15,6 +17,7 @@ function Page() {
     const [passwordVerify, setPasswordVerify] = useState("")
     const [email, setEmail] = useState("")
     const [registerError, setRegisterError] = useState<string | null>(null)
+    const [form_errors, setFormErrors] = useState<FormErrors>({})
 
     const Router = useRouter()
 
@@ -30,9 +33,35 @@ function Page() {
         async (e) => {
             e.preventDefault()
             setRegisterError(null)
+            setFormErrors({})
+
+            const newErrors: FormErrors = {}
+            const passwordError = getPasswordError(password)
+
+            if (passwordError) {
+                newErrors.password = passwordError
+            }
+
+            const emailError = getEmailError(email)
+            if (emailError) {
+                newErrors.email = emailError
+            }
 
             if (password !== passwordVerify) {
-                return setRegisterError("Passwords do not match!")
+                newErrors.password = errors.passwordMismatch
+            }
+
+            const newErrorsKeys = Object.keys(newErrors)
+            if (newErrorsKeys.length > 0) {
+                setFormErrors(newErrors)
+                setRegisterError(NormalizeError(newErrors[newErrorsKeys[0]]))
+
+                return
+            }
+
+            // Probably useless ...
+            if (password !== passwordVerify) {
+                return setRegisterError(errors.passwordMismatch)
             }
 
             const res = await register({ email, password })
@@ -62,7 +91,11 @@ function Page() {
                     <p className="mt-2 text-gray-600">Sign up to get started</p>
                 </div>
 
-                <Form className="space-y-4" onSubmit={handleSubmit}>
+                <Form
+                    className="space-y-4"
+                    onSubmit={handleSubmit}
+                    validationErrors={form_errors}
+                >
                     <div className="w-full">
                         <Input
                             id="email"

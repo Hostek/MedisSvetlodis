@@ -35,6 +35,7 @@ function Page() {
             e.preventDefault()
 
             setLoginError(null)
+            setFormErrors({})
 
             const newErrors: FormErrors = {}
             const passwordError = getPasswordError(password)
