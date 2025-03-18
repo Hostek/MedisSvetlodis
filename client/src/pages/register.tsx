@@ -1,4 +1,6 @@
 // pages/register.tsx
+import ContinueWith from "@/components/login/ContinueWith"
+import OAuthButtons from "@/components/OAuthButtons"
 import { useRegisterMutation } from "@/generated/graphql"
 import { useIsNotAuth } from "@/hooks/useIsNotAuth"
 import { FormErrors } from "@/types"
@@ -6,12 +8,10 @@ import { createUrqlClient } from "@/utils/createUrqlClient"
 import { NormalizeError } from "@/utils/normalizeError"
 import { Button, Card, Form, Input } from "@heroui/react"
 import { errors, getEmailError, getPasswordError } from "@hostek/shared"
-import { signIn } from "next-auth/react"
 import { withUrqlClient } from "next-urql"
 import Link from "next/link"
 import { useRouter } from "next/router"
 import { FormEventHandler, useCallback, useMemo, useState } from "react"
-import { GitHub } from "react-feather"
 
 function Page() {
     useIsNotAuth()
@@ -160,27 +160,9 @@ function Page() {
                     )}
                 </Form>
 
-                <div className="relative">
-                    <div className="absolute inset-0 flex items-center">
-                        <div className="w-full border-t border-gray-300"></div>
-                    </div>
-                    <div className="relative flex justify-center text-sm">
-                        <span className="px-2 bg-slate-950 text-gray-500">
-                            Or continue with
-                        </span>
-                    </div>
-                </div>
+                <ContinueWith />
 
-                <Button
-                    className="w-full"
-                    variant="bordered"
-                    onPress={() => {
-                        signIn("github")
-                    }}
-                >
-                    <GitHub />
-                    Sign up with GitHub
-                </Button>
+                <OAuthButtons />
 
                 <p className="text-center text-sm text-gray-600">
                     Already have an account?{" "}

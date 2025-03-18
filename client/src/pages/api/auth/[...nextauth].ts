@@ -1,5 +1,6 @@
 import NextAuth, { NextAuthOptions } from "next-auth"
 import GithubProvider from "next-auth/providers/github"
+import GitlabProvider from "next-auth/providers/gitlab"
 import { generateOAuthProof } from "@hostek/shared"
 
 export const authOptions: NextAuthOptions = {
@@ -8,6 +9,10 @@ export const authOptions: NextAuthOptions = {
         GithubProvider({
             clientId: process.env.GITHUB_ID,
             clientSecret: process.env.GITHUB_SECRET,
+        }),
+        GitlabProvider({
+            clientId: process.env.GITLAB_ID,
+            clientSecret: process.env.GITLAB_SECRET,
         }),
     ],
     secret: process.env.NEXTAUTH_SECRET,
