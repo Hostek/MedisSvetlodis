@@ -5,11 +5,10 @@ import "dotenv-safe/config.js"
 import express from "express"
 import session from "express-session"
 import RedisStore from "connect-redis"
-import Redis from "ioredis"
 import "reflect-metadata"
 import { buildSchema } from "type-graphql"
 import { COOKIE_NAME, isInProduction, TEN_YEARS } from "./constants.js"
-import { AppDataSource } from "./DataSource.js"
+import { AppDataSource, redisClient } from "./DataSource.js"
 import { HelloResolver } from "./resolvers/hello.js"
 import { UserResolver } from "./resolvers/user.js"
 import { MessageResolver } from "./resolvers/message.js"
@@ -39,7 +38,6 @@ const cors_options = {
 app.use(cors(cors_options))
 app.options("*", cors(cors_options))
 
-const redisClient = new Redis.default(process.env.REDIS_URL)
 app.set("trust proxy", 1)
 
 // new RedisStore()

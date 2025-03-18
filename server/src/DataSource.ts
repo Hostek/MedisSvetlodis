@@ -1,6 +1,7 @@
 import { DataSource } from "typeorm"
 import { User } from "./entities/User.js"
 import { Message } from "./entities/Message.js"
+import Redis from "ioredis"
 
 export const AppDataSource = new DataSource({
     type: "postgres",
@@ -13,3 +14,5 @@ export const AppDataSource = new DataSource({
     host: "localhost",
     port: parseInt(process.env.DB_PORT),
 })
+
+export const redisClient = new Redis.default(process.env.REDIS_URL)

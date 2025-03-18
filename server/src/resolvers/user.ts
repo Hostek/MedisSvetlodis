@@ -1,10 +1,11 @@
-import { verifyOAuthProof } from "@hostek/shared"
+import { errors, verifyOAuthProof } from "@hostek/shared"
 import argon2 from "argon2"
 import { Arg, Ctx, Mutation, Query, Resolver } from "type-graphql"
 import { COOKIE_NAME } from "../constants.js"
 import { User } from "../entities/User.js"
 import { LoginResponse, MyContext } from "../types.js"
 import { verifyEmailAndPassword } from "../utils/validateEmailAndPassword.js"
+import { loginRateLimiter } from "../rateLimiters.js"
 
 @Resolver()
 export class UserResolver {
@@ -65,8 +66,14 @@ export class UserResolver {
         @Arg("email") email: string,
         @Arg("oauthProof", { nullable: true }) oauthProof: string,
         @Arg("password", { nullable: true }) password: string,
-        @Ctx() { req }: MyContext
+        @Ctx() { req, ip }: MyContext
     ): Promise<LoginResponse> {
+        try {
+            await loginRateLimiter.consume(ip)
+        } catch (error) {
+            return { errors: [{ message: errors.tooManyRequests }] }
+        }
+
         const areErrors = verifyEmailAndPassword(email, password)
         if (areErrors) {
             return { errors: [{ message: areErrors }] }
@@ -132,8 +139,14 @@ export class UserResolver {
     async register(
         @Arg("email") email: string,
         @Arg("password") password: string,
-        @Ctx() { req }: MyContext
+        @Ctx() { req, ip }: MyContext
     ): Promise<LoginResponse> {
+        try {
+            await loginRateLimiter.consume(ip)
+        } catch (error) {
+            return { errors: [{ message: errors.tooManyRequests }] }
+        }
+
         const areErrors = verifyEmailAndPassword(email, password)
         if (areErrors) {
             return { errors: [{ message: areErrors }] }

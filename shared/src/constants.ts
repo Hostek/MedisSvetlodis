@@ -6,6 +6,7 @@ export const errors = {
     badPassword: "This password is not allowed",
     badEmail: "Incorrect email",
     passwordMismatch: "Passwords do not match",
+    tooManyRequests: "Too many login attempts. Please try again later.",
 }
 
 export const EmailRegex =
