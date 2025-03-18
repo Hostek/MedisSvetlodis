@@ -15,3 +15,5 @@ export type pusher = (data: string[]) => any
 export interface anyObj {
     [key: string]: any
 }
+
+export type FormErrors = Record<string, string | string[]>

@@ -1,8 +1,10 @@
 // pages/login.tsx
 import { useLoginMutation } from "@/generated/graphql"
+import { FormErrors } from "@/types"
 import { createUrqlClient } from "@/utils/createUrqlClient"
+import { NormalizeError } from "@/utils/normalizeError"
 import { Button, Card, Form, Input } from "@heroui/react"
-import { errors } from "@hostek/shared"
+import { errors, getEmailError, getPasswordError } from "@hostek/shared"
 import { signIn } from "next-auth/react"
 import { withUrqlClient } from "next-urql"
 import Link from "next/link"
@@ -14,6 +16,7 @@ function Page() {
     const [password, setPassword] = useState("")
     const [email, setEmail] = useState("")
     // const [errors, setErrors] = useState({})
+    const [form_errors, setFormErrors] = useState<FormErrors>({})
 
     const Router = useRouter()
 
@@ -33,6 +36,26 @@ function Page() {
 
             setLoginError(null)
 
+            const newErrors: FormErrors = {}
+            const passwordError = getPasswordError(password)
+
+            if (passwordError) {
+                newErrors.password = passwordError
+            }
+
+            const emailError = getEmailError(email)
+            if (emailError) {
+                newErrors.email = emailError
+            }
+
+            const newErrorsKeys = Object.keys(newErrors)
+            if (newErrorsKeys.length > 0) {
+                setFormErrors(newErrors)
+                setLoginError(NormalizeError(newErrors[newErrorsKeys[0]]))
+
+                return
+            }
+
             const res = await login({ email, password })
 
             if (!res.data) {
@@ -44,6 +67,7 @@ function Page() {
             }
 
             if (res.data.login.user) {
+                setFormErrors({})
                 Router.push("/")
             }
         },
@@ -62,7 +86,11 @@ function Page() {
                     </p>
                 </div>
 
-                <Form className="space-y-4" onSubmit={handleSubmit}>
+                <Form
+                    className="space-y-4"
+                    onSubmit={handleSubmit}
+                    validationErrors={form_errors}
+                >
                     <div className="w-full">
                         <Input
                             id="email"
@@ -90,6 +118,7 @@ function Page() {
                             fullWidth
                             value={password}
                             onValueChange={setPassword}
+                            errorMessage={getPasswordError(password)}
                         />
                     </div>
 
