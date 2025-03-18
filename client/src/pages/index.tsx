@@ -19,7 +19,7 @@ import {
     NavbarItem,
     Textarea,
 } from "@heroui/react"
-import { errors, getMessageError } from "@hostek/shared"
+import { errors, getMessageError, MAX_MESSAGE_LENGTH } from "@hostek/shared"
 import { NextPage } from "next"
 import { withUrqlClient } from "next-urql"
 import Link from "next/link"
@@ -128,6 +128,20 @@ const Page: NextPage = () => {
                             </Card>
                         ))}
                     </div>
+                </div>
+
+                <div
+                    className={`flex justify-start mt-2 text-sm ${
+                        content.length >= MAX_MESSAGE_LENGTH
+                            ? "text-red-500"
+                            : content.length >= MAX_MESSAGE_LENGTH * 0.9
+                              ? "text-yellow-500"
+                              : "text-gray-300"
+                    }`}
+                >
+                    <span className="font-mono">{content.length}</span>
+                    <span className="text-gray-200 mx-0.5">/</span>
+                    <span className="font-mono">{MAX_MESSAGE_LENGTH}</span>
                 </div>
 
                 <Form onSubmit={handleSubmit} className="space-y-4">
