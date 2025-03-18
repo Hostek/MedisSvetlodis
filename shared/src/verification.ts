@@ -26,6 +26,10 @@ export const getEmailError = (value: string) => {
 }
 
 export const getMessageError = (value: string) => {
+    if (value.length < 1) {
+        return errors.messageNotEmpty
+    }
+
     if (value.length > MAX_MESSAGE_LENGTH) {
         return errors.tooLongMessage
     }

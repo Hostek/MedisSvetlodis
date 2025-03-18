@@ -9,6 +9,7 @@ export const errors = {
     passwordMismatch: "Passwords do not match",
     tooManyRequests: "Too many login attempts. Please try again later.",
     tooLongMessage: `Message cannot be longer than ${MAX_MESSAGE_LENGTH} characters`,
+    messageNotEmpty: "Message shouldn't be empty",
 }
 
 export const EmailRegex =

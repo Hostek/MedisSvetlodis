@@ -14,10 +14,10 @@ import {
     CardBody,
     CardHeader,
     Form,
-    Input,
     Navbar,
     NavbarContent,
     NavbarItem,
+    Textarea,
 } from "@heroui/react"
 import { errors, getMessageError } from "@hostek/shared"
 import { NextPage } from "next"
@@ -131,7 +131,7 @@ const Page: NextPage = () => {
                 </div>
 
                 <Form onSubmit={handleSubmit} className="space-y-4">
-                    <Input
+                    <Textarea
                         label="Message content"
                         value={content}
                         onChange={(e) => setContent(e.target.value)}
