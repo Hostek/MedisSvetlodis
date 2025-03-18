@@ -1,5 +1,9 @@
+export const PASSWORD_MIN_LENGTH = 8
+
 export const errors = {
     unknownError: "Unknown Error",
+    passwordTooShort: `Password should be atleast ${PASSWORD_MIN_LENGTH} characters long`,
+    badPassword: "This password is not allowed",
 }
 
 export const EmailRegex =
