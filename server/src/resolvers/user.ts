@@ -14,6 +14,7 @@ import { FieldError, LoginResponse, MyContext } from "../types.js"
 import { verifyEmailAndPassword } from "../utils/validateEmailAndPassword.js"
 import { loginRateLimiter } from "../rateLimiters.js"
 import { isAuth } from "../middleware/isAuth.js"
+import { v4 as uuid } from "uuid"
 
 @Resolver()
 export class UserResolver {
@@ -61,6 +62,7 @@ export class UserResolver {
             email: input.email,
             username: input.username || input.email.split("@")[0], // Default name
             password: input.password ? await argon2.hash(input.password) : "",
+            identifier: uuid(),
             // oauthProvider: input.oauthProvider,
         })
 
@@ -116,10 +118,7 @@ export class UserResolver {
                     return {
                         errors: [
                             {
-                                message:
-                                    error instanceof Error
-                                        ? error.message
-                                        : errors.registrationFailed,
+                                message: errors.registrationFailed,
                             },
                         ],
                     }
@@ -172,10 +171,7 @@ export class UserResolver {
             return {
                 errors: [
                     {
-                        message:
-                            error instanceof Error
-                                ? error.message
-                                : errors.registrationFailed,
+                        message: errors.registrationFailed,
                     },
                 ],
             }

@@ -34,8 +34,12 @@ export class User extends BaseEntity {
     email!: string
 
     @Field(() => String)
-    @Column({ unique: true })
+    @Column()
     username: string
+
+    @Field(() => String)
+    @Column({ type: "text", unique: true })
+    identifier: string
 
     @OneToMany(() => Message, (m) => m.creator, {
         onDelete: "CASCADE",
