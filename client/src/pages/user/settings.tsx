@@ -1,6 +1,10 @@
 "use client"
+import { RED_COLOR } from "@/constants"
+import { useUpdateUsernameMutation } from "@/generated/graphql"
 import { useIsAuth } from "@/hooks/isAuth"
+import { HandleSubmit } from "@/types"
 import { createUrqlClient } from "@/utils/createUrqlClient"
+import { MySwal } from "@/utils/MySwal"
 import {
     Button,
     Card,
@@ -12,9 +16,12 @@ import {
     Tab,
     Tabs,
 } from "@heroui/react"
+import { errors } from "@hostek/shared"
 import { NextPage } from "next"
 import { withUrqlClient } from "next-urql"
-import { useState } from "react"
+import Link from "next/link"
+import { useCallback, useState } from "react"
+import { ArrowLeft } from "react-feather"
 
 const Page: NextPage = () => {
     const { user } = useIsAuth()
@@ -24,12 +31,69 @@ const Page: NextPage = () => {
     const [newPassword, setNewPassword] = useState("")
     const [confirmPassword, setConfirmPassword] = useState("")
 
+    const [updateUsernameError, setUpdateUsernameError] = useState<
+        string | null
+    >(null)
+
+    const [{ fetching: updateUsernameFetching }, updateUsername] =
+        useUpdateUsernameMutation()
+
+    const handleUsernameUpdate = useCallback<HandleSubmit>(
+        async (e) => {
+            e.preventDefault()
+
+            if (!user) return
+
+            const result = await MySwal.fire({
+                title: "Are you sure?",
+                text: "This operation is irreversible and will consume your username update attempt (if all are used you won't be able to change username ever again)",
+                icon: "warning",
+                theme: "dark",
+                showCancelButton: true,
+                confirmButtonText: "Yes, Change my username",
+                cancelButtonText: "Cancel",
+                confirmButtonColor: RED_COLOR,
+            })
+
+            if (!result.isConfirmed) return
+
+            setUpdateUsernameError(null)
+
+            const res = await updateUsername({
+                newUsername: username,
+            })
+
+            if (!res.data || res.error) {
+                setUpdateUsernameError(errors.unknownError)
+                return
+            }
+
+            if (res.data.updateUsername?.message) {
+                setUpdateUsernameError(res.data.updateUsername.message)
+            }
+
+            user.updateUsernameAttempts--
+
+            MySwal.fire({
+                title: "Success",
+                text: "Successfully changed username!",
+                icon: "success",
+                theme: "dark",
+            })
+        },
+        [username, updateUsername, user]
+    )
+
     if (!user) {
         return null
     }
 
     return (
         <div className="flex flex-col gap-4 w-full max-w-screen-md mx-auto p-4">
+            <Button as="a" href="/">
+                <ArrowLeft />
+            </Button>
+
             <h1 className="text-2xl font-bold">Account Settings</h1>
 
             <Tabs aria-label="Settings options">
@@ -44,7 +108,10 @@ const Page: NextPage = () => {
                         </CardHeader>
                         <Divider />
                         <CardBody className="flex flex-col gap-4">
-                            <Form className="space-y-2">
+                            <Form
+                                className="space-y-2"
+                                onSubmit={handleUsernameUpdate}
+                            >
                                 <Input
                                     label="New Username"
                                     placeholder="Enter new username"
@@ -53,10 +120,16 @@ const Page: NextPage = () => {
                                         setUsername(e.target.value)
                                     }
                                 />
+                                {updateUsernameError && (
+                                    <div className="w-full text-red-500">
+                                        Error: {updateUsernameError}
+                                    </div>
+                                )}
                                 <Button
                                     type="submit"
                                     color="primary"
                                     className="w-full"
+                                    disabled={updateUsernameFetching}
                                 >
                                     Update Username
                                 </Button>
