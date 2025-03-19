@@ -4,6 +4,7 @@ import {
     MAX_MESSAGE_LENGTH,
     PASSWORD_MIN_LENGTH,
     PasswordRegex,
+    UsernameRegex,
 } from "./constants"
 
 export const getPasswordError = (value: string) => {
@@ -32,6 +33,18 @@ export const getMessageError = (value: string) => {
 
     if (value.length > MAX_MESSAGE_LENGTH) {
         return errors.tooLongMessage
+    }
+
+    return null
+}
+
+export const getUsernameError = (value: string) => {
+    if (value.length < 1) {
+        return errors.usernameNotEmpty
+    }
+
+    if (!UsernameRegex.test(value)) {
+        return errors.badUsername
     }
 
     return null

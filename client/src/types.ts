@@ -17,3 +17,5 @@ export interface anyObj {
 }
 
 export type FormErrors = Record<string, string | string[]>
+
+export type HandleSubmit = React.FormEventHandler<HTMLFormElement>

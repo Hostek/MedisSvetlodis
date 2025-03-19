@@ -46,12 +46,13 @@ export type Mutation = {
   login: LoginResponse;
   logout: Scalars['Boolean']['output'];
   register: LoginResponse;
+  updatePassword?: Maybe<FieldError>;
+  updateUsername?: Maybe<FieldError>;
 };
 
 
 export type MutationCreateMessageArgs = {
   content: Scalars['String']['input'];
-  creatorId: Scalars['Int']['input'];
 };
 
 
@@ -65,6 +66,17 @@ export type MutationLoginArgs = {
 export type MutationRegisterArgs = {
   email: Scalars['String']['input'];
   password: Scalars['String']['input'];
+};
+
+
+export type MutationUpdatePasswordArgs = {
+  newPassword: Scalars['String']['input'];
+  oldPassword?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type MutationUpdateUsernameArgs = {
+  newUsername: Scalars['String']['input'];
 };
 
 export type Query = {
@@ -84,6 +96,8 @@ export type User = {
   createdAt: Scalars['String']['output'];
   email: Scalars['String']['output'];
   id: Scalars['Int']['output'];
+  identifier: Scalars['String']['output'];
+  updateUsernameAttempts: Scalars['Int']['output'];
   updatedAt: Scalars['String']['output'];
   username: Scalars['String']['output'];
 };
@@ -92,17 +106,16 @@ export type CreatorFragmentFragment = { __typename?: 'User', username: string, i
 
 export type ErrorFragmentFragment = { __typename?: 'FieldError', message: string };
 
-export type LoginResponseFragmentFragment = { __typename?: 'LoginResponse', user?: { __typename?: 'User', username: string, updatedAt: string, id: number, email: string, createdAt: string } | null, errors?: Array<{ __typename?: 'FieldError', message: string }> | null };
+export type LoginResponseFragmentFragment = { __typename?: 'LoginResponse', user?: { __typename?: 'User', username: string, updatedAt: string, id: number, email: string, createdAt: string, updateUsernameAttempts: number, identifier: string } | null, errors?: Array<{ __typename?: 'FieldError', message: string }> | null };
 
 export type MessageFragmentFragment = { __typename?: 'Message', content: string, createdAt: string, creatorId: number, id: number, updatedAt: string };
 
 export type MessageWithCreatorFragmentFragment = { __typename?: 'Message', content: string, createdAt: string, creatorId: number, id: number, updatedAt: string, creator: { __typename?: 'User', username: string, id: number } };
 
-export type UserFragmentFragment = { __typename?: 'User', username: string, updatedAt: string, id: number, email: string, createdAt: string };
+export type UserFragmentFragment = { __typename?: 'User', username: string, updatedAt: string, id: number, email: string, createdAt: string, updateUsernameAttempts: number, identifier: string };
 
 export type CreateMessageMutationVariables = Exact<{
   content: Scalars['String']['input'];
-  creatorId: Scalars['Int']['input'];
 }>;
 
 
@@ -115,7 +128,7 @@ export type LoginMutationVariables = Exact<{
 }>;
 
 
-export type LoginMutation = { __typename?: 'Mutation', login: { __typename?: 'LoginResponse', user?: { __typename?: 'User', username: string, updatedAt: string, id: number, email: string, createdAt: string } | null, errors?: Array<{ __typename?: 'FieldError', message: string }> | null } };
+export type LoginMutation = { __typename?: 'Mutation', login: { __typename?: 'LoginResponse', user?: { __typename?: 'User', username: string, updatedAt: string, id: number, email: string, createdAt: string, updateUsernameAttempts: number, identifier: string } | null, errors?: Array<{ __typename?: 'FieldError', message: string }> | null } };
 
 export type LogoutMutationVariables = Exact<{ [key: string]: never; }>;
 
@@ -128,7 +141,22 @@ export type RegisterMutationVariables = Exact<{
 }>;
 
 
-export type RegisterMutation = { __typename?: 'Mutation', register: { __typename?: 'LoginResponse', user?: { __typename?: 'User', username: string, updatedAt: string, id: number, email: string, createdAt: string } | null, errors?: Array<{ __typename?: 'FieldError', message: string }> | null } };
+export type RegisterMutation = { __typename?: 'Mutation', register: { __typename?: 'LoginResponse', user?: { __typename?: 'User', username: string, updatedAt: string, id: number, email: string, createdAt: string, updateUsernameAttempts: number, identifier: string } | null, errors?: Array<{ __typename?: 'FieldError', message: string }> | null } };
+
+export type UpdatePasswordMutationVariables = Exact<{
+  newPassword: Scalars['String']['input'];
+  oldPassword?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type UpdatePasswordMutation = { __typename?: 'Mutation', updatePassword?: { __typename?: 'FieldError', message: string } | null };
+
+export type UpdateUsernameMutationVariables = Exact<{
+  newUsername: Scalars['String']['input'];
+}>;
+
+
+export type UpdateUsernameMutation = { __typename?: 'Mutation', updateUsername?: { __typename?: 'FieldError', message: string } | null };
 
 export type GetAllMessagesQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -138,7 +166,7 @@ export type GetAllMessagesQuery = { __typename?: 'Query', getAllMessages: Array<
 export type UserQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type UserQuery = { __typename?: 'Query', user?: { __typename?: 'User', username: string, updatedAt: string, id: number, email: string, createdAt: string } | null };
+export type UserQuery = { __typename?: 'Query', user?: { __typename?: 'User', username: string, updatedAt: string, id: number, email: string, createdAt: string, updateUsernameAttempts: number, identifier: string } | null };
 
 export type MessageAddedSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
@@ -152,6 +180,8 @@ export const UserFragmentFragmentDoc = gql`
   id
   email
   createdAt
+  updateUsernameAttempts
+  identifier
 }
     `;
 export const ErrorFragmentFragmentDoc = gql`
@@ -195,8 +225,8 @@ export const MessageWithCreatorFragmentFragmentDoc = gql`
     ${MessageFragmentFragmentDoc}
 ${CreatorFragmentFragmentDoc}`;
 export const CreateMessageDocument = gql`
-    mutation CreateMessage($content: String!, $creatorId: Int!) {
-  createMessage(content: $content, creatorId: $creatorId) {
+    mutation CreateMessage($content: String!) {
+  createMessage(content: $content) {
     ...ErrorFragment
   }
 }
@@ -235,6 +265,28 @@ export const RegisterDocument = gql`
 
 export function useRegisterMutation() {
   return Urql.useMutation<RegisterMutation, RegisterMutationVariables>(RegisterDocument);
+};
+export const UpdatePasswordDocument = gql`
+    mutation UpdatePassword($newPassword: String!, $oldPassword: String) {
+  updatePassword(newPassword: $newPassword, oldPassword: $oldPassword) {
+    ...ErrorFragment
+  }
+}
+    ${ErrorFragmentFragmentDoc}`;
+
+export function useUpdatePasswordMutation() {
+  return Urql.useMutation<UpdatePasswordMutation, UpdatePasswordMutationVariables>(UpdatePasswordDocument);
+};
+export const UpdateUsernameDocument = gql`
+    mutation UpdateUsername($newUsername: String!) {
+  updateUsername(newUsername: $newUsername) {
+    ...ErrorFragment
+  }
+}
+    ${ErrorFragmentFragmentDoc}`;
+
+export function useUpdateUsernameMutation() {
+  return Urql.useMutation<UpdateUsernameMutation, UpdateUsernameMutationVariables>(UpdateUsernameDocument);
 };
 export const GetAllMessagesDocument = gql`
     query GetAllMessages {

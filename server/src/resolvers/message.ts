@@ -1,8 +1,7 @@
-import { pubSub } from "../pubSub.js"
-import { Message } from "../entities/Message.js"
+import { errors, getMessageError } from "@hostek/shared"
 import {
     Arg,
-    Int,
+    Ctx,
     Mutation,
     Query,
     Resolver,
@@ -10,9 +9,10 @@ import {
     Subscription,
     UseMiddleware,
 } from "type-graphql"
-import { errors, getMessageError } from "@hostek/shared"
+import { Message } from "../entities/Message.js"
 import { isAuth } from "../middleware/isAuth.js"
-import { FieldError } from "../types.js"
+import { pubSub } from "../pubSub.js"
+import { FieldError, MyContext } from "../types.js"
 
 @Resolver()
 export class MessageResolver {
@@ -29,13 +29,15 @@ export class MessageResolver {
     @Mutation(() => FieldError, { nullable: true })
     @UseMiddleware(isAuth)
     async createMessage(
-        @Arg("creatorId", () => Int) creatorId: number,
-        @Arg("content") content: string
+        @Arg("content") content: string,
+        @Ctx() ctx: MyContext
     ): Promise<FieldError | null> {
         const msg_error = getMessageError(content)
         if (msg_error) {
             return { message: msg_error }
         }
+
+        const creatorId = ctx.req.session.userId
 
         const insertResult = await Message.createQueryBuilder()
             .insert()

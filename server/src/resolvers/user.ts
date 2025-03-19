@@ -1,11 +1,20 @@
-import { errors, verifyOAuthProof } from "@hostek/shared"
+import { errors, getUsernameError, verifyOAuthProof } from "@hostek/shared"
 import argon2 from "argon2"
-import { Arg, Ctx, Mutation, Query, Resolver } from "type-graphql"
+import {
+    Arg,
+    Ctx,
+    Mutation,
+    Query,
+    Resolver,
+    UseMiddleware,
+} from "type-graphql"
 import { COOKIE_NAME } from "../constants.js"
 import { User } from "../entities/User.js"
-import { LoginResponse, MyContext } from "../types.js"
+import { FieldError, LoginResponse, MyContext } from "../types.js"
 import { verifyEmailAndPassword } from "../utils/validateEmailAndPassword.js"
 import { loginRateLimiter } from "../rateLimiters.js"
+import { isAuth } from "../middleware/isAuth.js"
+import { v4 as uuid } from "uuid"
 
 @Resolver()
 export class UserResolver {
@@ -53,6 +62,7 @@ export class UserResolver {
             email: input.email,
             username: input.username || input.email.split("@")[0], // Default name
             password: input.password ? await argon2.hash(input.password) : "",
+            identifier: uuid(),
             // oauthProvider: input.oauthProvider,
         })
 
@@ -85,7 +95,7 @@ export class UserResolver {
         if (oauthProof) {
             if (password)
                 return {
-                    errors: [{ message: "Password not allowed with OAuth" }],
+                    errors: [{ message: errors.passwordNotAllowedWithOAuth }],
                 }
 
             const isValidProof = await verifyOAuthProof(
@@ -95,7 +105,7 @@ export class UserResolver {
             )
 
             if (!isValidProof) {
-                return { errors: [{ message: "Invalid OAuth proof" }] }
+                return { errors: [{ message: errors.invalidOAuthProof }] }
             }
 
             // Auto-register if user doesn't exist
@@ -108,10 +118,7 @@ export class UserResolver {
                     return {
                         errors: [
                             {
-                                message:
-                                    error instanceof Error
-                                        ? error.message
-                                        : "Registration failed",
+                                message: errors.registrationFailed,
                             },
                         ],
                     }
@@ -123,13 +130,13 @@ export class UserResolver {
         }
 
         // Handle password flow
-        if (!user) return { errors: [{ message: "User not found" }] }
-        if (!password) return { errors: [{ message: "Password required" }] }
+        if (!user) return { errors: [{ message: errors.userNotFound }] }
+        if (!password) return { errors: [{ message: errors.passwordRequired }] }
         if (user.password === "" || user.password.length < 3)
-            return { errors: [{ message: "Please, use OAuth provider" }] }
+            return { errors: [{ message: errors.pleaseUseOAuthProvider }] }
 
         const isValid = await argon2.verify(user.password, password)
-        if (!isValid) return { errors: [{ message: "Invalid password" }] }
+        if (!isValid) return { errors: [{ message: errors.invalidPassword }] }
 
         req.session.userId = user.id
         return { user }
@@ -164,10 +171,7 @@ export class UserResolver {
             return {
                 errors: [
                     {
-                        message:
-                            error instanceof Error
-                                ? error.message
-                                : "Registration failed",
+                        message: errors.registrationFailed,
                     },
                 ],
             }
@@ -188,5 +192,87 @@ export class UserResolver {
                 resolve(true)
             })
         )
+    }
+
+    @Mutation(() => FieldError, { nullable: true })
+    @UseMiddleware(isAuth)
+    async updateUsername(
+        @Arg("newUsername") newUsername: string,
+        @Ctx() ctx: MyContext
+    ): Promise<FieldError | null> {
+        const userId = ctx.req.session.userId
+
+        const areErrors = getUsernameError(newUsername)
+        if (areErrors) {
+            return { message: areErrors }
+        }
+
+        const res = await User.createQueryBuilder("u")
+            .update()
+            .set({
+                username: newUsername,
+                updateUsernameAttempts: () => `"updateUsernameAttempts" - 1`,
+            })
+            .where("id = :id", { id: userId })
+            .andWhere(`"updateUsernameAttempts" > 0`)
+            .execute()
+
+        if (res.affected === 0) {
+            return { message: errors.cantUpdateUsername }
+        }
+
+        return null
+    }
+
+    @Mutation(() => FieldError, { nullable: true })
+    @UseMiddleware(isAuth)
+    async updatePassword(
+        @Arg("newPassword") newPassword: string,
+        @Arg("oldPassword", () => String, { nullable: true })
+        oldPassword: string | null,
+        @Ctx() ctx: MyContext
+    ): Promise<FieldError | null> {
+        const userId = ctx.req.session.userId
+
+        let areErrors = verifyEmailAndPassword("test@test.com", newPassword)
+        if (!areErrors) {
+            areErrors = verifyEmailAndPassword("test@test.com", oldPassword)
+        }
+
+        if (areErrors) {
+            return { message: areErrors }
+        }
+
+        const user = await User.findOne({
+            where: { id: userId },
+        })
+
+        if (!user) {
+            return { message: errors.unknownError }
+        }
+
+        if (user.password !== "" && user.password.length > 0) {
+            if (!oldPassword) {
+                return { message: errors.passwordRequired }
+            }
+            const isValid = await argon2.verify(user.password, oldPassword)
+            if (!isValid) return { message: errors.invalidPassword }
+        }
+
+        const passwordHash = await argon2.hash(newPassword)
+
+        const res = await User.createQueryBuilder("u")
+            .update()
+            .set({
+                password: passwordHash,
+            })
+            .where("id = :id", { id: userId })
+            .execute()
+
+        if (res.affected === 0) {
+            return { message: errors.unknownError }
+        }
+
+        return null
     }
 }

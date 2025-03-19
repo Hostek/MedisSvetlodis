@@ -10,7 +10,17 @@ export const errors = {
     tooManyRequests: "Too many login attempts. Please try again later.",
     tooLongMessage: `Message cannot be longer than ${MAX_MESSAGE_LENGTH} characters`,
     messageNotEmpty: "Message shouldn't be empty",
-}
+    cantUpdateUsername: "You have already used all of your attempts",
+    invalidPassword: "Invalid password",
+    passwordRequired: "Password required",
+    passwordNotAllowedWithOAuth: "Password not allowed with OAuth",
+    invalidOAuthProof: "Invalid OAuth proof",
+    registrationFailed: "Registration failed",
+    userNotFound: "User not found",
+    pleaseUseOAuthProvider: "Please, use OAuth provider",
+    usernameNotEmpty: "Username shouldn't be empty",
+    badUsername: "Incorrect username",
+} as const
 
 export const EmailRegex =
     /^(?=.{1,256}$)[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
