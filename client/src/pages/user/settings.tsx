@@ -24,12 +24,6 @@ const Page: NextPage = () => {
     const [newPassword, setNewPassword] = useState("")
     const [confirmPassword, setConfirmPassword] = useState("")
 
-    const handleUsernameChange: React.ChangeEventHandler<HTMLInputElement> = (
-        e
-    ) => {
-        setUsername(e.target.value)
-    }
-
     if (!user) {
         return null
     }
@@ -55,7 +49,9 @@ const Page: NextPage = () => {
                                     label="New Username"
                                     placeholder="Enter new username"
                                     value={username}
-                                    onChange={handleUsernameChange}
+                                    onChange={(e) =>
+                                        setUsername(e.target.value)
+                                    }
                                 />
                                 <Button
                                     type="submit"

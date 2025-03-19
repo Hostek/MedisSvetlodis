@@ -12,6 +12,7 @@
     },
     "dependencies": {
         "@heroui/react": "^2.7.5",
+        "@hostek/shared": "1.0.1",
         "@tailwindcss/postcss": "^4.0.14",
         "@urql/core": "^5.1.1",
         "@urql/exchange-graphcache": "^7.2.3",
@@ -26,9 +27,10 @@
         "react": "^19.0.0",
         "react-dom": "^19.0.0",
         "react-feather": "^2.0.10",
+        "sweetalert2": "^11.17.2",
+        "sweetalert2-react-content": "^5.1.0",
         "tailwindcss": "3.4.16",
-        "urql": "^4.2.2",
-        "@hostek/shared": "1.0.1"
+        "urql": "^4.2.2"
     },
     "devDependencies": {
         "@eslint/eslintrc": "^3",
