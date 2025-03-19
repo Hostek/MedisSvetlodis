@@ -41,4 +41,8 @@ export class User extends BaseEntity {
         onDelete: "CASCADE",
     })
     messages: Relation<Message>[]
+
+    @Field(() => Int)
+    @Column("int", { default: 3 })
+    updateUsernameAttempts: number
 }

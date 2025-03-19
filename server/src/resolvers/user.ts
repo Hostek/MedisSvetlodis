@@ -1,11 +1,19 @@
 import { errors, verifyOAuthProof } from "@hostek/shared"
 import argon2 from "argon2"
-import { Arg, Ctx, Mutation, Query, Resolver } from "type-graphql"
+import {
+    Arg,
+    Ctx,
+    Mutation,
+    Query,
+    Resolver,
+    UseMiddleware,
+} from "type-graphql"
 import { COOKIE_NAME } from "../constants.js"
 import { User } from "../entities/User.js"
-import { LoginResponse, MyContext } from "../types.js"
+import { FieldError, LoginResponse, MyContext } from "../types.js"
 import { verifyEmailAndPassword } from "../utils/validateEmailAndPassword.js"
 import { loginRateLimiter } from "../rateLimiters.js"
+import { isAuth } from "../middleware/isAuth.js"
 
 @Resolver()
 export class UserResolver {
@@ -188,5 +196,30 @@ export class UserResolver {
                 resolve(true)
             })
         )
+    }
+
+    @Mutation(() => FieldError, { nullable: true })
+    @UseMiddleware(isAuth)
+    async updateUsername(
+        @Arg("newUsername") newUsername: string,
+        @Ctx() ctx: MyContext
+    ): Promise<FieldError | null> {
+        const userId = ctx.req.session.userId
+
+        const res = await User.createQueryBuilder("u")
+            .update()
+            .set({
+                username: newUsername,
+                updateUsernameAttempts: () => `"updateUsernameAttempts" - 1`,
+            })
+            .where("id = :id", { id: userId })
+            .andWhere(`"updateUsernameAttempts" > 0`)
+            .execute()
+
+        if (res.affected === 0) {
+            return { message: errors.cantUpdateUsername }
+        }
+
+        return null
     }
 }

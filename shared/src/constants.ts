@@ -10,6 +10,7 @@ export const errors = {
     tooManyRequests: "Too many login attempts. Please try again later.",
     tooLongMessage: `Message cannot be longer than ${MAX_MESSAGE_LENGTH} characters`,
     messageNotEmpty: "Message shouldn't be empty",
+    cantUpdateUsername: "You have already used all of your attempts",
 }
 
 export const EmailRegex =
