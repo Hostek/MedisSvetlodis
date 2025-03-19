@@ -24,6 +24,7 @@ import { NextPage } from "next"
 import { withUrqlClient } from "next-urql"
 import Link from "next/link"
 import { useCallback, useEffect, useState } from "react"
+import { Settings } from "react-feather"
 
 const Page: NextPage = () => {
     const [content, setContent] = useState("")
@@ -96,9 +97,14 @@ const Page: NextPage = () => {
                 </NavbarContent>
                 <NavbarContent justify="end">
                     <NavbarItem>
-                        <Link href="/logout" color="danger">
-                            Logout
+                        <Link href="/user/settings" aria-label="Settings">
+                            <div aria-hidden>
+                                <Settings />
+                            </div>
                         </Link>
+                    </NavbarItem>
+                    <NavbarItem>
+                        <Link href="/logout">Logout</Link>
                     </NavbarItem>
                 </NavbarContent>
             </Navbar>
