@@ -96,6 +96,7 @@ export type User = {
   createdAt: Scalars['String']['output'];
   email: Scalars['String']['output'];
   id: Scalars['Int']['output'];
+  identifier: Scalars['String']['output'];
   updateUsernameAttempts: Scalars['Int']['output'];
   updatedAt: Scalars['String']['output'];
   username: Scalars['String']['output'];
@@ -105,13 +106,13 @@ export type CreatorFragmentFragment = { __typename?: 'User', username: string, i
 
 export type ErrorFragmentFragment = { __typename?: 'FieldError', message: string };
 
-export type LoginResponseFragmentFragment = { __typename?: 'LoginResponse', user?: { __typename?: 'User', username: string, updatedAt: string, id: number, email: string, createdAt: string, updateUsernameAttempts: number } | null, errors?: Array<{ __typename?: 'FieldError', message: string }> | null };
+export type LoginResponseFragmentFragment = { __typename?: 'LoginResponse', user?: { __typename?: 'User', username: string, updatedAt: string, id: number, email: string, createdAt: string, updateUsernameAttempts: number, identifier: string } | null, errors?: Array<{ __typename?: 'FieldError', message: string }> | null };
 
 export type MessageFragmentFragment = { __typename?: 'Message', content: string, createdAt: string, creatorId: number, id: number, updatedAt: string };
 
 export type MessageWithCreatorFragmentFragment = { __typename?: 'Message', content: string, createdAt: string, creatorId: number, id: number, updatedAt: string, creator: { __typename?: 'User', username: string, id: number } };
 
-export type UserFragmentFragment = { __typename?: 'User', username: string, updatedAt: string, id: number, email: string, createdAt: string, updateUsernameAttempts: number };
+export type UserFragmentFragment = { __typename?: 'User', username: string, updatedAt: string, id: number, email: string, createdAt: string, updateUsernameAttempts: number, identifier: string };
 
 export type CreateMessageMutationVariables = Exact<{
   content: Scalars['String']['input'];
@@ -127,7 +128,7 @@ export type LoginMutationVariables = Exact<{
 }>;
 
 
-export type LoginMutation = { __typename?: 'Mutation', login: { __typename?: 'LoginResponse', user?: { __typename?: 'User', username: string, updatedAt: string, id: number, email: string, createdAt: string, updateUsernameAttempts: number } | null, errors?: Array<{ __typename?: 'FieldError', message: string }> | null } };
+export type LoginMutation = { __typename?: 'Mutation', login: { __typename?: 'LoginResponse', user?: { __typename?: 'User', username: string, updatedAt: string, id: number, email: string, createdAt: string, updateUsernameAttempts: number, identifier: string } | null, errors?: Array<{ __typename?: 'FieldError', message: string }> | null } };
 
 export type LogoutMutationVariables = Exact<{ [key: string]: never; }>;
 
@@ -140,7 +141,7 @@ export type RegisterMutationVariables = Exact<{
 }>;
 
 
-export type RegisterMutation = { __typename?: 'Mutation', register: { __typename?: 'LoginResponse', user?: { __typename?: 'User', username: string, updatedAt: string, id: number, email: string, createdAt: string, updateUsernameAttempts: number } | null, errors?: Array<{ __typename?: 'FieldError', message: string }> | null } };
+export type RegisterMutation = { __typename?: 'Mutation', register: { __typename?: 'LoginResponse', user?: { __typename?: 'User', username: string, updatedAt: string, id: number, email: string, createdAt: string, updateUsernameAttempts: number, identifier: string } | null, errors?: Array<{ __typename?: 'FieldError', message: string }> | null } };
 
 export type UpdatePasswordMutationVariables = Exact<{
   newPassword: Scalars['String']['input'];
@@ -165,7 +166,7 @@ export type GetAllMessagesQuery = { __typename?: 'Query', getAllMessages: Array<
 export type UserQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type UserQuery = { __typename?: 'Query', user?: { __typename?: 'User', username: string, updatedAt: string, id: number, email: string, createdAt: string, updateUsernameAttempts: number } | null };
+export type UserQuery = { __typename?: 'Query', user?: { __typename?: 'User', username: string, updatedAt: string, id: number, email: string, createdAt: string, updateUsernameAttempts: number, identifier: string } | null };
 
 export type MessageAddedSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
@@ -180,6 +181,7 @@ export const UserFragmentFragmentDoc = gql`
   email
   createdAt
   updateUsernameAttempts
+  identifier
 }
     `;
 export const ErrorFragmentFragmentDoc = gql`

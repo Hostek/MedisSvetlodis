@@ -5,4 +5,5 @@ fragment UserFragment on User {
     email
     createdAt
     updateUsernameAttempts
+    identifier
 }

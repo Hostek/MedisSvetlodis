@@ -28,6 +28,8 @@ import { ArrowLeft } from "react-feather"
 const Page: NextPage = () => {
     const { user } = useIsAuth()
 
+    const [showIdentifier, setShowIdentifier] = useState(false)
+
     const [username, setUsername] = useState("")
     const [currentPassword, setCurrentPassword] = useState("")
     const [newPassword, setNewPassword] = useState("")
@@ -286,6 +288,23 @@ const Page: NextPage = () => {
                     </Card>
                 </Tab>
             </Tabs>
+
+            <Divider />
+
+            <div className="w-full">
+                <Button
+                    className="w-full"
+                    onPress={() => setShowIdentifier((v) => !v)}
+                    color="warning"
+                >
+                    Show Identifier
+                </Button>
+                {showIdentifier && (
+                    <div className="w-full text-center my-2">
+                        Your identifier: {user.identifier}
+                    </div>
+                )}
+            </div>
         </div>
     )
 }
