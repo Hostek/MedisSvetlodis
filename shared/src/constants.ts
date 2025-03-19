@@ -13,7 +13,12 @@ export const errors = {
     cantUpdateUsername: "You have already used all of your attempts",
     invalidPassword: "Invalid password",
     passwordRequired: "Password required",
-}
+    passwordNotAllowedWithOAuth: "Password not allowed with OAuth",
+    invalidOAuthProof: "Invalid OAuth proof",
+    registrationFailed: "Registration failed",
+    userNotFound: "User not found",
+    pleaseUseOAuthProvider: "Please, use OAuth provider",
+} as const
 
 export const EmailRegex =
     /^(?=.{1,256}$)[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/

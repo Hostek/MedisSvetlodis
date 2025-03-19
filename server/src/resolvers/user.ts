@@ -93,7 +93,7 @@ export class UserResolver {
         if (oauthProof) {
             if (password)
                 return {
-                    errors: [{ message: "Password not allowed with OAuth" }],
+                    errors: [{ message: errors.passwordNotAllowedWithOAuth }],
                 }
 
             const isValidProof = await verifyOAuthProof(
@@ -103,7 +103,7 @@ export class UserResolver {
             )
 
             if (!isValidProof) {
-                return { errors: [{ message: "Invalid OAuth proof" }] }
+                return { errors: [{ message: errors.invalidOAuthProof }] }
             }
 
             // Auto-register if user doesn't exist
@@ -119,7 +119,7 @@ export class UserResolver {
                                 message:
                                     error instanceof Error
                                         ? error.message
-                                        : "Registration failed",
+                                        : errors.registrationFailed,
                             },
                         ],
                     }
@@ -131,10 +131,10 @@ export class UserResolver {
         }
 
         // Handle password flow
-        if (!user) return { errors: [{ message: "User not found" }] }
+        if (!user) return { errors: [{ message: errors.userNotFound }] }
         if (!password) return { errors: [{ message: errors.passwordRequired }] }
         if (user.password === "" || user.password.length < 3)
-            return { errors: [{ message: "Please, use OAuth provider" }] }
+            return { errors: [{ message: errors.pleaseUseOAuthProvider }] }
 
         const isValid = await argon2.verify(user.password, password)
         if (!isValid) return { errors: [{ message: errors.invalidPassword }] }
@@ -175,7 +175,7 @@ export class UserResolver {
                         message:
                             error instanceof Error
                                 ? error.message
-                                : "Registration failed",
+                                : errors.registrationFailed,
                     },
                 ],
             }
