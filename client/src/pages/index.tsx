@@ -66,7 +66,7 @@ const Page: NextPage = () => {
                 return
             }
 
-            const res = await createMessage({ content, creatorId: user.id })
+            const res = await createMessage({ content })
 
             if (res.error || !res.data) {
                 return setError(errors.unknownError)

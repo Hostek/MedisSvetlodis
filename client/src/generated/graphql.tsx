@@ -46,12 +46,13 @@ export type Mutation = {
   login: LoginResponse;
   logout: Scalars['Boolean']['output'];
   register: LoginResponse;
+  updatePassword?: Maybe<FieldError>;
+  updateUsername?: Maybe<FieldError>;
 };
 
 
 export type MutationCreateMessageArgs = {
   content: Scalars['String']['input'];
-  creatorId: Scalars['Int']['input'];
 };
 
 
@@ -65,6 +66,17 @@ export type MutationLoginArgs = {
 export type MutationRegisterArgs = {
   email: Scalars['String']['input'];
   password: Scalars['String']['input'];
+};
+
+
+export type MutationUpdatePasswordArgs = {
+  newPassword: Scalars['String']['input'];
+  oldPassword: Scalars['String']['input'];
+};
+
+
+export type MutationUpdateUsernameArgs = {
+  newUsername: Scalars['String']['input'];
 };
 
 export type Query = {
@@ -84,6 +96,7 @@ export type User = {
   createdAt: Scalars['String']['output'];
   email: Scalars['String']['output'];
   id: Scalars['Int']['output'];
+  updateUsernameAttempts: Scalars['Int']['output'];
   updatedAt: Scalars['String']['output'];
   username: Scalars['String']['output'];
 };
@@ -102,7 +115,6 @@ export type UserFragmentFragment = { __typename?: 'User', username: string, upda
 
 export type CreateMessageMutationVariables = Exact<{
   content: Scalars['String']['input'];
-  creatorId: Scalars['Int']['input'];
 }>;
 
 
@@ -195,8 +207,8 @@ export const MessageWithCreatorFragmentFragmentDoc = gql`
     ${MessageFragmentFragmentDoc}
 ${CreatorFragmentFragmentDoc}`;
 export const CreateMessageDocument = gql`
-    mutation CreateMessage($content: String!, $creatorId: Int!) {
-  createMessage(content: $content, creatorId: $creatorId) {
+    mutation CreateMessage($content: String!) {
+  createMessage(content: $content) {
     ...ErrorFragment
   }
 }
