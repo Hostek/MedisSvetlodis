@@ -1,6 +1,9 @@
 "use client"
-import { RED_COLOR } from "@/constants"
-import { useUpdateUsernameMutation } from "@/generated/graphql"
+import { EMPTY_PASSWORD_STRING, RED_COLOR } from "@/constants"
+import {
+    useUpdatePasswordMutation,
+    useUpdateUsernameMutation,
+} from "@/generated/graphql"
 import { useIsAuth } from "@/hooks/isAuth"
 import { HandleSubmit } from "@/types"
 import { createUrqlClient } from "@/utils/createUrqlClient"
@@ -16,10 +19,9 @@ import {
     Tab,
     Tabs,
 } from "@heroui/react"
-import { errors } from "@hostek/shared"
+import { errors, getPasswordError, getUsernameError } from "@hostek/shared"
 import { NextPage } from "next"
 import { withUrqlClient } from "next-urql"
-import Link from "next/link"
 import { useCallback, useState } from "react"
 import { ArrowLeft } from "react-feather"
 
@@ -34,9 +36,14 @@ const Page: NextPage = () => {
     const [updateUsernameError, setUpdateUsernameError] = useState<
         string | null
     >(null)
+    const [updatePasswordError, setUpdatePasswordError] = useState<
+        string | null
+    >(null)
 
     const [{ fetching: updateUsernameFetching }, updateUsername] =
         useUpdateUsernameMutation()
+    const [{ fetching: updatePasswordFetching }, updatePassword] =
+        useUpdatePasswordMutation()
 
     const handleUsernameUpdate = useCallback<HandleSubmit>(
         async (e) => {
@@ -58,6 +65,12 @@ const Page: NextPage = () => {
             if (!result.isConfirmed) return
 
             setUpdateUsernameError(null)
+
+            const areErrors = getUsernameError(username)
+            if (areErrors) {
+                setUpdateUsernameError(areErrors)
+                return
+            }
 
             const res = await updateUsername({
                 newUsername: username,
@@ -82,6 +95,71 @@ const Page: NextPage = () => {
             })
         },
         [username, updateUsername, user]
+    )
+
+    const handlePasswordUpdate = useCallback<HandleSubmit>(
+        async (e) => {
+            e.preventDefault()
+
+            // console.warn("hey!")
+
+            if (!user) return
+
+            const result = await MySwal.fire({
+                title: "Are you sure?",
+                icon: "warning",
+                theme: "dark",
+                showCancelButton: true,
+                confirmButtonText: "Yes, Change my password",
+                cancelButtonText: "Cancel",
+                confirmButtonColor: RED_COLOR,
+            })
+
+            if (!result.isConfirmed) return
+
+            setUpdatePasswordError(null)
+
+            let areErrors: string | null = getPasswordError(newPassword)
+            if (!areErrors && currentPassword !== EMPTY_PASSWORD_STRING) {
+                areErrors = getPasswordError(currentPassword)
+            }
+            if (!areErrors) {
+                if (newPassword !== confirmPassword) {
+                    areErrors = errors.passwordMismatch
+                }
+            }
+            if (areErrors) {
+                setUpdatePasswordError(areErrors)
+                return
+            }
+
+            const realCurrentPassword =
+                currentPassword === EMPTY_PASSWORD_STRING
+                    ? null
+                    : currentPassword
+
+            const res = await updatePassword({
+                newPassword,
+                oldPassword: realCurrentPassword,
+            })
+
+            if (!res.data || res.error) {
+                setUpdatePasswordError(errors.unknownError)
+                return
+            }
+
+            if (res.data.updatePassword?.message) {
+                setUpdatePasswordError(res.data.updatePassword.message)
+            }
+
+            MySwal.fire({
+                title: "Success",
+                text: "Successfully changed password!",
+                icon: "success",
+                theme: "dark",
+            })
+        },
+        [user, newPassword, confirmPassword, currentPassword, updatePassword]
     )
 
     if (!user) {
@@ -141,11 +219,18 @@ const Page: NextPage = () => {
                 <Tab key="password" title="Change Password">
                     <Card>
                         <CardHeader className="font-bold">
-                            Change Password
+                            Change Password |
+                            <span className="text-gray-400 mx-1">
+                                If you didn&apos;t set password type in &quot;
+                                {EMPTY_PASSWORD_STRING}&quot;
+                            </span>
                         </CardHeader>
                         <Divider />
                         <CardBody className="flex flex-col gap-4">
-                            <Form className="space-y-2">
+                            <Form
+                                className="space-y-2"
+                                onSubmit={handlePasswordUpdate}
+                            >
                                 <Input
                                     label="Current Password"
                                     type="password"
@@ -183,7 +268,17 @@ const Page: NextPage = () => {
                                             : ""
                                     }
                                 />
-                                <Button color="primary" className="w-full">
+                                {updatePasswordError && (
+                                    <div className="w-full text-red-500">
+                                        Error: {updatePasswordError}
+                                    </div>
+                                )}
+                                <Button
+                                    color="primary"
+                                    className="w-full"
+                                    disabled={updatePasswordFetching}
+                                    type="submit"
+                                >
                                     Update Password
                                 </Button>
                             </Form>
