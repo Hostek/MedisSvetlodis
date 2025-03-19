@@ -1,4 +1,4 @@
-import { errors, verifyOAuthProof } from "@hostek/shared"
+import { errors, getUsernameError, verifyOAuthProof } from "@hostek/shared"
 import argon2 from "argon2"
 import {
     Arg,
@@ -206,6 +206,11 @@ export class UserResolver {
     ): Promise<FieldError | null> {
         const userId = ctx.req.session.userId
 
+        const areErrors = getUsernameError(newUsername)
+        if (areErrors) {
+            return { message: areErrors }
+        }
+
         const res = await User.createQueryBuilder("u")
             .update()
             .set({
@@ -237,6 +242,7 @@ export class UserResolver {
         if (!areErrors) {
             areErrors = verifyEmailAndPassword("test@test.com", oldPassword)
         }
+
         if (areErrors) {
             return { message: areErrors }
         }

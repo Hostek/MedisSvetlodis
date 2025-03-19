@@ -18,6 +18,8 @@ export const errors = {
     registrationFailed: "Registration failed",
     userNotFound: "User not found",
     pleaseUseOAuthProvider: "Please, use OAuth provider",
+    usernameNotEmpty: "Username shouldn't be empty",
+    badUsername: "Incorrect username",
 } as const
 
 export const EmailRegex =
