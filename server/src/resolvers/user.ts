@@ -227,7 +227,8 @@ export class UserResolver {
     @UseMiddleware(isAuth)
     async updatePassword(
         @Arg("newPassword") newPassword: string,
-        @Arg("oldPassword", () => String) oldPassword: string | null,
+        @Arg("oldPassword", () => String, { nullable: true })
+        oldPassword: string | null,
         @Ctx() ctx: MyContext
     ): Promise<FieldError | null> {
         const userId = ctx.req.session.userId

@@ -71,7 +71,7 @@ export type MutationRegisterArgs = {
 
 export type MutationUpdatePasswordArgs = {
   newPassword: Scalars['String']['input'];
-  oldPassword: Scalars['String']['input'];
+  oldPassword?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -141,6 +141,21 @@ export type RegisterMutationVariables = Exact<{
 
 
 export type RegisterMutation = { __typename?: 'Mutation', register: { __typename?: 'LoginResponse', user?: { __typename?: 'User', username: string, updatedAt: string, id: number, email: string, createdAt: string } | null, errors?: Array<{ __typename?: 'FieldError', message: string }> | null } };
+
+export type UpdatePasswordMutationVariables = Exact<{
+  newPassword: Scalars['String']['input'];
+  oldPassword?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type UpdatePasswordMutation = { __typename?: 'Mutation', updatePassword?: { __typename?: 'FieldError', message: string } | null };
+
+export type UpdateUsernameMutationVariables = Exact<{
+  newUsername: Scalars['String']['input'];
+}>;
+
+
+export type UpdateUsernameMutation = { __typename?: 'Mutation', updateUsername?: { __typename?: 'FieldError', message: string } | null };
 
 export type GetAllMessagesQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -247,6 +262,28 @@ export const RegisterDocument = gql`
 
 export function useRegisterMutation() {
   return Urql.useMutation<RegisterMutation, RegisterMutationVariables>(RegisterDocument);
+};
+export const UpdatePasswordDocument = gql`
+    mutation UpdatePassword($newPassword: String!, $oldPassword: String) {
+  updatePassword(newPassword: $newPassword, oldPassword: $oldPassword) {
+    ...ErrorFragment
+  }
+}
+    ${ErrorFragmentFragmentDoc}`;
+
+export function useUpdatePasswordMutation() {
+  return Urql.useMutation<UpdatePasswordMutation, UpdatePasswordMutationVariables>(UpdatePasswordDocument);
+};
+export const UpdateUsernameDocument = gql`
+    mutation UpdateUsername($newUsername: String!) {
+  updateUsername(newUsername: $newUsername) {
+    ...ErrorFragment
+  }
+}
+    ${ErrorFragmentFragmentDoc}`;
+
+export function useUpdateUsernameMutation() {
+  return Urql.useMutation<UpdateUsernameMutation, UpdateUsernameMutationVariables>(UpdateUsernameDocument);
 };
 export const GetAllMessagesDocument = gql`
     query GetAllMessages {
