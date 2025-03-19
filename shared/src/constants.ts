@@ -11,6 +11,8 @@ export const errors = {
     tooLongMessage: `Message cannot be longer than ${MAX_MESSAGE_LENGTH} characters`,
     messageNotEmpty: "Message shouldn't be empty",
     cantUpdateUsername: "You have already used all of your attempts",
+    invalidPassword: "Invalid password",
+    passwordRequired: "Password required",
 }
 
 export const EmailRegex =

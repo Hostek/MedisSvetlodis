@@ -132,12 +132,12 @@ export class UserResolver {
 
         // Handle password flow
         if (!user) return { errors: [{ message: "User not found" }] }
-        if (!password) return { errors: [{ message: "Password required" }] }
+        if (!password) return { errors: [{ message: errors.passwordRequired }] }
         if (user.password === "" || user.password.length < 3)
             return { errors: [{ message: "Please, use OAuth provider" }] }
 
         const isValid = await argon2.verify(user.password, password)
-        if (!isValid) return { errors: [{ message: "Invalid password" }] }
+        if (!isValid) return { errors: [{ message: errors.invalidPassword }] }
 
         req.session.userId = user.id
         return { user }
@@ -218,6 +218,56 @@ export class UserResolver {
 
         if (res.affected === 0) {
             return { message: errors.cantUpdateUsername }
+        }
+
+        return null
+    }
+
+    @Mutation(() => FieldError, { nullable: true })
+    @UseMiddleware(isAuth)
+    async updatePassword(
+        @Arg("newPassword") newPassword: string,
+        @Arg("oldPassword", () => String) oldPassword: string | null,
+        @Ctx() ctx: MyContext
+    ): Promise<FieldError | null> {
+        const userId = ctx.req.session.userId
+
+        let areErrors = verifyEmailAndPassword("test@test.com", newPassword)
+        if (!areErrors) {
+            areErrors = verifyEmailAndPassword("test@test.com", oldPassword)
+        }
+        if (areErrors) {
+            return { message: areErrors }
+        }
+
+        const user = await User.findOne({
+            where: { id: userId },
+        })
+
+        if (!user) {
+            return { message: errors.unknownError }
+        }
+
+        if (user.password !== "" && user.password.length > 0) {
+            if (!oldPassword) {
+                return { message: errors.passwordRequired }
+            }
+            const isValid = await argon2.verify(user.password, oldPassword)
+            if (!isValid) return { message: errors.invalidPassword }
+        }
+
+        const passwordHash = await argon2.hash(newPassword)
+
+        const res = await User.createQueryBuilder("u")
+            .update()
+            .set({
+                password: passwordHash,
+            })
+            .where("id = :id", { id: userId })
+            .execute()
+
+        if (res.affected === 0) {
+            return { message: errors.unknownError }
         }
 
         return null
