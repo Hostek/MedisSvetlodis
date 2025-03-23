@@ -34,3 +34,9 @@ export const FRIEND_REQUEST_TOKEN_STATUS = [
     "deleted",
     "blocked",
 ] as const
+
+export const FRIEND_REQUESTS_STATUS = [
+    "pending",
+    "accepted",
+    "rejected",
+] as const

@@ -11,6 +11,7 @@ import {
 } from "typeorm"
 import { Message } from "./Message.js"
 import { FriendRequestToken } from "./FriendRequestToken.js"
+import { FriendRequests } from "./FriendsRequests.js"
 
 @ObjectType()
 @Entity()
@@ -51,8 +52,13 @@ export class User extends BaseEntity {
     @Column("int", { default: 3 })
     updateUsernameAttempts: number
 
-    @OneToMany(() => Message, (m) => m.creator, {
+    @OneToMany(() => FriendRequestToken, (t) => t.creator, {
         onDelete: "CASCADE",
     })
     friendRequestTokens: Relation<FriendRequestToken>[]
+
+    @OneToMany(() => FriendRequests, (t) => t.sender, {
+        onDelete: "CASCADE",
+    })
+    sentFriendRequests: Relation<FriendRequests>[]
 }

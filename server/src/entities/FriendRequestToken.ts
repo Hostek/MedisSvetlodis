@@ -5,12 +5,14 @@ import {
     CreateDateColumn,
     Entity,
     ManyToOne,
+    OneToMany,
     PrimaryGeneratedColumn,
     Relation,
     UpdateDateColumn,
 } from "typeorm"
 import { User } from "./User.js"
 import { FRIEND_REQUEST_TOKEN_STATUS_TYPE } from "@hostek/shared"
+import { FriendRequests } from "./FriendsRequests.js"
 
 @ObjectType()
 @Entity()
@@ -51,6 +53,12 @@ export class FriendRequestToken extends BaseEntity {
     @Column({
         type: "varchar",
         length: "30",
+        default: "active",
     })
     status: FRIEND_REQUEST_TOKEN_STATUS_TYPE
+
+    @OneToMany(() => FriendRequests, (t) => t.requestToken, {
+        onDelete: "CASCADE",
+    })
+    friendRequests: Relation<FriendRequests>[]
 }
