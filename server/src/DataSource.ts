@@ -2,6 +2,7 @@ import { DataSource } from "typeorm"
 import { User } from "./entities/User.js"
 import { Message } from "./entities/Message.js"
 import Redis from "ioredis"
+import { FriendRequestToken } from "./entities/FriendRequestToken.js"
 
 export const AppDataSource = new DataSource({
     type: "postgres",
@@ -10,7 +11,7 @@ export const AppDataSource = new DataSource({
     password: process.env.DB_PASS,
     logging: true,
     synchronize: true,
-    entities: [User, Message],
+    entities: [User, Message, FriendRequestToken],
     host: "localhost",
     port: parseInt(process.env.DB_PORT),
 })

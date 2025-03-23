@@ -28,3 +28,9 @@ export const EmailRegex =
 export const UsernameRegex = /^[a-zA-Z0-9_]{1,128}$/
 
 export const PasswordRegex = /^[a-zA-Z0-9_!@#$%^&*()'"<>/?=+\-|\\[\]{}]{1,128}$/
+
+export const FRIEND_REQUEST_TOKEN_STATUS = [
+    "active",
+    "deleted",
+    "blocked",
+] as const

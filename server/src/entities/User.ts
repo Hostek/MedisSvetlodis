@@ -10,6 +10,7 @@ import {
     UpdateDateColumn,
 } from "typeorm"
 import { Message } from "./Message.js"
+import { FriendRequestToken } from "./FriendRequestToken.js"
 
 @ObjectType()
 @Entity()
@@ -49,4 +50,9 @@ export class User extends BaseEntity {
     @Field(() => Int)
     @Column("int", { default: 3 })
     updateUsernameAttempts: number
+
+    @OneToMany(() => Message, (m) => m.creator, {
+        onDelete: "CASCADE",
+    })
+    friendRequestTokens: Relation<FriendRequestToken>[]
 }
