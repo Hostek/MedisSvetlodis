@@ -18,6 +18,7 @@ import { generalRateLimiter } from "./rateLimiters.js"
 import { HelloResolver } from "./resolvers/hello.js"
 import { MessageResolver } from "./resolvers/message.js"
 import { UserResolver } from "./resolvers/user.js"
+import { FriendRequestTokenResolver } from "./resolvers/friendRequestToken.js"
 
 await AppDataSource.initialize()
 
@@ -117,7 +118,12 @@ const wsServer = new WebSocketServer({
 })
 
 const schema = await buildSchema({
-    resolvers: [HelloResolver, UserResolver, MessageResolver],
+    resolvers: [
+        HelloResolver,
+        UserResolver,
+        MessageResolver,
+        FriendRequestTokenResolver,
+    ],
     validate: false,
     pubSub: pubSub,
 })

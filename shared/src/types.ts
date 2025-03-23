@@ -1,0 +1,10 @@
+import {
+    FRIEND_REQUEST_TOKEN_STATUS,
+    FRIEND_REQUESTS_STATUS,
+} from "./constants"
+
+export type FRIEND_REQUEST_TOKEN_STATUS_TYPE =
+    (typeof FRIEND_REQUEST_TOKEN_STATUS)[number]
+
+export type FRIEND_REQUESTS_STATUS_TYPE =
+    (typeof FRIEND_REQUESTS_STATUS)[number]
