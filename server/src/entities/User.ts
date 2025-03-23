@@ -43,16 +43,21 @@ export class User extends BaseEntity {
     @Column({ type: "text", unique: true })
     identifier: string
 
+    @Field(() => Int)
+    @Column("int", { default: 3 })
+    updateUsernameAttempts: number
+
+    // did user generate their default tokens?
+    @Field(() => Boolean)
+    @Column({ type: "boolean", default: false })
+    generatedDefaultFriendRequestTokens: boolean
+
     @OneToMany(() => Message, (m) => m.creator, {
         onDelete: "CASCADE",
     })
     messages: Relation<Message>[]
 
-    @Field(() => Int)
-    @Column("int", { default: 3 })
-    updateUsernameAttempts: number
-
-    @OneToMany(() => FriendRequestToken, (t) => t.creator, {
+    @OneToMany(() => FriendRequestToken, (t) => t.user, {
         onDelete: "CASCADE",
     })
     friendRequestTokens: Relation<FriendRequestToken>[]

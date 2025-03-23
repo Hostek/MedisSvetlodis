@@ -35,7 +35,7 @@ export class FriendRequestToken extends BaseEntity {
 
     @Field(() => User)
     @ManyToOne(() => User, (user) => user.friendRequestTokens)
-    creator: Relation<User>
+    user: Relation<User>
 
     @Field(() => String)
     @Column("text")

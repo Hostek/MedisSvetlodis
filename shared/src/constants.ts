@@ -20,7 +20,10 @@ export const errors = {
     pleaseUseOAuthProvider: "Please, use OAuth provider",
     usernameNotEmpty: "Username shouldn't be empty",
     badUsername: "Incorrect username",
+    tokensAlreadyGenerated: "Tokens are already generated",
 } as const
+
+export const errors_values = Object.values(errors)
 
 export const EmailRegex =
     /^(?=.{1,256}$)[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
