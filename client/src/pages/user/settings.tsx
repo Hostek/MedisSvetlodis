@@ -1,6 +1,7 @@
 "use client"
 import { EMPTY_PASSWORD_STRING, RED_COLOR } from "@/constants"
 import {
+    useCreateDefaultTokensMutation,
     useUpdatePasswordMutation,
     useUpdateUsernameMutation,
 } from "@/generated/graphql"
@@ -46,6 +47,8 @@ const Page: NextPage = () => {
         useUpdateUsernameMutation()
     const [{ fetching: updatePasswordFetching }, updatePassword] =
         useUpdatePasswordMutation()
+    const [{ fetching: createDefaultTokensFetching }, createDefaultTokens] =
+        useCreateDefaultTokensMutation()
 
     const handleUsernameUpdate = useCallback<HandleSubmit>(
         async (e) => {
@@ -304,6 +307,22 @@ const Page: NextPage = () => {
                         Your identifier: {user.identifier}
                     </div>
                 )}
+            </div>
+
+            {/* temp button! */}
+            <div className="w-full">
+                <Button
+                    className="w-full"
+                    disabled={createDefaultTokensFetching}
+                    onPress={async () => {
+                        if (!user) return
+                        const res = await createDefaultTokens({})
+
+                        console.log({ res })
+                    }}
+                >
+                    Generate Your Default Tokens
+                </Button>
             </div>
         </div>
     )
