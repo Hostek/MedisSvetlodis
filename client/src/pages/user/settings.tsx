@@ -1,7 +1,7 @@
 "use client"
 import ChangePasswordTab from "@/components/settings/ChangePasswordTab"
+import FriendRequestTokens from "@/components/settings/FriendRequestTokens"
 import UpdateUsername from "@/components/settings/UpdateUsername"
-import { useCreateDefaultTokensMutation } from "@/generated/graphql"
 import { useIsAuth } from "@/hooks/isAuth"
 import { createUrqlClient } from "@/utils/createUrqlClient"
 import { Button, Divider, Tab, Tabs } from "@heroui/react"
@@ -14,9 +14,6 @@ const Page: NextPage = () => {
     const { user } = useIsAuth()
 
     const [showIdentifier, setShowIdentifier] = useState(false)
-
-    const [{ fetching: createDefaultTokensFetching }, createDefaultTokens] =
-        useCreateDefaultTokensMutation()
 
     if (!user) {
         return null
@@ -61,21 +58,14 @@ const Page: NextPage = () => {
                 )}
             </div>
 
-            {/* temp button! */}
-            <div className="w-full">
-                <Button
-                    className="w-full"
-                    disabled={createDefaultTokensFetching}
-                    onPress={async () => {
-                        if (!user) return
-                        const res = await createDefaultTokens({})
+            <Divider />
 
-                        console.log({ res })
-                    }}
-                >
-                    Generate Your Default Tokens
-                </Button>
-            </div>
+            <FriendRequestTokens
+                l={!!user}
+                generatedDefaultFriendRequestTokens={
+                    user.generatedDefaultFriendRequestTokens
+                }
+            />
         </div>
     )
 }
