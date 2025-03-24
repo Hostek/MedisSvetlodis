@@ -2,6 +2,7 @@ import { Request, Response } from "express"
 import { Redis } from "ioredis"
 import { Field, ObjectType } from "type-graphql"
 import { User } from "./entities/User.js"
+import { FriendRequestToken } from "./entities/FriendRequestToken.js"
 
 @ObjectType()
 export class FieldError {
@@ -29,6 +30,15 @@ export class LoginResponse {
 
     @Field(() => User, { nullable: true })
     user?: User
+}
+
+@ObjectType()
+export class FriendRequestTokenOrError {
+    @Field(() => [FieldError], { nullable: true })
+    errors?: FieldError[]
+
+    @Field(() => FriendRequestToken, { nullable: true })
+    token?: FriendRequestToken
 }
 
 export interface MyContext {

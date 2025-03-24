@@ -14,7 +14,7 @@ import { AppDataSource } from "../DataSource.js"
 import { FriendRequestToken } from "../entities/FriendRequestToken.js"
 import { User } from "../entities/User.js"
 import { isAuth } from "../middleware/isAuth.js"
-import { FieldError, MyContext } from "../types.js"
+import { FieldError, FriendRequestTokenOrError, MyContext } from "../types.js"
 
 @Resolver()
 export class FriendRequestTokenResolver {
@@ -176,5 +176,54 @@ export class FriendRequestTokenResolver {
                 manager
             )
         })
+    }
+
+    @Mutation(() => FriendRequestTokenOrError)
+    @UseMiddleware(isAuth)
+    async regenerateToken(
+        @Arg("tokenId", () => Int) tokenId: number,
+        @Ctx() ctx: MyContext
+    ): Promise<FriendRequestTokenOrError> {
+        const userId = ctx.req.session.userId
+
+        try {
+            return await AppDataSource.transaction(async (tm) => {
+                const token = await tm
+                    .getRepository(FriendRequestToken)
+                    .findOne({
+                        where: {
+                            id: tokenId,
+                            userId: userId,
+                            status: Not("deleted" as const),
+                        },
+                    })
+
+                if (!token) {
+                    throw new Error(errors.tokenNotFound)
+                }
+
+                await tm.update(
+                    FriendRequestToken,
+                    {
+                        id: tokenId,
+                    },
+                    {
+                        status: "deleted",
+                        deletedDate: () => "CURRENT_TIMESTAMP",
+                    }
+                )
+
+                const newToken = await tm
+                    .create(FriendRequestToken, {
+                        userId,
+                        token: uuid(),
+                    })
+                    .save()
+
+                return { token: newToken }
+            })
+        } catch {
+            return { errors: [{ message: errors.unknownError }] }
+        }
     }
 }

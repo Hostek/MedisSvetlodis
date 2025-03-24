@@ -59,7 +59,7 @@ export class FriendRequestToken extends BaseEntity {
 
     @Field(() => Date, { nullable: true })
     @Column("timestamptz", { nullable: true })
-    deletedDate: Date
+    deletedDate?: Date
 
     @OneToMany(() => FriendRequests, (t) => t.requestToken, {
         onDelete: "CASCADE",

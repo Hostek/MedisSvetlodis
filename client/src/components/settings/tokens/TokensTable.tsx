@@ -120,6 +120,7 @@ const TokensTable: React.FC<TokensTableProps> = ({
                                         }
                                     }}
                                     disabled={allFetching}
+                                    isIconOnly
                                 >
                                     {value.status === "active" ? (
                                         <Lock />
