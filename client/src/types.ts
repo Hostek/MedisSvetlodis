@@ -19,3 +19,16 @@ export interface anyObj {
 export type FormErrors = Record<string, string | string[]>
 
 export type HandleSubmit = React.FormEventHandler<HTMLFormElement>
+
+export interface SvgWrapperOptions {
+    onClick?: React.MouseEventHandler<SVGSVGElement>
+}
+
+export interface ReactIconProps {
+    width?: string | number
+    height?: string | number
+    fill?: string
+    className?: string
+    viewBox?: string
+    xmlns?: string
+}
