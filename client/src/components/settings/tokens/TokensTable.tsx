@@ -1,10 +1,12 @@
 "use client"
+import { RED_COLOR } from "@/constants"
 import {
     useBlockFriendRequestTokenMutation,
     useRegenerateFriendRequestTokenMutation,
     useUnblockFriendRequestTokenMutation,
 } from "@/generated/graphql"
 import { blockOrUnblockMutRT, FriendRequestTokensType } from "@/types"
+import { MySwal } from "@/utils/MySwal"
 import {
     Button,
     Table,
@@ -14,7 +16,11 @@ import {
     TableHeader,
     TableRow,
 } from "@heroui/react"
-import { checkIfArrayExistsNotEmpty, errors } from "@hostek/shared"
+import {
+    checkIfArrayExistsNotEmpty,
+    errors,
+    MAXIMUM_TOKEN_REGENERATION_COUNT,
+} from "@hostek/shared"
 import React, { useMemo } from "react"
 import { Lock, RefreshCw, Unlock } from "react-feather"
 
@@ -152,6 +158,21 @@ const TokensTable: React.FC<TokensTableProps> = ({
                                     color="success"
                                     className="mx-1"
                                     onPress={async () => {
+                                        const res_popup = await MySwal.fire({
+                                            title: "Are you sure?",
+                                            text: `Please, do not regenerate tokens too often (you can perform this operation only ${MAXIMUM_TOKEN_REGENERATION_COUNT} times per day). After regeneration old token won't work anymore.`,
+                                            icon: "warning",
+                                            showCancelButton: true,
+                                            confirmButtonColor: RED_COLOR,
+                                            // cancelButtonColor: "#d33",
+                                            confirmButtonText: "Yes",
+                                            theme: "dark",
+                                        })
+
+                                        if (!res_popup.isConfirmed) {
+                                            return
+                                        }
+
                                         setAllError(null)
 
                                         const res =
@@ -198,6 +219,13 @@ const TokensTable: React.FC<TokensTableProps> = ({
                                                     : token
                                             )
                                         )
+
+                                        MySwal.fire({
+                                            title: "Success",
+                                            text: "Successfully regenerated token!",
+                                            icon: "success",
+                                            theme: "dark",
+                                        })
                                     }}
                                 >
                                     <RefreshCw />
