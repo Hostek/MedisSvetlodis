@@ -1,4 +1,10 @@
 import { Cache } from "@urql/exchange-graphcache"
+import {
+    useBlockFriendRequestTokenMutation,
+    useFriendRequestTokensOfUserQuery,
+    useUnblockFriendRequestTokenMutation,
+} from "./generated/graphql"
+import { DeepMerge, ExtractPromiseType } from "@hostek/shared"
 
 export type betterUpdateQueryFn<R, Q> = (r: R, q: Q) => Q
 
@@ -32,3 +38,19 @@ export interface ReactIconProps {
     viewBox?: string
     xmlns?: string
 }
+
+export type FriendRequestTokensType = Exclude<
+    ReturnType<typeof useFriendRequestTokensOfUserQuery>[0]["data"],
+    undefined
+>["friendRequestTokensOfUser"]
+
+export type blockFriendRequestTokenReturnType = ExtractPromiseType<
+    ReturnType<ReturnType<typeof useBlockFriendRequestTokenMutation>[1]>
+>
+export type unblockFriendRequestTokenReturnType = ExtractPromiseType<
+    ReturnType<ReturnType<typeof useUnblockFriendRequestTokenMutation>[1]>
+>
+export type blockOrUnblockMutRT = DeepMerge<
+    blockFriendRequestTokenReturnType,
+    unblockFriendRequestTokenReturnType
+>
