@@ -180,7 +180,7 @@ export class FriendRequestTokenResolver {
 
     @Mutation(() => FriendRequestTokenOrError)
     @UseMiddleware(isAuth)
-    async regenerateToken(
+    async regenerateFriendRequestToken(
         @Arg("tokenId", () => Int) tokenId: number,
         @Ctx() ctx: MyContext
     ): Promise<FriendRequestTokenOrError> {

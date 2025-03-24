@@ -39,6 +39,12 @@ export type FriendRequestToken = {
   userId: Scalars['Int']['output'];
 };
 
+export type FriendRequestTokenOrError = {
+  __typename?: 'FriendRequestTokenOrError';
+  errors?: Maybe<Array<FieldError>>;
+  token?: Maybe<FriendRequestToken>;
+};
+
 export type LoginResponse = {
   __typename?: 'LoginResponse';
   errors?: Maybe<Array<FieldError>>;
@@ -62,6 +68,7 @@ export type Mutation = {
   createMessage?: Maybe<FieldError>;
   login: LoginResponse;
   logout: Scalars['Boolean']['output'];
+  regenerateFriendRequestToken: FriendRequestTokenOrError;
   register: LoginResponse;
   toggleBlockFriendRequestToken?: Maybe<FieldError>;
   unblockFriendRequestToken?: Maybe<FieldError>;
@@ -84,6 +91,11 @@ export type MutationLoginArgs = {
   email: Scalars['String']['input'];
   oauthProof?: InputMaybe<Scalars['String']['input']>;
   password?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type MutationRegenerateFriendRequestTokenArgs = {
+  tokenId: Scalars['Int']['input'];
 };
 
 
@@ -184,6 +196,13 @@ export type LogoutMutationVariables = Exact<{ [key: string]: never; }>;
 
 
 export type LogoutMutation = { __typename?: 'Mutation', logout: boolean };
+
+export type RegenerateFriendRequestTokenMutationVariables = Exact<{
+  tokenId: Scalars['Int']['input'];
+}>;
+
+
+export type RegenerateFriendRequestTokenMutation = { __typename?: 'Mutation', regenerateFriendRequestToken: { __typename?: 'FriendRequestTokenOrError', errors?: Array<{ __typename?: 'FieldError', message: string }> | null, token?: { __typename?: 'FriendRequestToken', createdAt: string, id: number, usage_count: number, token: string, status: string, max_limit?: number | null } | null } };
 
 export type RegisterMutationVariables = Exact<{
   password: Scalars['String']['input'];
@@ -356,6 +375,23 @@ export const LogoutDocument = gql`
 
 export function useLogoutMutation() {
   return Urql.useMutation<LogoutMutation, LogoutMutationVariables>(LogoutDocument);
+};
+export const RegenerateFriendRequestTokenDocument = gql`
+    mutation RegenerateFriendRequestToken($tokenId: Int!) {
+  regenerateFriendRequestToken(tokenId: $tokenId) {
+    errors {
+      ...ErrorFragment
+    }
+    token {
+      ...FriendRequestTokensFragment
+    }
+  }
+}
+    ${ErrorFragmentFragmentDoc}
+${FriendRequestTokensFragmentFragmentDoc}`;
+
+export function useRegenerateFriendRequestTokenMutation() {
+  return Urql.useMutation<RegenerateFriendRequestTokenMutation, RegenerateFriendRequestTokenMutationVariables>(RegenerateFriendRequestTokenDocument);
 };
 export const RegisterDocument = gql`
     mutation Register($password: String!, $email: String!) {
