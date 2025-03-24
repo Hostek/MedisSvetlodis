@@ -1,6 +1,7 @@
 "use client"
 import {
     useBlockFriendRequestTokenMutation,
+    useRegenerateFriendRequestTokenMutation,
     useUnblockFriendRequestTokenMutation,
 } from "@/generated/graphql"
 import { blockOrUnblockMutRT, FriendRequestTokensType } from "@/types"
@@ -13,9 +14,9 @@ import {
     TableHeader,
     TableRow,
 } from "@heroui/react"
-import { errors } from "@hostek/shared"
+import { checkIfArrayExistsNotEmpty, errors } from "@hostek/shared"
 import React, { useMemo } from "react"
-import { Lock, Unlock } from "react-feather"
+import { Lock, RefreshCw, Unlock } from "react-feather"
 
 interface TokensTableProps {
     tokens: FriendRequestTokensType
@@ -36,12 +37,22 @@ const TokensTable: React.FC<TokensTableProps> = ({
         { fetching: unblockFriendRequestTokenFetching },
         unblockFriendRequestToken,
     ] = useUnblockFriendRequestTokenMutation()
+    const [
+        { fetching: regenFriendRequestToken },
+        regenerateFriendRequestToken,
+    ] = useRegenerateFriendRequestTokenMutation()
 
     const allFetching = useMemo(() => {
         return (
-            blockFriendRequestTokenFetching || unblockFriendRequestTokenFetching
+            blockFriendRequestTokenFetching ||
+            unblockFriendRequestTokenFetching ||
+            regenFriendRequestToken
         )
-    }, [blockFriendRequestTokenFetching, unblockFriendRequestTokenFetching])
+    }, [
+        blockFriendRequestTokenFetching,
+        unblockFriendRequestTokenFetching,
+        regenFriendRequestToken,
+    ])
 
     return (
         <Table aria-label="Friend Request Tokens">
@@ -51,7 +62,7 @@ const TokensTable: React.FC<TokensTableProps> = ({
             </TableHeader>
             <TableBody>
                 {tokens.map((value, i) => {
-                    const title =
+                    const titleOfBlockBtn =
                         value.status === "active"
                             ? `block token ${i + 1}`
                             : `unblock token ${i + 1}`
@@ -88,15 +99,19 @@ const TokensTable: React.FC<TokensTableProps> = ({
                         )
                     }
 
+                    const titleOfRegenBtn = `Regenerate token ${i + 1}`
+
                     return (
                         <TableRow key={i}>
                             <TableCell>{value.token}</TableCell>
                             <TableCell>
                                 <Button
-                                    aria-label={title}
-                                    title={title}
+                                    aria-label={titleOfBlockBtn}
+                                    title={titleOfBlockBtn}
                                     // className="w-2"
                                     onPress={async () => {
+                                        setAllError(null)
+
                                         const isBlocking =
                                             value.status === "active"
                                         const mutationFn = isBlocking
@@ -113,7 +128,7 @@ const TokensTable: React.FC<TokensTableProps> = ({
 
                                             if (!handleApiResponse(res)) return
 
-                                            setAllError(null)
+                                            // setAllError(null)
                                             updateLocalTokenStatus(newStatus)
                                         } catch {
                                             setAllError(errors.unknownError)
@@ -121,12 +136,71 @@ const TokensTable: React.FC<TokensTableProps> = ({
                                     }}
                                     disabled={allFetching}
                                     isIconOnly
+                                    color="danger"
                                 >
                                     {value.status === "active" ? (
                                         <Lock />
                                     ) : (
                                         <Unlock />
                                     )}
+                                </Button>
+                                <Button
+                                    aria-label={titleOfRegenBtn}
+                                    title={titleOfRegenBtn}
+                                    disabled={allFetching}
+                                    isIconOnly
+                                    color="success"
+                                    className="mx-1"
+                                    onPress={async () => {
+                                        setAllError(null)
+
+                                        const res =
+                                            await regenerateFriendRequestToken({
+                                                tokenId: value.id,
+                                            })
+
+                                        if (!res.data || res.error) {
+                                            return setAllError(
+                                                errors.unknownError
+                                            )
+                                        }
+
+                                        if (
+                                            checkIfArrayExistsNotEmpty(
+                                                res.data
+                                                    .regenerateFriendRequestToken
+                                                    .errors
+                                            )
+                                        ) {
+                                            return setAllError(
+                                                res.data
+                                                    .regenerateFriendRequestToken
+                                                    .errors[0].message
+                                            )
+                                        }
+
+                                        if (
+                                            !res.data
+                                                .regenerateFriendRequestToken
+                                                .token
+                                        ) {
+                                            return setAllError(
+                                                errors.unknownError
+                                            )
+                                        }
+
+                                        setTokens((prev) =>
+                                            prev.map((token, index) =>
+                                                index === i
+                                                    ? (res.data
+                                                          ?.regenerateFriendRequestToken
+                                                          .token ?? token)
+                                                    : token
+                                            )
+                                        )
+                                    }}
+                                >
+                                    <RefreshCw />
                                 </Button>
                             </TableCell>
                         </TableRow>
