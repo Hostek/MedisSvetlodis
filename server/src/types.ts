@@ -14,6 +14,15 @@ export class FieldError {
 }
 
 @ObjectType()
+export class SuccessOrError {
+    @Field(() => [FieldError], { nullable: true })
+    errors?: FieldError[]
+
+    @Field(() => String, { nullable: true })
+    success?: String
+}
+
+@ObjectType()
 export class LoginResponse {
     @Field(() => [FieldError], { nullable: true })
     errors?: FieldError[]

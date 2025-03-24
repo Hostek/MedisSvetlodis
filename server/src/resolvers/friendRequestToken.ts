@@ -1,12 +1,20 @@
 import { errors } from "@hostek/shared"
-import { Ctx, Mutation, Query, Resolver, UseMiddleware } from "type-graphql"
+import {
+    Arg,
+    Ctx,
+    Int,
+    Mutation,
+    Query,
+    Resolver,
+    UseMiddleware,
+} from "type-graphql"
+import { EntityManager, Not } from "typeorm"
 import { v4 as uuid } from "uuid"
 import { AppDataSource } from "../DataSource.js"
 import { FriendRequestToken } from "../entities/FriendRequestToken.js"
 import { User } from "../entities/User.js"
 import { isAuth } from "../middleware/isAuth.js"
 import { FieldError, MyContext } from "../types.js"
-import { Not } from "typeorm"
 
 @Resolver()
 export class FriendRequestTokenResolver {
@@ -85,5 +93,86 @@ export class FriendRequestTokenResolver {
         })
 
         return tokens
+    }
+
+    private async updateTokenStatus(
+        tokenId: number,
+        userId: number,
+        newStatus: "active" | "blocked",
+        errorMessage: string,
+        manager?: EntityManager
+    ): Promise<FieldError | null> {
+        const qb = manager
+            ? manager.createQueryBuilder(FriendRequestToken, "r")
+            : FriendRequestToken.createQueryBuilder("r")
+
+        const res = await qb
+            .update()
+            .where("r.id = :tid", { tid: tokenId })
+            .andWhere("r.status != :statusdeleted", {
+                statusdeleted: "deleted",
+            })
+            .andWhere("r.userId = :uid", { uid: userId })
+            .set({ status: newStatus })
+            .execute()
+
+        return res.affected === 0 ? { message: errorMessage } : null
+    }
+
+    @Mutation(() => FieldError, { nullable: true })
+    @UseMiddleware(isAuth)
+    async blockFriendRequestToken(
+        @Arg("tokenId", () => Int) tokenId: number,
+        @Ctx() ctx: MyContext
+    ): Promise<FieldError | null> {
+        return this.updateTokenStatus(
+            tokenId,
+            ctx.req.session.userId,
+            "blocked",
+            errors.couldntBlockFriendRequestToken
+        )
+    }
+
+    @Mutation(() => FieldError, { nullable: true })
+    @UseMiddleware(isAuth)
+    async unblockFriendRequestToken(
+        @Arg("tokenId", () => Int) tokenId: number,
+        @Ctx() ctx: MyContext
+    ): Promise<FieldError | null> {
+        return this.updateTokenStatus(
+            tokenId,
+            ctx.req.session.userId,
+            "active",
+            errors.couldntUnBlockFriendRequestToken
+        )
+    }
+
+    // Toggle using current DB state
+    async toggleBlockFriendRequestToken(
+        @Arg("tokenId", () => Int) tokenId: number,
+        @Ctx() ctx: MyContext
+    ): Promise<FieldError | null> {
+        return AppDataSource.transaction(async (manager) => {
+            const token = await manager.findOne(FriendRequestToken, {
+                where: {
+                    id: tokenId,
+                    userId: ctx.req.session.userId,
+                    status: Not("deleted" as const),
+                },
+            })
+
+            if (!token) return { message: errors.tokenNotFound }
+
+            const newStatus = token.status === "active" ? "blocked" : "active"
+            return this.updateTokenStatus(
+                tokenId,
+                ctx.req.session.userId,
+                newStatus,
+                newStatus === "blocked"
+                    ? errors.couldntBlockFriendRequestToken
+                    : errors.couldntUnBlockFriendRequestToken,
+                manager
+            )
+        })
     }
 }
