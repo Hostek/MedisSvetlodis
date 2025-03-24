@@ -1,11 +1,12 @@
 import { errors } from "@hostek/shared"
-import { Ctx, Mutation, Resolver, UseMiddleware } from "type-graphql"
+import { Ctx, Mutation, Query, Resolver, UseMiddleware } from "type-graphql"
 import { v4 as uuid } from "uuid"
 import { AppDataSource } from "../DataSource.js"
 import { FriendRequestToken } from "../entities/FriendRequestToken.js"
 import { User } from "../entities/User.js"
 import { isAuth } from "../middleware/isAuth.js"
 import { FieldError, MyContext } from "../types.js"
+import { Not } from "typeorm"
 
 @Resolver()
 export class FriendRequestTokenResolver {
@@ -67,5 +68,22 @@ export class FriendRequestTokenResolver {
         }
 
         return null
+    }
+
+    @Query(() => [FriendRequestToken])
+    @UseMiddleware(isAuth)
+    async friendRequestTokensOfUser(
+        @Ctx() ctx: MyContext
+    ): Promise<FriendRequestToken[]> {
+        const userId = ctx.req.session.userId
+
+        const tokens = await FriendRequestToken.find({
+            where: {
+                userId: userId,
+                status: Not("deleted" as const),
+            },
+        })
+
+        return tokens
     }
 }
