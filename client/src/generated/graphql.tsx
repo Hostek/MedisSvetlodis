@@ -15,6 +15,7 @@ export type Scalars = {
   Boolean: { input: boolean; output: boolean; }
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
+  DateTime: { input: any; output: any; }
 };
 
 export type FieldError = {
@@ -22,6 +23,26 @@ export type FieldError = {
   additional_info?: Maybe<Scalars['String']['output']>;
   key?: Maybe<Scalars['String']['output']>;
   message: Scalars['String']['output'];
+};
+
+export type FriendRequestToken = {
+  __typename?: 'FriendRequestToken';
+  createdAt: Scalars['String']['output'];
+  deletedDate?: Maybe<Scalars['DateTime']['output']>;
+  id: Scalars['Int']['output'];
+  max_limit?: Maybe<Scalars['Int']['output']>;
+  status: Scalars['String']['output'];
+  token: Scalars['String']['output'];
+  updatedAt: Scalars['String']['output'];
+  usage_count: Scalars['Int']['output'];
+  user: User;
+  userId: Scalars['Int']['output'];
+};
+
+export type FriendRequestTokenOrError = {
+  __typename?: 'FriendRequestTokenOrError';
+  errors?: Maybe<Array<FieldError>>;
+  token?: Maybe<FriendRequestToken>;
 };
 
 export type LoginResponse = {
@@ -42,13 +63,22 @@ export type Message = {
 
 export type Mutation = {
   __typename?: 'Mutation';
+  blockFriendRequestToken?: Maybe<FieldError>;
   createDefaultTokens?: Maybe<FieldError>;
   createMessage?: Maybe<FieldError>;
   login: LoginResponse;
   logout: Scalars['Boolean']['output'];
+  regenerateFriendRequestToken: FriendRequestTokenOrError;
   register: LoginResponse;
+  toggleBlockFriendRequestToken?: Maybe<FieldError>;
+  unblockFriendRequestToken?: Maybe<FieldError>;
   updatePassword?: Maybe<FieldError>;
   updateUsername?: Maybe<FieldError>;
+};
+
+
+export type MutationBlockFriendRequestTokenArgs = {
+  tokenId: Scalars['Int']['input'];
 };
 
 
@@ -64,9 +94,24 @@ export type MutationLoginArgs = {
 };
 
 
+export type MutationRegenerateFriendRequestTokenArgs = {
+  tokenId: Scalars['Int']['input'];
+};
+
+
 export type MutationRegisterArgs = {
   email: Scalars['String']['input'];
   password: Scalars['String']['input'];
+};
+
+
+export type MutationToggleBlockFriendRequestTokenArgs = {
+  tokenId: Scalars['Int']['input'];
+};
+
+
+export type MutationUnblockFriendRequestTokenArgs = {
+  tokenId: Scalars['Int']['input'];
 };
 
 
@@ -82,6 +127,7 @@ export type MutationUpdateUsernameArgs = {
 
 export type Query = {
   __typename?: 'Query';
+  friendRequestTokensOfUser: Array<FriendRequestToken>;
   getAllMessages: Array<Message>;
   hello: Scalars['String']['output'];
   user?: Maybe<User>;
@@ -108,13 +154,22 @@ export type CreatorFragmentFragment = { __typename?: 'User', username: string, i
 
 export type ErrorFragmentFragment = { __typename?: 'FieldError', message: string };
 
-export type LoginResponseFragmentFragment = { __typename?: 'LoginResponse', user?: { __typename?: 'User', username: string, updatedAt: string, id: number, email: string, createdAt: string, updateUsernameAttempts: number, identifier: string } | null, errors?: Array<{ __typename?: 'FieldError', message: string }> | null };
+export type FriendRequestTokensFragmentFragment = { __typename?: 'FriendRequestToken', createdAt: string, id: number, usage_count: number, token: string, status: string, max_limit?: number | null };
+
+export type LoginResponseFragmentFragment = { __typename?: 'LoginResponse', user?: { __typename?: 'User', username: string, updatedAt: string, id: number, email: string, createdAt: string, updateUsernameAttempts: number, identifier: string, generatedDefaultFriendRequestTokens: boolean } | null, errors?: Array<{ __typename?: 'FieldError', message: string }> | null };
 
 export type MessageFragmentFragment = { __typename?: 'Message', content: string, createdAt: string, creatorId: number, id: number, updatedAt: string };
 
 export type MessageWithCreatorFragmentFragment = { __typename?: 'Message', content: string, createdAt: string, creatorId: number, id: number, updatedAt: string, creator: { __typename?: 'User', username: string, id: number } };
 
-export type UserFragmentFragment = { __typename?: 'User', username: string, updatedAt: string, id: number, email: string, createdAt: string, updateUsernameAttempts: number, identifier: string };
+export type UserFragmentFragment = { __typename?: 'User', username: string, updatedAt: string, id: number, email: string, createdAt: string, updateUsernameAttempts: number, identifier: string, generatedDefaultFriendRequestTokens: boolean };
+
+export type BlockFriendRequestTokenMutationVariables = Exact<{
+  tokenId: Scalars['Int']['input'];
+}>;
+
+
+export type BlockFriendRequestTokenMutation = { __typename?: 'Mutation', blockFriendRequestToken?: { __typename?: 'FieldError', message: string } | null };
 
 export type CreateDefaultTokensMutationVariables = Exact<{ [key: string]: never; }>;
 
@@ -135,12 +190,19 @@ export type LoginMutationVariables = Exact<{
 }>;
 
 
-export type LoginMutation = { __typename?: 'Mutation', login: { __typename?: 'LoginResponse', user?: { __typename?: 'User', username: string, updatedAt: string, id: number, email: string, createdAt: string, updateUsernameAttempts: number, identifier: string } | null, errors?: Array<{ __typename?: 'FieldError', message: string }> | null } };
+export type LoginMutation = { __typename?: 'Mutation', login: { __typename?: 'LoginResponse', user?: { __typename?: 'User', username: string, updatedAt: string, id: number, email: string, createdAt: string, updateUsernameAttempts: number, identifier: string, generatedDefaultFriendRequestTokens: boolean } | null, errors?: Array<{ __typename?: 'FieldError', message: string }> | null } };
 
 export type LogoutMutationVariables = Exact<{ [key: string]: never; }>;
 
 
 export type LogoutMutation = { __typename?: 'Mutation', logout: boolean };
+
+export type RegenerateFriendRequestTokenMutationVariables = Exact<{
+  tokenId: Scalars['Int']['input'];
+}>;
+
+
+export type RegenerateFriendRequestTokenMutation = { __typename?: 'Mutation', regenerateFriendRequestToken: { __typename?: 'FriendRequestTokenOrError', errors?: Array<{ __typename?: 'FieldError', message: string }> | null, token?: { __typename?: 'FriendRequestToken', createdAt: string, id: number, usage_count: number, token: string, status: string, max_limit?: number | null } | null } };
 
 export type RegisterMutationVariables = Exact<{
   password: Scalars['String']['input'];
@@ -148,7 +210,21 @@ export type RegisterMutationVariables = Exact<{
 }>;
 
 
-export type RegisterMutation = { __typename?: 'Mutation', register: { __typename?: 'LoginResponse', user?: { __typename?: 'User', username: string, updatedAt: string, id: number, email: string, createdAt: string, updateUsernameAttempts: number, identifier: string } | null, errors?: Array<{ __typename?: 'FieldError', message: string }> | null } };
+export type RegisterMutation = { __typename?: 'Mutation', register: { __typename?: 'LoginResponse', user?: { __typename?: 'User', username: string, updatedAt: string, id: number, email: string, createdAt: string, updateUsernameAttempts: number, identifier: string, generatedDefaultFriendRequestTokens: boolean } | null, errors?: Array<{ __typename?: 'FieldError', message: string }> | null } };
+
+export type ToggleBlockFriendRequestTokenMutationVariables = Exact<{
+  tokenId: Scalars['Int']['input'];
+}>;
+
+
+export type ToggleBlockFriendRequestTokenMutation = { __typename?: 'Mutation', toggleBlockFriendRequestToken?: { __typename?: 'FieldError', message: string } | null };
+
+export type UnblockFriendRequestTokenMutationVariables = Exact<{
+  tokenId: Scalars['Int']['input'];
+}>;
+
+
+export type UnblockFriendRequestTokenMutation = { __typename?: 'Mutation', unblockFriendRequestToken?: { __typename?: 'FieldError', message: string } | null };
 
 export type UpdatePasswordMutationVariables = Exact<{
   newPassword: Scalars['String']['input'];
@@ -165,6 +241,11 @@ export type UpdateUsernameMutationVariables = Exact<{
 
 export type UpdateUsernameMutation = { __typename?: 'Mutation', updateUsername?: { __typename?: 'FieldError', message: string } | null };
 
+export type FriendRequestTokensOfUserQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type FriendRequestTokensOfUserQuery = { __typename?: 'Query', friendRequestTokensOfUser: Array<{ __typename?: 'FriendRequestToken', createdAt: string, id: number, usage_count: number, token: string, status: string, max_limit?: number | null }> };
+
 export type GetAllMessagesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -173,13 +254,23 @@ export type GetAllMessagesQuery = { __typename?: 'Query', getAllMessages: Array<
 export type UserQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type UserQuery = { __typename?: 'Query', user?: { __typename?: 'User', username: string, updatedAt: string, id: number, email: string, createdAt: string, updateUsernameAttempts: number, identifier: string } | null };
+export type UserQuery = { __typename?: 'Query', user?: { __typename?: 'User', username: string, updatedAt: string, id: number, email: string, createdAt: string, updateUsernameAttempts: number, identifier: string, generatedDefaultFriendRequestTokens: boolean } | null };
 
 export type MessageAddedSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
 
 export type MessageAddedSubscription = { __typename?: 'Subscription', messageAdded: { __typename?: 'Message', content: string, createdAt: string, creatorId: number, id: number, updatedAt: string, creator: { __typename?: 'User', username: string, id: number } } };
 
+export const FriendRequestTokensFragmentFragmentDoc = gql`
+    fragment FriendRequestTokensFragment on FriendRequestToken {
+  createdAt
+  id
+  usage_count
+  token
+  status
+  max_limit
+}
+    `;
 export const UserFragmentFragmentDoc = gql`
     fragment UserFragment on User {
   username
@@ -189,6 +280,7 @@ export const UserFragmentFragmentDoc = gql`
   createdAt
   updateUsernameAttempts
   identifier
+  generatedDefaultFriendRequestTokens
 }
     `;
 export const ErrorFragmentFragmentDoc = gql`
@@ -231,6 +323,17 @@ export const MessageWithCreatorFragmentFragmentDoc = gql`
 }
     ${MessageFragmentFragmentDoc}
 ${CreatorFragmentFragmentDoc}`;
+export const BlockFriendRequestTokenDocument = gql`
+    mutation BlockFriendRequestToken($tokenId: Int!) {
+  blockFriendRequestToken(tokenId: $tokenId) {
+    ...ErrorFragment
+  }
+}
+    ${ErrorFragmentFragmentDoc}`;
+
+export function useBlockFriendRequestTokenMutation() {
+  return Urql.useMutation<BlockFriendRequestTokenMutation, BlockFriendRequestTokenMutationVariables>(BlockFriendRequestTokenDocument);
+};
 export const CreateDefaultTokensDocument = gql`
     mutation CreateDefaultTokens {
   createDefaultTokens {
@@ -273,6 +376,23 @@ export const LogoutDocument = gql`
 export function useLogoutMutation() {
   return Urql.useMutation<LogoutMutation, LogoutMutationVariables>(LogoutDocument);
 };
+export const RegenerateFriendRequestTokenDocument = gql`
+    mutation RegenerateFriendRequestToken($tokenId: Int!) {
+  regenerateFriendRequestToken(tokenId: $tokenId) {
+    errors {
+      ...ErrorFragment
+    }
+    token {
+      ...FriendRequestTokensFragment
+    }
+  }
+}
+    ${ErrorFragmentFragmentDoc}
+${FriendRequestTokensFragmentFragmentDoc}`;
+
+export function useRegenerateFriendRequestTokenMutation() {
+  return Urql.useMutation<RegenerateFriendRequestTokenMutation, RegenerateFriendRequestTokenMutationVariables>(RegenerateFriendRequestTokenDocument);
+};
 export const RegisterDocument = gql`
     mutation Register($password: String!, $email: String!) {
   register(password: $password, email: $email) {
@@ -283,6 +403,28 @@ export const RegisterDocument = gql`
 
 export function useRegisterMutation() {
   return Urql.useMutation<RegisterMutation, RegisterMutationVariables>(RegisterDocument);
+};
+export const ToggleBlockFriendRequestTokenDocument = gql`
+    mutation ToggleBlockFriendRequestToken($tokenId: Int!) {
+  toggleBlockFriendRequestToken(tokenId: $tokenId) {
+    ...ErrorFragment
+  }
+}
+    ${ErrorFragmentFragmentDoc}`;
+
+export function useToggleBlockFriendRequestTokenMutation() {
+  return Urql.useMutation<ToggleBlockFriendRequestTokenMutation, ToggleBlockFriendRequestTokenMutationVariables>(ToggleBlockFriendRequestTokenDocument);
+};
+export const UnblockFriendRequestTokenDocument = gql`
+    mutation UnblockFriendRequestToken($tokenId: Int!) {
+  unblockFriendRequestToken(tokenId: $tokenId) {
+    ...ErrorFragment
+  }
+}
+    ${ErrorFragmentFragmentDoc}`;
+
+export function useUnblockFriendRequestTokenMutation() {
+  return Urql.useMutation<UnblockFriendRequestTokenMutation, UnblockFriendRequestTokenMutationVariables>(UnblockFriendRequestTokenDocument);
 };
 export const UpdatePasswordDocument = gql`
     mutation UpdatePassword($newPassword: String!, $oldPassword: String) {
@@ -305,6 +447,17 @@ export const UpdateUsernameDocument = gql`
 
 export function useUpdateUsernameMutation() {
   return Urql.useMutation<UpdateUsernameMutation, UpdateUsernameMutationVariables>(UpdateUsernameDocument);
+};
+export const FriendRequestTokensOfUserDocument = gql`
+    query FriendRequestTokensOfUser {
+  friendRequestTokensOfUser {
+    ...FriendRequestTokensFragment
+  }
+}
+    ${FriendRequestTokensFragmentFragmentDoc}`;
+
+export function useFriendRequestTokensOfUserQuery(options?: Omit<Urql.UseQueryArgs<FriendRequestTokensOfUserQueryVariables>, 'query'>) {
+  return Urql.useQuery<FriendRequestTokensOfUserQuery, FriendRequestTokensOfUserQueryVariables>({ query: FriendRequestTokensOfUserDocument, ...options });
 };
 export const GetAllMessagesDocument = gql`
     query GetAllMessages {

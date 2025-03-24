@@ -6,4 +6,5 @@ fragment UserFragment on User {
     createdAt
     updateUsernameAttempts
     identifier
+    generatedDefaultFriendRequestTokens
 }

@@ -1,5 +1,6 @@
 export const PASSWORD_MIN_LENGTH = 8
 export const MAX_MESSAGE_LENGTH = 2000
+export const MAXIMUM_TOKEN_REGENERATION_COUNT = 5
 
 export const errors = {
     unknownError: "Unknown Error",
@@ -21,6 +22,10 @@ export const errors = {
     usernameNotEmpty: "Username shouldn't be empty",
     badUsername: "Incorrect username",
     tokensAlreadyGenerated: "Tokens are already generated",
+    couldntBlockFriendRequestToken: "Couldn't block friend request token",
+    couldntUnBlockFriendRequestToken: "Couldn't unblock friend request token",
+    unknownStatus: "Unknown status",
+    tokenNotFound: "Token not found",
 } as const
 
 export const errors_values = Object.values(errors)

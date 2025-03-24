@@ -1,0 +1,10 @@
+mutation RegenerateFriendRequestToken($tokenId: Int!) {
+    regenerateFriendRequestToken(tokenId: $tokenId) {
+        errors {
+            ...ErrorFragment
+        }
+        token {
+            ...FriendRequestTokensFragment
+        }
+    }
+}
