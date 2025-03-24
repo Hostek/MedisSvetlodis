@@ -5,6 +5,15 @@ import { SvgWrapperOptions } from "@/types"
 
 interface BlockIconProps extends SvgWrapperOptions {}
 
+/*
+
+Source: https://www.svgrepo.com/svg/488804/block
+
+LICENSE: PD License
+AUTHOR: Gabriele Malaspina
+
+*/
+
 const BlockIcon: React.FC<BlockIconProps> = ({ ...props }) => {
     return (
         <IconSvgWrapper

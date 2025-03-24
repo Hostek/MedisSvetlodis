@@ -104,15 +104,15 @@ export class FriendRequestTokenResolver {
     ): Promise<FieldError | null> {
         const qb = manager
             ? manager.createQueryBuilder(FriendRequestToken, "r")
-            : FriendRequestToken.createQueryBuilder("r")
+            : FriendRequestToken.createQueryBuilder()
 
         const res = await qb
             .update()
-            .where("r.id = :tid", { tid: tokenId })
-            .andWhere("r.status != :statusdeleted", {
+            .where("id = :tid", { tid: tokenId })
+            .andWhere("status != :statusdeleted", {
                 statusdeleted: "deleted",
             })
-            .andWhere("r.userId = :uid", { uid: userId })
+            .andWhere(`"userId" = :uid`, { uid: userId })
             .set({ status: newStatus })
             .execute()
 
