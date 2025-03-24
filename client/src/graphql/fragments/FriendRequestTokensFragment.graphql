@@ -1,0 +1,8 @@
+fragment FriendRequestTokensFragment on FriendRequestToken {
+    createdAt
+    id
+    usage_count
+    token
+    status
+    max_limit
+}

@@ -15,6 +15,7 @@ export type Scalars = {
   Boolean: { input: boolean; output: boolean; }
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
+  DateTime: { input: any; output: any; }
 };
 
 export type FieldError = {
@@ -22,6 +23,20 @@ export type FieldError = {
   additional_info?: Maybe<Scalars['String']['output']>;
   key?: Maybe<Scalars['String']['output']>;
   message: Scalars['String']['output'];
+};
+
+export type FriendRequestToken = {
+  __typename?: 'FriendRequestToken';
+  createdAt: Scalars['String']['output'];
+  deletedDate?: Maybe<Scalars['DateTime']['output']>;
+  id: Scalars['Int']['output'];
+  max_limit?: Maybe<Scalars['Int']['output']>;
+  status: Scalars['String']['output'];
+  token: Scalars['String']['output'];
+  updatedAt: Scalars['String']['output'];
+  usage_count: Scalars['Int']['output'];
+  user: User;
+  userId: Scalars['Int']['output'];
 };
 
 export type LoginResponse = {
@@ -82,6 +97,7 @@ export type MutationUpdateUsernameArgs = {
 
 export type Query = {
   __typename?: 'Query';
+  friendRequestTokensOfUser: Array<FriendRequestToken>;
   getAllMessages: Array<Message>;
   hello: Scalars['String']['output'];
   user?: Maybe<User>;
@@ -107,6 +123,8 @@ export type User = {
 export type CreatorFragmentFragment = { __typename?: 'User', username: string, id: number };
 
 export type ErrorFragmentFragment = { __typename?: 'FieldError', message: string };
+
+export type FriendRequestTokensFragmentFragment = { __typename?: 'FriendRequestToken', createdAt: string, id: number, usage_count: number, token: string, status: string, max_limit?: number | null };
 
 export type LoginResponseFragmentFragment = { __typename?: 'LoginResponse', user?: { __typename?: 'User', username: string, updatedAt: string, id: number, email: string, createdAt: string, updateUsernameAttempts: number, identifier: string, generatedDefaultFriendRequestTokens: boolean } | null, errors?: Array<{ __typename?: 'FieldError', message: string }> | null };
 
@@ -165,6 +183,11 @@ export type UpdateUsernameMutationVariables = Exact<{
 
 export type UpdateUsernameMutation = { __typename?: 'Mutation', updateUsername?: { __typename?: 'FieldError', message: string } | null };
 
+export type FriendRequestTokensOfUserQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type FriendRequestTokensOfUserQuery = { __typename?: 'Query', friendRequestTokensOfUser: Array<{ __typename?: 'FriendRequestToken', createdAt: string, id: number, usage_count: number, token: string, status: string, max_limit?: number | null }> };
+
 export type GetAllMessagesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -180,6 +203,16 @@ export type MessageAddedSubscriptionVariables = Exact<{ [key: string]: never; }>
 
 export type MessageAddedSubscription = { __typename?: 'Subscription', messageAdded: { __typename?: 'Message', content: string, createdAt: string, creatorId: number, id: number, updatedAt: string, creator: { __typename?: 'User', username: string, id: number } } };
 
+export const FriendRequestTokensFragmentFragmentDoc = gql`
+    fragment FriendRequestTokensFragment on FriendRequestToken {
+  createdAt
+  id
+  usage_count
+  token
+  status
+  max_limit
+}
+    `;
 export const UserFragmentFragmentDoc = gql`
     fragment UserFragment on User {
   username
@@ -306,6 +339,17 @@ export const UpdateUsernameDocument = gql`
 
 export function useUpdateUsernameMutation() {
   return Urql.useMutation<UpdateUsernameMutation, UpdateUsernameMutationVariables>(UpdateUsernameDocument);
+};
+export const FriendRequestTokensOfUserDocument = gql`
+    query FriendRequestTokensOfUser {
+  friendRequestTokensOfUser {
+    ...FriendRequestTokensFragment
+  }
+}
+    ${FriendRequestTokensFragmentFragmentDoc}`;
+
+export function useFriendRequestTokensOfUserQuery(options?: Omit<Urql.UseQueryArgs<FriendRequestTokensOfUserQueryVariables>, 'query'>) {
+  return Urql.useQuery<FriendRequestTokensOfUserQuery, FriendRequestTokensOfUserQueryVariables>({ query: FriendRequestTokensOfUserDocument, ...options });
 };
 export const GetAllMessagesDocument = gql`
     query GetAllMessages {

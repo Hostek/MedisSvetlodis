@@ -4,7 +4,8 @@ import { Button } from "@heroui/react"
 import { errors } from "@hostek/shared"
 import { useRouter } from "next/navigation"
 import React, { useState } from "react"
-import Error from "../helper/Error"
+import Error from "../../helper/Error"
+import ListOfTokens from "./ListOfTokens"
 
 interface FriendRequestTokensProps {
     l: boolean
@@ -51,6 +52,8 @@ const FriendRequestTokens: React.FC<FriendRequestTokensProps> = ({
                 </Button>
             )}
             {error && <Error>Error: {error}</Error>}
+
+            {generatedDefaultFriendRequestTokens && <ListOfTokens />}
         </div>
     )
 }

@@ -1,6 +1,6 @@
 "use client"
 import ChangePasswordTab from "@/components/settings/ChangePasswordTab"
-import FriendRequestTokens from "@/components/settings/FriendRequestTokens"
+import FriendRequestTokens from "@/components/settings/tokens/FriendRequestTokens"
 import UpdateUsername from "@/components/settings/UpdateUsername"
 import { useIsAuth } from "@/hooks/isAuth"
 import { createUrqlClient } from "@/utils/createUrqlClient"
