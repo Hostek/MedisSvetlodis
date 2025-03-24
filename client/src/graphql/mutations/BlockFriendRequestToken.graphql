@@ -1,0 +1,5 @@
+mutation BlockFriendRequestToken($tokenId: Int!) {
+    blockFriendRequestToken(tokenId: $tokenId) {
+        ...ErrorFragment
+    }
+}

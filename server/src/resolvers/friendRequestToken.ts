@@ -148,6 +148,8 @@ export class FriendRequestTokenResolver {
     }
 
     // Toggle using current DB state
+    @Mutation(() => FieldError, { nullable: true })
+    @UseMiddleware(isAuth)
     async toggleBlockFriendRequestToken(
         @Arg("tokenId", () => Int) tokenId: number,
         @Ctx() ctx: MyContext

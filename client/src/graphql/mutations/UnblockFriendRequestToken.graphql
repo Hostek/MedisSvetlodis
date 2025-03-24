@@ -1,0 +1,5 @@
+mutation UnblockFriendRequestToken($tokenId: Int!) {
+    unblockFriendRequestToken(tokenId: $tokenId) {
+        ...ErrorFragment
+    }
+}

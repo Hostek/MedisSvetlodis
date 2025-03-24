@@ -57,13 +57,21 @@ export type Message = {
 
 export type Mutation = {
   __typename?: 'Mutation';
+  blockFriendRequestToken?: Maybe<FieldError>;
   createDefaultTokens?: Maybe<FieldError>;
   createMessage?: Maybe<FieldError>;
   login: LoginResponse;
   logout: Scalars['Boolean']['output'];
   register: LoginResponse;
+  toggleBlockFriendRequestToken?: Maybe<FieldError>;
+  unblockFriendRequestToken?: Maybe<FieldError>;
   updatePassword?: Maybe<FieldError>;
   updateUsername?: Maybe<FieldError>;
+};
+
+
+export type MutationBlockFriendRequestTokenArgs = {
+  tokenId: Scalars['Int']['input'];
 };
 
 
@@ -82,6 +90,16 @@ export type MutationLoginArgs = {
 export type MutationRegisterArgs = {
   email: Scalars['String']['input'];
   password: Scalars['String']['input'];
+};
+
+
+export type MutationToggleBlockFriendRequestTokenArgs = {
+  tokenId: Scalars['Int']['input'];
+};
+
+
+export type MutationUnblockFriendRequestTokenArgs = {
+  tokenId: Scalars['Int']['input'];
 };
 
 
@@ -134,6 +152,13 @@ export type MessageWithCreatorFragmentFragment = { __typename?: 'Message', conte
 
 export type UserFragmentFragment = { __typename?: 'User', username: string, updatedAt: string, id: number, email: string, createdAt: string, updateUsernameAttempts: number, identifier: string, generatedDefaultFriendRequestTokens: boolean };
 
+export type BlockFriendRequestTokenMutationVariables = Exact<{
+  tokenId: Scalars['Int']['input'];
+}>;
+
+
+export type BlockFriendRequestTokenMutation = { __typename?: 'Mutation', blockFriendRequestToken?: { __typename?: 'FieldError', message: string } | null };
+
 export type CreateDefaultTokensMutationVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -167,6 +192,20 @@ export type RegisterMutationVariables = Exact<{
 
 
 export type RegisterMutation = { __typename?: 'Mutation', register: { __typename?: 'LoginResponse', user?: { __typename?: 'User', username: string, updatedAt: string, id: number, email: string, createdAt: string, updateUsernameAttempts: number, identifier: string, generatedDefaultFriendRequestTokens: boolean } | null, errors?: Array<{ __typename?: 'FieldError', message: string }> | null } };
+
+export type ToggleBlockFriendRequestTokenMutationVariables = Exact<{
+  tokenId: Scalars['Int']['input'];
+}>;
+
+
+export type ToggleBlockFriendRequestTokenMutation = { __typename?: 'Mutation', toggleBlockFriendRequestToken?: { __typename?: 'FieldError', message: string } | null };
+
+export type UnblockFriendRequestTokenMutationVariables = Exact<{
+  tokenId: Scalars['Int']['input'];
+}>;
+
+
+export type UnblockFriendRequestTokenMutation = { __typename?: 'Mutation', unblockFriendRequestToken?: { __typename?: 'FieldError', message: string } | null };
 
 export type UpdatePasswordMutationVariables = Exact<{
   newPassword: Scalars['String']['input'];
@@ -265,6 +304,17 @@ export const MessageWithCreatorFragmentFragmentDoc = gql`
 }
     ${MessageFragmentFragmentDoc}
 ${CreatorFragmentFragmentDoc}`;
+export const BlockFriendRequestTokenDocument = gql`
+    mutation BlockFriendRequestToken($tokenId: Int!) {
+  blockFriendRequestToken(tokenId: $tokenId) {
+    ...ErrorFragment
+  }
+}
+    ${ErrorFragmentFragmentDoc}`;
+
+export function useBlockFriendRequestTokenMutation() {
+  return Urql.useMutation<BlockFriendRequestTokenMutation, BlockFriendRequestTokenMutationVariables>(BlockFriendRequestTokenDocument);
+};
 export const CreateDefaultTokensDocument = gql`
     mutation CreateDefaultTokens {
   createDefaultTokens {
@@ -317,6 +367,28 @@ export const RegisterDocument = gql`
 
 export function useRegisterMutation() {
   return Urql.useMutation<RegisterMutation, RegisterMutationVariables>(RegisterDocument);
+};
+export const ToggleBlockFriendRequestTokenDocument = gql`
+    mutation ToggleBlockFriendRequestToken($tokenId: Int!) {
+  toggleBlockFriendRequestToken(tokenId: $tokenId) {
+    ...ErrorFragment
+  }
+}
+    ${ErrorFragmentFragmentDoc}`;
+
+export function useToggleBlockFriendRequestTokenMutation() {
+  return Urql.useMutation<ToggleBlockFriendRequestTokenMutation, ToggleBlockFriendRequestTokenMutationVariables>(ToggleBlockFriendRequestTokenDocument);
+};
+export const UnblockFriendRequestTokenDocument = gql`
+    mutation UnblockFriendRequestToken($tokenId: Int!) {
+  unblockFriendRequestToken(tokenId: $tokenId) {
+    ...ErrorFragment
+  }
+}
+    ${ErrorFragmentFragmentDoc}`;
+
+export function useUnblockFriendRequestTokenMutation() {
+  return Urql.useMutation<UnblockFriendRequestTokenMutation, UnblockFriendRequestTokenMutationVariables>(UnblockFriendRequestTokenDocument);
 };
 export const UpdatePasswordDocument = gql`
     mutation UpdatePassword($newPassword: String!, $oldPassword: String) {
