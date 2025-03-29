@@ -154,28 +154,40 @@ export class FriendRequestTokenResolver {
         @Arg("tokenId", () => Int) tokenId: number,
         @Ctx() ctx: MyContext
     ): Promise<FieldError | null> {
-        return AppDataSource.transaction(async (manager) => {
-            const token = await manager.findOne(FriendRequestToken, {
-                where: {
-                    id: tokenId,
-                    userId: ctx.req.session.userId,
-                    status: Not("deleted" as const),
-                },
+        try {
+            return await AppDataSource.transaction<null>(async (manager) => {
+                const token = await manager.findOne(FriendRequestToken, {
+                    where: {
+                        id: tokenId,
+                        userId: ctx.req.session.userId,
+                        status: Not("deleted" as const),
+                    },
+                })
+
+                if (!token) throw new Error(errors.tokenNotFound)
+
+                const newStatus =
+                    token.status === "active" ? "blocked" : "active"
+                const isError = await this.updateTokenStatus(
+                    tokenId,
+                    ctx.req.session.userId,
+                    newStatus,
+                    newStatus === "blocked"
+                        ? errors.couldntBlockFriendRequestToken
+                        : errors.couldntUnBlockFriendRequestToken,
+                    manager
+                )
+
+                if (isError) throw new Error(isError.message)
+
+                return null
             })
-
-            if (!token) return { message: errors.tokenNotFound }
-
-            const newStatus = token.status === "active" ? "blocked" : "active"
-            return this.updateTokenStatus(
-                tokenId,
-                ctx.req.session.userId,
-                newStatus,
-                newStatus === "blocked"
-                    ? errors.couldntBlockFriendRequestToken
-                    : errors.couldntUnBlockFriendRequestToken,
-                manager
-            )
-        })
+        } catch (error) {
+            if (error instanceof Error) {
+                return { message: error.message }
+            }
+            return { message: errors.unknownError }
+        }
     }
 
     @Mutation(() => FriendRequestTokenOrError)
@@ -187,7 +199,9 @@ export class FriendRequestTokenResolver {
         const userId = ctx.req.session.userId
 
         try {
-            return await AppDataSource.transaction(async (tm) => {
+            return await AppDataSource.transaction<{
+                token: FriendRequestToken
+            }>(async (tm) => {
                 const token = await tm
                     .getRepository(FriendRequestToken)
                     .findOne({
