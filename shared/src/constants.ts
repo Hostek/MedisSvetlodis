@@ -26,6 +26,9 @@ export const errors = {
     couldntUnBlockFriendRequestToken: "Couldn't unblock friend request token",
     unknownStatus: "Unknown status",
     tokenNotFound: "Token not found",
+    friendRequestAlreadySent: "Friend request is already sent",
+    cantSendFriendRequestToYourself:
+        "You can't send friend request to yourself",
 } as const
 
 export const errors_values = Object.values(errors)

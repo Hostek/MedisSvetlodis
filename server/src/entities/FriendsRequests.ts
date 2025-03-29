@@ -4,9 +4,11 @@ import {
     Column,
     CreateDateColumn,
     Entity,
+    // Index,
     ManyToOne,
     PrimaryGeneratedColumn,
     Relation,
+    Unique,
 } from "typeorm"
 import { User } from "./User.js"
 import { FRIEND_REQUEST_TOKEN_STATUS_TYPE } from "@hostek/shared"
@@ -14,6 +16,9 @@ import { FriendRequestToken } from "./FriendRequestToken.js"
 
 @ObjectType()
 @Entity()
+// @Unique(["senderId", "requestTokenId"])
+@Unique("UQ_TOKEN_SENDER", ["requestTokenId", "senderId"])
+// @Index(["requestTokenId", "senderId"])
 export class FriendRequests extends BaseEntity {
     @Field(() => Int)
     @PrimaryGeneratedColumn()
