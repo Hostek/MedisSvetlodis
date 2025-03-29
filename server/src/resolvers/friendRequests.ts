@@ -16,7 +16,7 @@ export class FriendRequestsResolver {
         @Ctx() ctx: MyContext
     ): Promise<FieldError | null> {
         try {
-            return await AppDataSource.transaction<FieldError | null>(
+            return await AppDataSource.transaction<null>(
                 "SERIALIZABLE",
                 async (tm) => {
                     // check if token exists or if it is not deleted
@@ -30,9 +30,7 @@ export class FriendRequestsResolver {
                         })
 
                     if (!foundToken) {
-                        return {
-                            message: errors.tokenNotFound,
-                        }
+                        throw new Error(errors.tokenNotFound)
                     }
 
                     // const tokenId = foundToken.id
@@ -40,28 +38,7 @@ export class FriendRequestsResolver {
 
                     // make sure user can't send friend request to themselves ...
                     if (senderId === foundToken.userId) {
-                        return {
-                            message: errors.cantSendFriendRequestToYourself,
-                        }
-                    }
-
-                    // create friend request (and automatically check if user already sent friend request using given token)
-                    // Create friend request (let unique constraint handle duplicates)
-                    try {
-                        await tm.getRepository(FriendRequests).save({
-                            senderId,
-                            requestTokenId: foundToken.id,
-                        })
-                    } catch (error) {
-                        // Handle unique constraint violation
-                        if (error.code === "23505") {
-                            // PostgreSQL unique violation code
-                            return { message: errors.friendRequestAlreadySent }
-                        }
-                        if (error.code === "40001") {
-                            return { message: errors.transactionConflict }
-                        }
-                        return { message: errors.unknownError }
+                        throw new Error(errors.cantSendFriendRequestToYourself)
                     }
 
                     // check if usage_count is good
@@ -80,7 +57,7 @@ export class FriendRequestsResolver {
                             .execute()
 
                         if (updatedToken.affected === 0) {
-                            return { message: errors.tokenUsageExhausted }
+                            throw new Error(errors.tokenUsageExhausted)
                         }
                     } else {
                         // update count for the token itself
@@ -92,6 +69,25 @@ export class FriendRequestsResolver {
                                 usage_count: () => "usage_count + 1",
                             }
                         )
+                    }
+
+                    // create friend request (and automatically check if user already sent friend request using given token)
+                    // Create friend request (let unique constraint handle duplicates)
+                    try {
+                        await tm.getRepository(FriendRequests).save({
+                            senderId,
+                            requestTokenId: foundToken.id,
+                        })
+                    } catch (error) {
+                        // Handle unique constraint violation
+                        if (error.code === "23505") {
+                            // PostgreSQL unique violation code
+                            throw new Error(errors.friendRequestAlreadySent)
+                        }
+                        if (error.code === "40001") {
+                            throw new Error(errors.transactionConflict)
+                        }
+                        throw error
                     }
 
                     // update count for the token owner
@@ -108,7 +104,10 @@ export class FriendRequestsResolver {
                     return null
                 }
             )
-        } catch {
+        } catch (error) {
+            if (error instanceof Error) {
+                return { message: error.message }
+            }
             return { message: errors.unknownError }
         }
     }
