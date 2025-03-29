@@ -35,7 +35,16 @@ export class FriendRequestsResolver {
                         }
                     }
 
-                    const tokenId = foundToken.id
+                    if (
+                        foundToken.max_limit &&
+                        foundToken.usage_count >= foundToken.max_limit
+                    ) {
+                        return {
+                            message: errors.tokenUsageExhausted,
+                        }
+                    }
+
+                    // const tokenId = foundToken.id
                     const senderId = ctx.req.session.userId
 
                     // make sure user can't send friend request to themselves ...
@@ -45,30 +54,24 @@ export class FriendRequestsResolver {
                         }
                     }
 
-                    // check if user already sent friend request using given token
-                    const existingFriendRequest = await tm
-                        .getRepository(FriendRequests)
-                        .findOne({
-                            where: {
-                                requestTokenId: tokenId,
-                                senderId,
-                            },
-                        })
-
-                    if (existingFriendRequest !== null) {
-                        return {
-                            message: errors.friendRequestAlreadySent,
-                        }
-                    }
-
-                    // send friend request
-                    await tm
-                        .getRepository(FriendRequests)
-                        .create({
+                    // create friend request (and automatically check if user already sent friend request using given token)
+                    // Create friend request (let unique constraint handle duplicates)
+                    try {
+                        await tm.getRepository(FriendRequests).save({
                             senderId,
-                            requestTokenId: tokenId,
+                            requestTokenId: foundToken.id,
                         })
-                        .save()
+                    } catch (error) {
+                        // Handle unique constraint violation
+                        if (error.code === "23505") {
+                            // PostgreSQL unique violation code
+                            return { message: errors.friendRequestAlreadySent }
+                        }
+                        if (error.code === "40001") {
+                            return { message: errors.transactionConflict }
+                        }
+                        return { message: errors.unknownError }
+                    }
 
                     // update count for the token itself
                     await tm.getRepository(FriendRequestToken).update(
@@ -76,7 +79,7 @@ export class FriendRequestsResolver {
                             id: foundToken.id,
                         },
                         {
-                            usage_count: () => `usage_count + 1`,
+                            usage_count: () => "usage_count + 1",
                         }
                     )
 
@@ -87,7 +90,7 @@ export class FriendRequestsResolver {
                         },
                         {
                             numberOfFriendRequests: () =>
-                                `numberOfFriendRequests + 1`,
+                                "numberOfFriendRequests + 1",
                         }
                     )
 

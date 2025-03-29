@@ -29,6 +29,9 @@ export const errors = {
     friendRequestAlreadySent: "Friend request is already sent",
     cantSendFriendRequestToYourself:
         "You can't send friend request to yourself",
+    transactionConflict: "Transaction conflict, please try again.",
+    tokenUsageExhausted:
+        "Token usage limit exhausted. Token has reached the maximum allowed consumption.",
 } as const
 
 export const errors_values = Object.values(errors)
