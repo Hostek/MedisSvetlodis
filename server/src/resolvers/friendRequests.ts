@@ -6,6 +6,7 @@ import { FriendRequestToken } from "../entities/FriendRequestToken.js"
 import { errors } from "@hostek/shared"
 import { FriendRequests } from "../entities/FriendsRequests.js"
 import { User } from "../entities/User.js"
+import { withSerializableRetry } from "../utils/withSerializableRetry.js"
 
 @Resolver()
 export class FriendRequestsResolver {
@@ -16,9 +17,8 @@ export class FriendRequestsResolver {
         @Ctx() ctx: MyContext
     ): Promise<FieldError | null> {
         try {
-            return await AppDataSource.transaction<null>(
-                "SERIALIZABLE",
-                async (tm) => {
+            return await withSerializableRetry(() =>
+                AppDataSource.transaction<null>("SERIALIZABLE", async (tm) => {
                     // check if token exists or if it is not deleted
                     const foundToken = await tm
                         .getRepository(FriendRequestToken)
@@ -39,6 +39,23 @@ export class FriendRequestsResolver {
                     // make sure user can't send friend request to themselves ...
                     if (senderId === foundToken.userId) {
                         throw new Error(errors.cantSendFriendRequestToYourself)
+                    }
+
+                    // create friend request (and automatically check if user already sent friend request using given token)
+                    // Create friend request (let unique constraint handle duplicates)
+                    try {
+                        await tm.getRepository(FriendRequests).save({
+                            senderId,
+                            requestTokenId: foundToken.id,
+                        })
+                    } catch (error) {
+                        // Handle unique constraint violation
+                        if (error.code === "23505") {
+                            // PostgreSQL unique violation code
+                            throw new Error(errors.friendRequestAlreadySent)
+                        }
+
+                        throw error
                     }
 
                     // check if usage_count is good
@@ -71,25 +88,6 @@ export class FriendRequestsResolver {
                         )
                     }
 
-                    // create friend request (and automatically check if user already sent friend request using given token)
-                    // Create friend request (let unique constraint handle duplicates)
-                    try {
-                        await tm.getRepository(FriendRequests).save({
-                            senderId,
-                            requestTokenId: foundToken.id,
-                        })
-                    } catch (error) {
-                        // Handle unique constraint violation
-                        if (error.code === "23505") {
-                            // PostgreSQL unique violation code
-                            throw new Error(errors.friendRequestAlreadySent)
-                        }
-                        if (error.code === "40001") {
-                            throw new Error(errors.transactionConflict)
-                        }
-                        throw error
-                    }
-
                     // update count for the token owner
                     await tm.getRepository(User).update(
                         {
@@ -102,7 +100,7 @@ export class FriendRequestsResolver {
                     )
 
                     return null
-                }
+                })
             )
         } catch (error) {
             if (error instanceof Error) {

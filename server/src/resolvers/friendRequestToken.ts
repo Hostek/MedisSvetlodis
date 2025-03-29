@@ -236,7 +236,9 @@ export class FriendRequestTokenResolver {
 
                 return { token: newToken }
             })
-        } catch {
+        } catch (error) {
+            if (error instanceof Error)
+                return { errors: [{ message: error.message }] }
             return { errors: [{ message: errors.unknownError }] }
         }
     }
