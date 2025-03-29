@@ -65,6 +65,7 @@ export type Mutation = {
   __typename?: 'Mutation';
   blockFriendRequestToken?: Maybe<FieldError>;
   createDefaultTokens?: Maybe<FieldError>;
+  createFriendRequest?: Maybe<FieldError>;
   createMessage?: Maybe<FieldError>;
   login: LoginResponse;
   logout: Scalars['Boolean']['output'];
@@ -79,6 +80,11 @@ export type Mutation = {
 
 export type MutationBlockFriendRequestTokenArgs = {
   tokenId: Scalars['Int']['input'];
+};
+
+
+export type MutationCreateFriendRequestArgs = {
+  friendRequestToken: Scalars['String']['input'];
 };
 
 
@@ -145,6 +151,7 @@ export type User = {
   generatedDefaultFriendRequestTokens: Scalars['Boolean']['output'];
   id: Scalars['Int']['output'];
   identifier: Scalars['String']['output'];
+  numberOfFriendRequests: Scalars['Int']['output'];
   updateUsernameAttempts: Scalars['Int']['output'];
   updatedAt: Scalars['String']['output'];
   username: Scalars['String']['output'];
@@ -175,6 +182,13 @@ export type CreateDefaultTokensMutationVariables = Exact<{ [key: string]: never;
 
 
 export type CreateDefaultTokensMutation = { __typename?: 'Mutation', createDefaultTokens?: { __typename?: 'FieldError', message: string } | null };
+
+export type CreateFriendRequestMutationVariables = Exact<{
+  friendRequestToken: Scalars['String']['input'];
+}>;
+
+
+export type CreateFriendRequestMutation = { __typename?: 'Mutation', createFriendRequest?: { __typename?: 'FieldError', message: string } | null };
 
 export type CreateMessageMutationVariables = Exact<{
   content: Scalars['String']['input'];
@@ -344,6 +358,17 @@ export const CreateDefaultTokensDocument = gql`
 
 export function useCreateDefaultTokensMutation() {
   return Urql.useMutation<CreateDefaultTokensMutation, CreateDefaultTokensMutationVariables>(CreateDefaultTokensDocument);
+};
+export const CreateFriendRequestDocument = gql`
+    mutation CreateFriendRequest($friendRequestToken: String!) {
+  createFriendRequest(friendRequestToken: $friendRequestToken) {
+    ...ErrorFragment
+  }
+}
+    ${ErrorFragmentFragmentDoc}`;
+
+export function useCreateFriendRequestMutation() {
+  return Urql.useMutation<CreateFriendRequestMutation, CreateFriendRequestMutationVariables>(CreateFriendRequestDocument);
 };
 export const CreateMessageDocument = gql`
     mutation CreateMessage($content: String!) {

@@ -52,6 +52,10 @@ export class User extends BaseEntity {
     @Column({ type: "boolean", default: false })
     generatedDefaultFriendRequestTokens: boolean
 
+    @Field(() => Int)
+    @Column({ type: "int", default: 0})
+    numberOfFriendRequests: number
+
     @OneToMany(() => Message, (m) => m.creator, {
         onDelete: "CASCADE",
     })

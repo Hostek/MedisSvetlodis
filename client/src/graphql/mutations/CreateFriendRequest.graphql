@@ -1,0 +1,5 @@
+mutation CreateFriendRequest($friendRequestToken: String!) {
+    createFriendRequest(friendRequestToken: $friendRequestToken) {
+        ...ErrorFragment
+    }
+}
