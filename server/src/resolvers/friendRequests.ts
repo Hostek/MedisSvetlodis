@@ -35,15 +35,6 @@ export class FriendRequestsResolver {
                         }
                     }
 
-                    if (
-                        foundToken.max_limit &&
-                        foundToken.usage_count >= foundToken.max_limit
-                    ) {
-                        return {
-                            message: errors.tokenUsageExhausted,
-                        }
-                    }
-
                     // const tokenId = foundToken.id
                     const senderId = ctx.req.session.userId
 
@@ -73,15 +64,35 @@ export class FriendRequestsResolver {
                         return { message: errors.unknownError }
                     }
 
-                    // update count for the token itself
-                    await tm.getRepository(FriendRequestToken).update(
-                        {
-                            id: foundToken.id,
-                        },
-                        {
-                            usage_count: () => "usage_count + 1",
+                    // check if usage_count is good
+                    if (foundToken.max_limit) {
+                        const updatedToken = await tm
+                            .getRepository(FriendRequestToken)
+                            .createQueryBuilder()
+                            .where("id = :id AND usage_count < :max_limit", {
+                                id: foundToken.id,
+                                max_limit: foundToken.max_limit,
+                            })
+                            .update({
+                                usage_count: () => "usage_count + 1",
+                            })
+                            .returning("usage_count")
+                            .execute()
+
+                        if (updatedToken.affected === 0) {
+                            return { message: errors.tokenUsageExhausted }
                         }
-                    )
+                    } else {
+                        // update count for the token itself
+                        await tm.getRepository(FriendRequestToken).update(
+                            {
+                                id: foundToken.id,
+                            },
+                            {
+                                usage_count: () => "usage_count + 1",
+                            }
+                        )
+                    }
 
                     // update count for the token owner
                     await tm.getRepository(User).update(
