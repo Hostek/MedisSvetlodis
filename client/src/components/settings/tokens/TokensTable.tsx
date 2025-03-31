@@ -4,7 +4,7 @@ import {
     useRegenerateFriendRequestTokenMutation,
     useUnblockFriendRequestTokenMutation,
 } from "@/generated/graphql"
-import { blockOrUnblockMutRT, FriendRequestTokensType } from "@/types"
+import { FriendRequestTokensType } from "@/types"
 import {
     Table,
     TableBody,
@@ -13,10 +13,9 @@ import {
     TableHeader,
     TableRow,
 } from "@heroui/react"
-import { errors } from "@hostek/shared"
 import React, { useMemo } from "react"
-import ToggleLockBtn from "./stuff/ToggleLockBtn"
 import RegenerateTokenBtn from "./stuff/RegenerateTokenBtn"
+import ToggleLockBtn from "./stuff/ToggleLockBtn"
 
 interface TokensTableProps {
     tokens: FriendRequestTokensType
@@ -62,45 +61,6 @@ const TokensTable: React.FC<TokensTableProps> = ({
             </TableHeader>
             <TableBody>
                 {tokens.map((value, i) => {
-                    const titleOfBlockBtn =
-                        value.status === "active"
-                            ? `block token ${i + 1}`
-                            : `unblock token ${i + 1}`
-
-                    const handleApiResponse = (res: blockOrUnblockMutRT) => {
-                        if (res.error || !res.data) {
-                            setAllError(errors.unknownError)
-                            return false
-                        }
-
-                        const message =
-                            res.data?.blockFriendRequestToken?.message ||
-                            res.data?.unblockFriendRequestToken?.message
-                        if (message) {
-                            setAllError(message)
-                            return false
-                        }
-
-                        return true
-                    }
-
-                    const updateLocalTokenStatus = (
-                        newStatus: "active" | "blocked"
-                    ) => {
-                        setTokens((prev) =>
-                            prev.map((token, index) =>
-                                index === i
-                                    ? {
-                                          ...token,
-                                          status: newStatus,
-                                      }
-                                    : token
-                            )
-                        )
-                    }
-
-                    const titleOfRegenBtn = `Regenerate token ${i + 1}`
-
                     return (
                         <TableRow key={i}>
                             <TableCell>{value.token}</TableCell>
@@ -110,16 +70,13 @@ const TokensTable: React.FC<TokensTableProps> = ({
                                     blockFriendRequestToken={
                                         blockFriendRequestToken
                                     }
-                                    handleApiResponse={handleApiResponse}
                                     setAllError={setAllError}
-                                    titleOfBlockBtn={titleOfBlockBtn}
                                     unblockFriendRequestToken={
                                         unblockFriendRequestToken
                                     }
-                                    updateLocalTokenStatus={
-                                        updateLocalTokenStatus
-                                    }
+                                    setTokens={setTokens}
                                     value={value}
+                                    i={i}
                                 />
                                 <RegenerateTokenBtn
                                     allFetching={allFetching}
@@ -129,7 +86,6 @@ const TokensTable: React.FC<TokensTableProps> = ({
                                     }
                                     setAllError={setAllError}
                                     setTokens={setTokens}
-                                    titleOfRegenBtn={titleOfRegenBtn}
                                     value={value}
                                 />
                             </TableCell>

@@ -7,30 +7,76 @@ import {
 } from "@/types"
 import { Button } from "@heroui/react"
 import { errors } from "@hostek/shared"
-import React from "react"
+import React, { useCallback, useMemo } from "react"
 import { Lock, Unlock } from "react-feather"
 
 interface ToggleLockBtnProps {
-    titleOfBlockBtn: string
+    // titleOfBlockBtn: string
     blockFriendRequestToken: blockFriendRequestTokenMutationType
     unblockFriendRequestToken: unblockFriendRequestTokenMutationType
     setAllError: React.Dispatch<React.SetStateAction<string | null>>
-    handleApiResponse: (res: blockOrUnblockMutRT) => boolean
-    updateLocalTokenStatus: (newStatus: "active" | "blocked") => void
+    // handleApiResponse: (res: blockOrUnblockMutRT) => boolean
+    // updateLocalTokenStatus: (newStatus: "active" | "blocked") => void
     value: FriendRequestTokensType[number]
     allFetching: boolean
+    i: number
+    setTokens: React.Dispatch<React.SetStateAction<FriendRequestTokensType>>
 }
 
 const ToggleLockBtn: React.FC<ToggleLockBtnProps> = ({
-    titleOfBlockBtn,
+    // titleOfBlockBtn,
     blockFriendRequestToken,
     setAllError,
-    handleApiResponse,
+    // handleApiResponse,
     unblockFriendRequestToken,
-    updateLocalTokenStatus,
+    // updateLocalTokenStatus,
     value,
     allFetching,
+    setTokens,
+    i,
 }) => {
+    const titleOfBlockBtn = useMemo(() => {
+        return value.status === "active"
+            ? `block token ${i + 1}`
+            : `unblock token ${i + 1}`
+    }, [i, value.status])
+
+    const updateLocalTokenStatus = useCallback(
+        (newStatus: "active" | "blocked") => {
+            setTokens((prev) =>
+                prev.map((token, index) =>
+                    index === i
+                        ? {
+                              ...token,
+                              status: newStatus,
+                          }
+                        : token
+                )
+            )
+        },
+        [i, setTokens]
+    )
+
+    const handleApiResponse = useCallback(
+        (res: blockOrUnblockMutRT) => {
+            if (res.error || !res.data) {
+                setAllError(errors.unknownError)
+                return false
+            }
+
+            const message =
+                res.data?.blockFriendRequestToken?.message ||
+                res.data?.unblockFriendRequestToken?.message
+            if (message) {
+                setAllError(message)
+                return false
+            }
+
+            return true
+        },
+        [setAllError]
+    )
+
     return (
         <Button
             aria-label={titleOfBlockBtn}

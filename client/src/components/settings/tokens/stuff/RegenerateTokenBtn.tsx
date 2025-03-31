@@ -11,14 +11,14 @@ import {
     errors,
     MAXIMUM_TOKEN_REGENERATION_COUNT,
 } from "@hostek/shared"
-import React from "react"
+import React, { useMemo } from "react"
 import { RefreshCw } from "react-feather"
 
 interface RegenerateTokenBtnProps {
     value: FriendRequestTokensType[number]
     allFetching: boolean
     regenerateFriendRequestToken: regenerateFriendRequestTokenMutationType
-    titleOfRegenBtn: string
+    // titleOfRegenBtn: string
     setAllError: React.Dispatch<React.SetStateAction<string | null>>
     setTokens: React.Dispatch<React.SetStateAction<FriendRequestTokensType>>
     i: number
@@ -28,11 +28,15 @@ const RegenerateTokenBtn: React.FC<RegenerateTokenBtnProps> = ({
     allFetching,
     value,
     regenerateFriendRequestToken,
-    titleOfRegenBtn,
+    // titleOfRegenBtn,
     setAllError,
     setTokens,
     i,
 }) => {
+    const titleOfRegenBtn = useMemo(() => {
+        return `Regenerate token ${i + 1}`
+    }, [i])
+
     return (
         <Button
             aria-label={titleOfRegenBtn}
