@@ -71,8 +71,10 @@ export type Mutation = {
   logout: Scalars['Boolean']['output'];
   regenerateFriendRequestToken: FriendRequestTokenOrError;
   register: LoginResponse;
+  resetUsageCountFriendRequestToken?: Maybe<FieldError>;
   toggleBlockFriendRequestToken?: Maybe<FieldError>;
   unblockFriendRequestToken?: Maybe<FieldError>;
+  updateMaxLimitFriendRequestToken?: Maybe<FieldError>;
   updatePassword?: Maybe<FieldError>;
   updateUsername?: Maybe<FieldError>;
 };
@@ -111,12 +113,23 @@ export type MutationRegisterArgs = {
 };
 
 
+export type MutationResetUsageCountFriendRequestTokenArgs = {
+  tokenId: Scalars['Int']['input'];
+};
+
+
 export type MutationToggleBlockFriendRequestTokenArgs = {
   tokenId: Scalars['Int']['input'];
 };
 
 
 export type MutationUnblockFriendRequestTokenArgs = {
+  tokenId: Scalars['Int']['input'];
+};
+
+
+export type MutationUpdateMaxLimitFriendRequestTokenArgs = {
+  new_max_limit?: InputMaybe<Scalars['Int']['input']>;
   tokenId: Scalars['Int']['input'];
 };
 
@@ -226,6 +239,13 @@ export type RegisterMutationVariables = Exact<{
 
 export type RegisterMutation = { __typename?: 'Mutation', register: { __typename?: 'LoginResponse', user?: { __typename?: 'User', username: string, updatedAt: string, id: number, email: string, createdAt: string, updateUsernameAttempts: number, identifier: string, generatedDefaultFriendRequestTokens: boolean } | null, errors?: Array<{ __typename?: 'FieldError', message: string }> | null } };
 
+export type ResetUsageCountFriendRequestTokenMutationVariables = Exact<{
+  tokenId: Scalars['Int']['input'];
+}>;
+
+
+export type ResetUsageCountFriendRequestTokenMutation = { __typename?: 'Mutation', resetUsageCountFriendRequestToken?: { __typename?: 'FieldError', message: string } | null };
+
 export type ToggleBlockFriendRequestTokenMutationVariables = Exact<{
   tokenId: Scalars['Int']['input'];
 }>;
@@ -239,6 +259,13 @@ export type UnblockFriendRequestTokenMutationVariables = Exact<{
 
 
 export type UnblockFriendRequestTokenMutation = { __typename?: 'Mutation', unblockFriendRequestToken?: { __typename?: 'FieldError', message: string } | null };
+
+export type UpdateMaxLimitFriendRequestTokenMutationVariables = Exact<{
+  tokenId: Scalars['Int']['input'];
+}>;
+
+
+export type UpdateMaxLimitFriendRequestTokenMutation = { __typename?: 'Mutation', updateMaxLimitFriendRequestToken?: { __typename?: 'FieldError', message: string } | null };
 
 export type UpdatePasswordMutationVariables = Exact<{
   newPassword: Scalars['String']['input'];
@@ -429,6 +456,17 @@ export const RegisterDocument = gql`
 export function useRegisterMutation() {
   return Urql.useMutation<RegisterMutation, RegisterMutationVariables>(RegisterDocument);
 };
+export const ResetUsageCountFriendRequestTokenDocument = gql`
+    mutation ResetUsageCountFriendRequestToken($tokenId: Int!) {
+  resetUsageCountFriendRequestToken(tokenId: $tokenId) {
+    ...ErrorFragment
+  }
+}
+    ${ErrorFragmentFragmentDoc}`;
+
+export function useResetUsageCountFriendRequestTokenMutation() {
+  return Urql.useMutation<ResetUsageCountFriendRequestTokenMutation, ResetUsageCountFriendRequestTokenMutationVariables>(ResetUsageCountFriendRequestTokenDocument);
+};
 export const ToggleBlockFriendRequestTokenDocument = gql`
     mutation ToggleBlockFriendRequestToken($tokenId: Int!) {
   toggleBlockFriendRequestToken(tokenId: $tokenId) {
@@ -450,6 +488,17 @@ export const UnblockFriendRequestTokenDocument = gql`
 
 export function useUnblockFriendRequestTokenMutation() {
   return Urql.useMutation<UnblockFriendRequestTokenMutation, UnblockFriendRequestTokenMutationVariables>(UnblockFriendRequestTokenDocument);
+};
+export const UpdateMaxLimitFriendRequestTokenDocument = gql`
+    mutation UpdateMaxLimitFriendRequestToken($tokenId: Int!) {
+  updateMaxLimitFriendRequestToken(tokenId: $tokenId) {
+    ...ErrorFragment
+  }
+}
+    ${ErrorFragmentFragmentDoc}`;
+
+export function useUpdateMaxLimitFriendRequestTokenMutation() {
+  return Urql.useMutation<UpdateMaxLimitFriendRequestTokenMutation, UpdateMaxLimitFriendRequestTokenMutationVariables>(UpdateMaxLimitFriendRequestTokenDocument);
 };
 export const UpdatePasswordDocument = gql`
     mutation UpdatePassword($newPassword: String!, $oldPassword: String) {

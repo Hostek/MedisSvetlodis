@@ -1,0 +1,5 @@
+mutation UpdateMaxLimitFriendRequestToken($tokenId: Int!) {
+    updateMaxLimitFriendRequestToken(tokenId: $tokenId) {
+        ...ErrorFragment
+    }
+}

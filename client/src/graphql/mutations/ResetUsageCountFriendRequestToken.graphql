@@ -1,0 +1,5 @@
+mutation ResetUsageCountFriendRequestToken($tokenId: Int!) {
+    resetUsageCountFriendRequestToken(tokenId: $tokenId) {
+        ...ErrorFragment
+    }
+}
