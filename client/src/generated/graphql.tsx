@@ -262,6 +262,7 @@ export type UnblockFriendRequestTokenMutation = { __typename?: 'Mutation', unblo
 
 export type UpdateMaxLimitFriendRequestTokenMutationVariables = Exact<{
   tokenId: Scalars['Int']['input'];
+  newMaxLimit?: InputMaybe<Scalars['Int']['input']>;
 }>;
 
 
@@ -490,8 +491,8 @@ export function useUnblockFriendRequestTokenMutation() {
   return Urql.useMutation<UnblockFriendRequestTokenMutation, UnblockFriendRequestTokenMutationVariables>(UnblockFriendRequestTokenDocument);
 };
 export const UpdateMaxLimitFriendRequestTokenDocument = gql`
-    mutation UpdateMaxLimitFriendRequestToken($tokenId: Int!) {
-  updateMaxLimitFriendRequestToken(tokenId: $tokenId) {
+    mutation UpdateMaxLimitFriendRequestToken($tokenId: Int!, $newMaxLimit: Int) {
+  updateMaxLimitFriendRequestToken(tokenId: $tokenId, new_max_limit: $newMaxLimit) {
     ...ErrorFragment
   }
 }

@@ -96,6 +96,7 @@ const TokensTable: React.FC<TokensTableProps> = ({
                                 <MaxLimitTokenForm
                                     initialValue={value.max_limit}
                                     tokenId={value.id}
+                                    setAllError={setAllError}
                                 />
                             </TableCell>
                             <TableCell className="text-center">
