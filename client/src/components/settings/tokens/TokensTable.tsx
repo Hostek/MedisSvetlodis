@@ -1,14 +1,11 @@
 "use client"
-import { RED_COLOR } from "@/constants"
 import {
     useBlockFriendRequestTokenMutation,
     useRegenerateFriendRequestTokenMutation,
     useUnblockFriendRequestTokenMutation,
 } from "@/generated/graphql"
 import { blockOrUnblockMutRT, FriendRequestTokensType } from "@/types"
-import { MySwal } from "@/utils/MySwal"
 import {
-    Button,
     Table,
     TableBody,
     TableCell,
@@ -16,14 +13,10 @@ import {
     TableHeader,
     TableRow,
 } from "@heroui/react"
-import {
-    checkIfArrayExistsNotEmpty,
-    errors,
-    MAXIMUM_TOKEN_REGENERATION_COUNT,
-} from "@hostek/shared"
+import { errors } from "@hostek/shared"
 import React, { useMemo } from "react"
-import { RefreshCw } from "react-feather"
 import ToggleLockBtn from "./stuff/ToggleLockBtn"
+import RegenerateTokenBtn from "./stuff/RegenerateTokenBtn"
 
 interface TokensTableProps {
     tokens: FriendRequestTokensType
@@ -128,86 +121,17 @@ const TokensTable: React.FC<TokensTableProps> = ({
                                     }
                                     value={value}
                                 />
-                                <Button
-                                    aria-label={titleOfRegenBtn}
-                                    title={titleOfRegenBtn}
-                                    disabled={allFetching}
-                                    isIconOnly
-                                    color="success"
-                                    className="mx-1"
-                                    onPress={async () => {
-                                        const res_popup = await MySwal.fire({
-                                            title: "Are you sure?",
-                                            text: `Please, do not regenerate tokens too often (you can perform this operation only ${MAXIMUM_TOKEN_REGENERATION_COUNT} times per day). After regeneration old token won't work anymore.`,
-                                            icon: "warning",
-                                            showCancelButton: true,
-                                            confirmButtonColor: RED_COLOR,
-                                            // cancelButtonColor: "#d33",
-                                            confirmButtonText: "Yes",
-                                            theme: "dark",
-                                        })
-
-                                        if (!res_popup.isConfirmed) {
-                                            return
-                                        }
-
-                                        setAllError(null)
-
-                                        const res =
-                                            await regenerateFriendRequestToken({
-                                                tokenId: value.id,
-                                            })
-
-                                        if (!res.data || res.error) {
-                                            return setAllError(
-                                                errors.unknownError
-                                            )
-                                        }
-
-                                        if (
-                                            checkIfArrayExistsNotEmpty(
-                                                res.data
-                                                    .regenerateFriendRequestToken
-                                                    .errors
-                                            )
-                                        ) {
-                                            return setAllError(
-                                                res.data
-                                                    .regenerateFriendRequestToken
-                                                    .errors[0].message
-                                            )
-                                        }
-
-                                        if (
-                                            !res.data
-                                                .regenerateFriendRequestToken
-                                                .token
-                                        ) {
-                                            return setAllError(
-                                                errors.unknownError
-                                            )
-                                        }
-
-                                        setTokens((prev) =>
-                                            prev.map((token, index) =>
-                                                index === i
-                                                    ? (res.data
-                                                          ?.regenerateFriendRequestToken
-                                                          .token ?? token)
-                                                    : token
-                                            )
-                                        )
-
-                                        MySwal.fire({
-                                            title: "Success",
-                                            text: "Successfully regenerated token!",
-                                            icon: "success",
-                                            theme: "dark",
-                                        })
-                                    }}
-                                >
-                                    <RefreshCw />
-                                </Button>
+                                <RegenerateTokenBtn
+                                    allFetching={allFetching}
+                                    i={i}
+                                    regenerateFriendRequestToken={
+                                        regenerateFriendRequestToken
+                                    }
+                                    setAllError={setAllError}
+                                    setTokens={setTokens}
+                                    titleOfRegenBtn={titleOfRegenBtn}
+                                    value={value}
+                                />
                             </TableCell>
                         </TableRow>
                     )
