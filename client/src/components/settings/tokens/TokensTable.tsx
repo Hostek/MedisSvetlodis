@@ -58,6 +58,7 @@ const TokensTable: React.FC<TokensTableProps> = ({
             <TableHeader>
                 <TableColumn>TOKEN</TableColumn>
                 <TableColumn>OPTIONS</TableColumn>
+                <TableColumn className="text-center">USAGE COUNT</TableColumn>
             </TableHeader>
             <TableBody>
                 {tokens.map((value, i) => {
@@ -88,6 +89,9 @@ const TokensTable: React.FC<TokensTableProps> = ({
                                     setTokens={setTokens}
                                     value={value}
                                 />
+                            </TableCell>
+                            <TableCell className="text-center">
+                                {value.usage_count}
                             </TableCell>
                         </TableRow>
                     )
