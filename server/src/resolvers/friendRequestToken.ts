@@ -242,4 +242,82 @@ export class FriendRequestTokenResolver {
             return { errors: [{ message: errors.unknownError }] }
         }
     }
+
+    @Mutation(() => FieldError, { nullable: true })
+    @UseMiddleware(isAuth)
+    async updateMaxLimitFriendRequestToken(
+        @Arg("tokenId", () => Int) tokenId: number,
+        @Arg("new_max_limit", () => Int, { nullable: true })
+        new_max_limit: number | null,
+        @Ctx() ctx: MyContext
+    ): Promise<FieldError | null> {
+        const userId = ctx.req.session.userId
+
+        // basic validation:
+        if (typeof new_max_limit === "number" && new_max_limit < 0) {
+            return { message: errors.limitCannotBeNegative }
+        }
+
+        if (tokenId <= 0) {
+            return { message: errors.tokenNotFound }
+        }
+
+        try {
+            const result = await FriendRequestToken.update(
+                {
+                    userId,
+                    id: tokenId,
+                    status: Not("deleted" as const),
+                },
+                {
+                    max_limit: new_max_limit,
+                }
+            )
+
+            if (result.affected === 0) {
+                return { message: errors.tokenNotFound }
+            }
+        } catch (error) {
+            // if (error instanceof Error) {
+            //     return { message: error.message }
+            // }
+            return { message: errors.unknownError }
+        }
+
+        return null
+    }
+
+    @Mutation(() => FieldError, { nullable: true })
+    @UseMiddleware(isAuth)
+    async resetUsageCountFriendRequestToken(
+        @Arg("tokenId", () => Int) tokenId: number,
+        @Ctx() ctx: MyContext
+    ): Promise<FieldError | null> {
+        const userId = ctx.req.session.userId
+
+        if (tokenId <= 0) {
+            return { message: errors.tokenNotFound }
+        }
+
+        try {
+            const result = await FriendRequestToken.update(
+                {
+                    userId,
+                    id: tokenId,
+                    status: Not("deleted" as const),
+                },
+                {
+                    usage_count: 0,
+                }
+            )
+
+            if (result.affected === 0) {
+                return { message: errors.tokenNotFound }
+            }
+        } catch {
+            return { message: errors.unknownError }
+        }
+
+        return null
+    }
 }

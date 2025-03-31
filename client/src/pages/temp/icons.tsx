@@ -1,11 +1,13 @@
 "use client"
 import BlockIcon from "@/components/icons/BlockIcon"
+import QrCodeIcon from "@/components/icons/QrCodeIcon"
 import { IconProvider } from "@/context/IconContext"
 import { SvgWrapperOptions } from "@/types"
 import { NextPage } from "next"
 
 export const icons: React.NamedExoticComponent<SvgWrapperOptions>[] = [
     BlockIcon,
+    QrCodeIcon,
 ]
 
 export const LocalIcons = () => {

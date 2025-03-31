@@ -32,6 +32,7 @@ export const errors = {
     transactionConflict: "Transaction conflict, please try again.",
     tokenUsageExhausted:
         "Token usage limit exhausted. Token has reached the maximum allowed consumption.",
+    limitCannotBeNegative: "Limit cannot be negative",
 } as const
 
 export const errors_values = Object.values(errors)

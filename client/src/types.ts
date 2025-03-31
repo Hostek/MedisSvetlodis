@@ -2,6 +2,7 @@ import { Cache } from "@urql/exchange-graphcache"
 import {
     useBlockFriendRequestTokenMutation,
     useFriendRequestTokensOfUserQuery,
+    useRegenerateFriendRequestTokenMutation,
     useUnblockFriendRequestTokenMutation,
 } from "./generated/graphql"
 import { DeepMerge, ExtractPromiseType } from "@hostek/shared"
@@ -44,13 +45,25 @@ export type FriendRequestTokensType = Exclude<
     undefined
 >["friendRequestTokensOfUser"]
 
+export type blockFriendRequestTokenMutationType = ReturnType<
+    typeof useBlockFriendRequestTokenMutation
+>[1]
+
+export type unblockFriendRequestTokenMutationType = ReturnType<
+    typeof useUnblockFriendRequestTokenMutation
+>[1]
+
 export type blockFriendRequestTokenReturnType = ExtractPromiseType<
-    ReturnType<ReturnType<typeof useBlockFriendRequestTokenMutation>[1]>
+    ReturnType<blockFriendRequestTokenMutationType>
 >
 export type unblockFriendRequestTokenReturnType = ExtractPromiseType<
-    ReturnType<ReturnType<typeof useUnblockFriendRequestTokenMutation>[1]>
+    ReturnType<unblockFriendRequestTokenMutationType>
 >
 export type blockOrUnblockMutRT = DeepMerge<
     blockFriendRequestTokenReturnType,
     unblockFriendRequestTokenReturnType
 >
+
+export type regenerateFriendRequestTokenMutationType = ReturnType<
+    typeof useRegenerateFriendRequestTokenMutation
+>[1]
