@@ -22,7 +22,8 @@ import {
     MAXIMUM_TOKEN_REGENERATION_COUNT,
 } from "@hostek/shared"
 import React, { useMemo } from "react"
-import { Lock, RefreshCw, Unlock } from "react-feather"
+import { RefreshCw } from "react-feather"
+import ToggleLockBtn from "./stuff/ToggleLockBtn"
 
 interface TokensTableProps {
     tokens: FriendRequestTokensType
@@ -111,45 +112,22 @@ const TokensTable: React.FC<TokensTableProps> = ({
                         <TableRow key={i}>
                             <TableCell>{value.token}</TableCell>
                             <TableCell>
-                                <Button
-                                    aria-label={titleOfBlockBtn}
-                                    title={titleOfBlockBtn}
-                                    // className="w-2"
-                                    onPress={async () => {
-                                        setAllError(null)
-
-                                        const isBlocking =
-                                            value.status === "active"
-                                        const mutationFn = isBlocking
-                                            ? blockFriendRequestToken
-                                            : unblockFriendRequestToken
-                                        const newStatus = isBlocking
-                                            ? "blocked"
-                                            : "active"
-
-                                        try {
-                                            const res = await mutationFn({
-                                                tokenId: value.id,
-                                            })
-
-                                            if (!handleApiResponse(res)) return
-
-                                            // setAllError(null)
-                                            updateLocalTokenStatus(newStatus)
-                                        } catch {
-                                            setAllError(errors.unknownError)
-                                        }
-                                    }}
-                                    disabled={allFetching}
-                                    isIconOnly
-                                    color="danger"
-                                >
-                                    {value.status === "active" ? (
-                                        <Lock />
-                                    ) : (
-                                        <Unlock />
-                                    )}
-                                </Button>
+                                <ToggleLockBtn
+                                    allFetching={allFetching}
+                                    blockFriendRequestToken={
+                                        blockFriendRequestToken
+                                    }
+                                    handleApiResponse={handleApiResponse}
+                                    setAllError={setAllError}
+                                    titleOfBlockBtn={titleOfBlockBtn}
+                                    unblockFriendRequestToken={
+                                        unblockFriendRequestToken
+                                    }
+                                    updateLocalTokenStatus={
+                                        updateLocalTokenStatus
+                                    }
+                                    value={value}
+                                />
                                 <Button
                                     aria-label={titleOfRegenBtn}
                                     title={titleOfRegenBtn}
