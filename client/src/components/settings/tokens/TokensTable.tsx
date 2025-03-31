@@ -14,6 +14,7 @@ import {
     TableRow,
 } from "@heroui/react"
 import React, { useMemo } from "react"
+import MaxLimitTokenForm from "./stuff/MaxLimitTokenForm"
 import RegenerateTokenBtn from "./stuff/RegenerateTokenBtn"
 import ToggleLockBtn from "./stuff/ToggleLockBtn"
 
@@ -58,7 +59,8 @@ const TokensTable: React.FC<TokensTableProps> = ({
             <TableHeader>
                 <TableColumn>TOKEN</TableColumn>
                 <TableColumn>OPTIONS</TableColumn>
-                <TableColumn className="text-center">USAGE COUNT</TableColumn>
+                <TableColumn>MAX LIMIT</TableColumn>
+                <TableColumn className="text-center">USAGE</TableColumn>
             </TableHeader>
             <TableBody>
                 {tokens.map((value, i) => {
@@ -88,6 +90,12 @@ const TokensTable: React.FC<TokensTableProps> = ({
                                     setAllError={setAllError}
                                     setTokens={setTokens}
                                     value={value}
+                                />
+                            </TableCell>
+                            <TableCell>
+                                <MaxLimitTokenForm
+                                    initialValue={value.max_limit}
+                                    tokenId={value.id}
                                 />
                             </TableCell>
                             <TableCell className="text-center">
