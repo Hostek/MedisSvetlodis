@@ -94,6 +94,17 @@ const HomePage: React.FC<HomePageProps> = ({}) => {
                     Send friend request
                 </Button>
             </div>
+            <div className="full-width">
+                <Button
+                    as="a"
+                    href="/friend-requests"
+                    fullWidth
+                    className="uppercase text-lg"
+                    color="secondary"
+                >
+                    Incoming friend requests
+                </Button>
+            </div>
             <div className="space-y-4">
                 <h2 className="text-lg font-medium text-foreground">
                     Messages
