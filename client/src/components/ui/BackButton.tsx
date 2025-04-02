@@ -9,7 +9,12 @@ interface BackButtonProps {
 
 const BackButton: React.FC<BackButtonProps> = ({ link }) => {
     return (
-        <Button as="a" href={link ? link : "/"} fullWidth>
+        <Button
+            as="a"
+            href={link ? link : "/"}
+            fullWidth
+            aria-label="Go to home page"
+        >
             <ArrowLeft />
         </Button>
     )
