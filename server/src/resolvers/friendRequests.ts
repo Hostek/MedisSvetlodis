@@ -1,9 +1,16 @@
 import { FieldError, MyContext } from "../types.js"
 import { isAuth } from "../middleware/isAuth.js"
-import { Arg, Ctx, Mutation, Resolver, UseMiddleware } from "type-graphql"
+import {
+    Arg,
+    Ctx,
+    Mutation,
+    Query,
+    Resolver,
+    UseMiddleware,
+} from "type-graphql"
 import { AppDataSource } from "../DataSource.js"
 import { FriendRequestToken } from "../entities/FriendRequestToken.js"
-import { errors } from "@hostek/shared"
+import { errors, FRIEND_REQUEST_STATUS_OBJ } from "@hostek/shared"
 import { FriendRequests } from "../entities/FriendsRequests.js"
 import { User } from "../entities/User.js"
 import { withSerializableRetry } from "../utils/withSerializableRetry.js"
@@ -108,5 +115,25 @@ export class FriendRequestsResolver {
             }
             return { message: errors.unknownError }
         }
+    }
+
+    @Query(() => [FriendRequests])
+    @UseMiddleware(isAuth)
+    async getFriendRequests(@Ctx() ctx: MyContext): Promise<FriendRequests[]> {
+        const userId = ctx.req.session.userId
+
+        const friendRequests = await FriendRequests.createQueryBuilder(
+            "friendRequest"
+        )
+            .leftJoinAndSelect("friendRequest.requestToken", "requestToken")
+            .leftJoinAndSelect("friendRequest.sender", "sender")
+            .where("requestToken.userId = :userId", { userId: userId })
+            .andWhere("friendRequest.status = :status", {
+                status: FRIEND_REQUEST_STATUS_OBJ.pending,
+            })
+            .orderBy("friendRequest.createdAt", "DESC")
+            .getMany()
+
+        return friendRequests
     }
 }

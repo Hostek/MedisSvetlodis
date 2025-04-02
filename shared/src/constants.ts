@@ -1,3 +1,4 @@
+import { FRIEND_REQUEST_STATUS_OBJ_TYPE } from "./types"
 export const PASSWORD_MIN_LENGTH = 8
 export const MAX_MESSAGE_LENGTH = 2000
 export const MAXIMUM_TOKEN_REGENERATION_COUNT = 5
@@ -55,3 +56,9 @@ export const FRIEND_REQUESTS_STATUS = [
     "accepted",
     "rejected",
 ] as const
+
+export const FRIEND_REQUEST_STATUS_OBJ: FRIEND_REQUEST_STATUS_OBJ_TYPE = {
+    accepted: "accepted",
+    pending: "pending",
+    rejected: "rejected",
+}
