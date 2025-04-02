@@ -83,6 +83,17 @@ const HomePage: React.FC<HomePageProps> = ({}) => {
 
     return (
         <div className="max-w-screen-md mx-auto p-6 space-y-6">
+            <div className="full-width">
+                <Button
+                    as="a"
+                    href="/"
+                    fullWidth
+                    className="uppercase text-lg"
+                    color="secondary"
+                >
+                    Send friend request
+                </Button>
+            </div>
             <div className="space-y-4">
                 <h2 className="text-lg font-medium text-foreground">
                     Messages
