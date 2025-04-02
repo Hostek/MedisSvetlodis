@@ -74,6 +74,7 @@ export type Message = {
 
 export type Mutation = {
   __typename?: 'Mutation';
+  acceptFriendRequest?: Maybe<FieldError>;
   blockFriendRequestToken?: Maybe<FieldError>;
   createDefaultTokens?: Maybe<FieldError>;
   createFriendRequest?: Maybe<FieldError>;
@@ -82,12 +83,18 @@ export type Mutation = {
   logout: Scalars['Boolean']['output'];
   regenerateFriendRequestToken: FriendRequestTokenOrError;
   register: LoginResponse;
+  rejectFriendRequest?: Maybe<FieldError>;
   resetUsageCountFriendRequestToken?: Maybe<FieldError>;
   toggleBlockFriendRequestToken?: Maybe<FieldError>;
   unblockFriendRequestToken?: Maybe<FieldError>;
   updateMaxLimitFriendRequestToken?: Maybe<FieldError>;
   updatePassword?: Maybe<FieldError>;
   updateUsername?: Maybe<FieldError>;
+};
+
+
+export type MutationAcceptFriendRequestArgs = {
+  friendRequestId: Scalars['Int']['input'];
 };
 
 
@@ -121,6 +128,11 @@ export type MutationRegenerateFriendRequestTokenArgs = {
 export type MutationRegisterArgs = {
   email: Scalars['String']['input'];
   password: Scalars['String']['input'];
+};
+
+
+export type MutationRejectFriendRequestArgs = {
+  friendRequestId: Scalars['Int']['input'];
 };
 
 
@@ -173,6 +185,7 @@ export type User = {
   __typename?: 'User';
   createdAt: Scalars['String']['output'];
   email: Scalars['String']['output'];
+  friends: Array<User>;
   generatedDefaultFriendRequestTokens: Scalars['Boolean']['output'];
   id: Scalars['Int']['output'];
   identifier: Scalars['String']['output'];
@@ -199,6 +212,13 @@ export type RequestToken_GetFriendRequesFragmentFragment = { __typename?: 'Frien
 export type SenderFragmentFragment = { __typename?: 'User', id: number, identifier: string, username: string };
 
 export type UserFragmentFragment = { __typename?: 'User', username: string, updatedAt: string, id: number, email: string, createdAt: string, updateUsernameAttempts: number, identifier: string, generatedDefaultFriendRequestTokens: boolean };
+
+export type AcceptFriendRequestMutationVariables = Exact<{
+  friendRequestId: Scalars['Int']['input'];
+}>;
+
+
+export type AcceptFriendRequestMutation = { __typename?: 'Mutation', acceptFriendRequest?: { __typename?: 'FieldError', message: string } | null };
 
 export type BlockFriendRequestTokenMutationVariables = Exact<{
   tokenId: Scalars['Int']['input'];
@@ -254,6 +274,13 @@ export type RegisterMutationVariables = Exact<{
 
 
 export type RegisterMutation = { __typename?: 'Mutation', register: { __typename?: 'LoginResponse', user?: { __typename?: 'User', username: string, updatedAt: string, id: number, email: string, createdAt: string, updateUsernameAttempts: number, identifier: string, generatedDefaultFriendRequestTokens: boolean } | null, errors?: Array<{ __typename?: 'FieldError', message: string }> | null } };
+
+export type RejectFriendRequestMutationVariables = Exact<{
+  friendRequestId: Scalars['Int']['input'];
+}>;
+
+
+export type RejectFriendRequestMutation = { __typename?: 'Mutation', rejectFriendRequest?: { __typename?: 'FieldError', message: string } | null };
 
 export type ResetUsageCountFriendRequestTokenMutationVariables = Exact<{
   tokenId: Scalars['Int']['input'];
@@ -399,6 +426,17 @@ export const SenderFragmentFragmentDoc = gql`
   username
 }
     `;
+export const AcceptFriendRequestDocument = gql`
+    mutation AcceptFriendRequest($friendRequestId: Int!) {
+  acceptFriendRequest(friendRequestId: $friendRequestId) {
+    ...ErrorFragment
+  }
+}
+    ${ErrorFragmentFragmentDoc}`;
+
+export function useAcceptFriendRequestMutation() {
+  return Urql.useMutation<AcceptFriendRequestMutation, AcceptFriendRequestMutationVariables>(AcceptFriendRequestDocument);
+};
 export const BlockFriendRequestTokenDocument = gql`
     mutation BlockFriendRequestToken($tokenId: Int!) {
   blockFriendRequestToken(tokenId: $tokenId) {
@@ -490,6 +528,17 @@ export const RegisterDocument = gql`
 
 export function useRegisterMutation() {
   return Urql.useMutation<RegisterMutation, RegisterMutationVariables>(RegisterDocument);
+};
+export const RejectFriendRequestDocument = gql`
+    mutation RejectFriendRequest($friendRequestId: Int!) {
+  rejectFriendRequest(friendRequestId: $friendRequestId) {
+    ...ErrorFragment
+  }
+}
+    ${ErrorFragmentFragmentDoc}`;
+
+export function useRejectFriendRequestMutation() {
+  return Urql.useMutation<RejectFriendRequestMutation, RejectFriendRequestMutationVariables>(RejectFriendRequestDocument);
 };
 export const ResetUsageCountFriendRequestTokenDocument = gql`
     mutation ResetUsageCountFriendRequestToken($tokenId: Int!) {

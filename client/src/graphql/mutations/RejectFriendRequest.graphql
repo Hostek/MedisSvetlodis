@@ -1,0 +1,5 @@
+mutation RejectFriendRequest($friendRequestId: Int!) {
+    rejectFriendRequest(friendRequestId: $friendRequestId) {
+        ...ErrorFragment
+    }
+}
