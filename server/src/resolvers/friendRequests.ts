@@ -166,6 +166,7 @@ export class FriendRequestsResolver {
                     .select("fr.id")
                     .innerJoin("fr.requestToken", "rt")
                     .where("rt.userId = :userId", { userId })
+                    .andWhere("fr.id = :friendRequestId", { friendRequestId })
 
                 const [subQuery, subParams] = subQb.getQueryAndParameters()
 
@@ -174,16 +175,12 @@ export class FriendRequestsResolver {
                     .getRepository(FriendRequests)
                     .createQueryBuilder()
                     .update()
-                    .set({
-                        status: FRIEND_REQUEST_STATUS_OBJ.accepted,
-                    })
+                    .set({ status: FRIEND_REQUEST_STATUS_OBJ.accepted })
                     .where(`id IN (${subQuery})`)
                     .andWhere("status = :rstatus")
-                    .andWhere("id = :friendRequestId")
                     .setParameters({
                         ...subParams,
                         rstatus: FRIEND_REQUEST_STATUS_OBJ.pending,
-                        friendRequestId,
                     })
                     .execute()
 
@@ -195,9 +192,8 @@ export class FriendRequestsResolver {
                 const friendRequest = await tm
                     .getRepository(FriendRequests)
                     .findOneOrFail({
-                        where: {
-                            id: friendRequestId,
-                        },
+                        where: { id: friendRequestId },
+                        select: ["senderId"], // Only fetch needed field
                     })
 
                 const [userA, userB] = await Promise.all([
@@ -217,17 +213,28 @@ export class FriendRequestsResolver {
                     .where("(user.id = :idA AND friend.id = :idB)")
                     .orWhere("(user.id = :idB AND friend.id = :idA)")
                     .setParameters({ idA: userA.id, idB: userB.id })
-                    .getOne()
+                    .getExists()
 
                 if (existing) {
                     throw new Error(errors.friendshipAlreadyExists)
                 }
 
                 // Add bidirectional relationships
-                userA.friends = [...(userA.friends || []), userB]
-                userB.friends = [...(userB.friends || []), userA]
+                await tm
+                    .getRepository(User)
+                    .createQueryBuilder()
+                    .relation(User, "friends")
+                    .of(userA)
+                    .add(userB)
 
-                await tm.getRepository(User).save([userA, userB])
+                await tm
+                    .getRepository(User)
+                    .createQueryBuilder()
+                    .relation(User, "friends")
+                    .of(userB)
+                    .add(userA)
+
+                // await tm.getRepository(User).save([userA, userB])
             })
         } catch (error) {
             if (error instanceof Error) {
