@@ -45,6 +45,17 @@ export type FriendRequestTokenOrError = {
   token?: Maybe<FriendRequestToken>;
 };
 
+export type FriendRequests = {
+  __typename?: 'FriendRequests';
+  createdAt: Scalars['String']['output'];
+  id: Scalars['Int']['output'];
+  requestToken: FriendRequestToken;
+  requestTokenId: Scalars['Int']['output'];
+  sender: User;
+  senderId: Scalars['Int']['output'];
+  status: Scalars['String']['output'];
+};
+
 export type LoginResponse = {
   __typename?: 'LoginResponse';
   errors?: Maybe<Array<FieldError>>;
@@ -148,6 +159,7 @@ export type Query = {
   __typename?: 'Query';
   friendRequestTokensOfUser: Array<FriendRequestToken>;
   getAllMessages: Array<Message>;
+  getFriendRequests: Array<FriendRequests>;
   hello: Scalars['String']['output'];
   user?: Maybe<User>;
 };
@@ -181,6 +193,10 @@ export type LoginResponseFragmentFragment = { __typename?: 'LoginResponse', user
 export type MessageFragmentFragment = { __typename?: 'Message', content: string, createdAt: string, creatorId: number, id: number, updatedAt: string };
 
 export type MessageWithCreatorFragmentFragment = { __typename?: 'Message', content: string, createdAt: string, creatorId: number, id: number, updatedAt: string, creator: { __typename?: 'User', username: string, id: number } };
+
+export type RequestToken_GetFriendRequesFragmentFragment = { __typename?: 'FriendRequestToken', id: number, token: string };
+
+export type SenderFragmentFragment = { __typename?: 'User', id: number, identifier: string, username: string };
 
 export type UserFragmentFragment = { __typename?: 'User', username: string, updatedAt: string, id: number, email: string, createdAt: string, updateUsernameAttempts: number, identifier: string, generatedDefaultFriendRequestTokens: boolean };
 
@@ -293,6 +309,11 @@ export type GetAllMessagesQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type GetAllMessagesQuery = { __typename?: 'Query', getAllMessages: Array<{ __typename?: 'Message', content: string, createdAt: string, creatorId: number, id: number, updatedAt: string, creator: { __typename?: 'User', username: string, id: number } }> };
 
+export type GetFriendRequestsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetFriendRequestsQuery = { __typename?: 'Query', getFriendRequests: Array<{ __typename?: 'FriendRequests', id: number, createdAt: string, status: string, sender: { __typename?: 'User', id: number, identifier: string, username: string }, requestToken: { __typename?: 'FriendRequestToken', id: number, token: string } }> };
+
 export type UserQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -365,6 +386,19 @@ export const MessageWithCreatorFragmentFragmentDoc = gql`
 }
     ${MessageFragmentFragmentDoc}
 ${CreatorFragmentFragmentDoc}`;
+export const RequestToken_GetFriendRequesFragmentFragmentDoc = gql`
+    fragment RequestToken_GetFriendRequesFragment on FriendRequestToken {
+  id
+  token
+}
+    `;
+export const SenderFragmentFragmentDoc = gql`
+    fragment SenderFragment on User {
+  id
+  identifier
+  username
+}
+    `;
 export const BlockFriendRequestTokenDocument = gql`
     mutation BlockFriendRequestToken($tokenId: Int!) {
   blockFriendRequestToken(tokenId: $tokenId) {
@@ -544,6 +578,26 @@ export const GetAllMessagesDocument = gql`
 
 export function useGetAllMessagesQuery(options?: Omit<Urql.UseQueryArgs<GetAllMessagesQueryVariables>, 'query'>) {
   return Urql.useQuery<GetAllMessagesQuery, GetAllMessagesQueryVariables>({ query: GetAllMessagesDocument, ...options });
+};
+export const GetFriendRequestsDocument = gql`
+    query GetFriendRequests {
+  getFriendRequests {
+    id
+    createdAt
+    status
+    sender {
+      ...SenderFragment
+    }
+    requestToken {
+      ...RequestToken_GetFriendRequesFragment
+    }
+  }
+}
+    ${SenderFragmentFragmentDoc}
+${RequestToken_GetFriendRequesFragmentFragmentDoc}`;
+
+export function useGetFriendRequestsQuery(options?: Omit<Urql.UseQueryArgs<GetFriendRequestsQueryVariables>, 'query'>) {
+  return Urql.useQuery<GetFriendRequestsQuery, GetFriendRequestsQueryVariables>({ query: GetFriendRequestsDocument, ...options });
 };
 export const UserDocument = gql`
     query User {

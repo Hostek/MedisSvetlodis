@@ -1,0 +1,4 @@
+fragment RequestToken_GetFriendRequesFragment on FriendRequestToken {
+    id
+    token
+}

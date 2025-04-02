@@ -1,0 +1,13 @@
+query GetFriendRequests {
+    getFriendRequests {
+        id
+        createdAt
+        status
+        sender {
+            ...SenderFragment
+        }
+        requestToken {
+            ...RequestToken_GetFriendRequesFragment
+        }
+    }
+}
