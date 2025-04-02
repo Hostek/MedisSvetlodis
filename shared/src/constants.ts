@@ -1,4 +1,7 @@
-import { FRIEND_REQUEST_STATUS_OBJ_TYPE } from "./types"
+import {
+    FRIEND_REQUEST_STATUS_OBJ_TYPE,
+    FRIEND_REQUEST_TOKEN_STATUS_OBJ_TYPE,
+} from "./types"
 export const PASSWORD_MIN_LENGTH = 8
 export const MAX_MESSAGE_LENGTH = 2000
 export const MAXIMUM_TOKEN_REGENERATION_COUNT = 5
@@ -34,6 +37,7 @@ export const errors = {
     tokenUsageExhausted:
         "Token usage limit exhausted. Token has reached the maximum allowed consumption.",
     limitCannotBeNegative: "Limit cannot be negative",
+    friendRequestNotFound: "Friend request not found",
 } as const
 
 export const errors_values = Object.values(errors)
@@ -61,4 +65,11 @@ export const FRIEND_REQUEST_STATUS_OBJ: FRIEND_REQUEST_STATUS_OBJ_TYPE = {
     accepted: "accepted",
     pending: "pending",
     rejected: "rejected",
-}
+} as const
+
+export const FRIEND_REQUEST_TOKEN_STATUS_OBJ: FRIEND_REQUEST_TOKEN_STATUS_OBJ_TYPE =
+    {
+        active: "active",
+        blocked: "blocked",
+        deleted: "deleted",
+    } as const

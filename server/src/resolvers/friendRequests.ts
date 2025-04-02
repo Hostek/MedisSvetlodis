@@ -1,5 +1,8 @@
-import { FieldError, MyContext } from "../types.js"
-import { isAuth } from "../middleware/isAuth.js"
+import {
+    errors,
+    FRIEND_REQUEST_STATUS_OBJ,
+    FRIEND_REQUEST_TOKEN_STATUS_OBJ,
+} from "@hostek/shared"
 import {
     Arg,
     Ctx,
@@ -10,9 +13,10 @@ import {
 } from "type-graphql"
 import { AppDataSource } from "../DataSource.js"
 import { FriendRequestToken } from "../entities/FriendRequestToken.js"
-import { errors, FRIEND_REQUEST_STATUS_OBJ } from "@hostek/shared"
 import { FriendRequests } from "../entities/FriendsRequests.js"
 import { User } from "../entities/User.js"
+import { isAuth } from "../middleware/isAuth.js"
+import { FieldError, MyContext } from "../types.js"
 import { withSerializableRetry } from "../utils/withSerializableRetry.js"
 
 @Resolver()
@@ -130,6 +134,9 @@ export class FriendRequestsResolver {
             .where("requestToken.userId = :userId", { userId: userId })
             .andWhere("friendRequest.status = :status", {
                 status: FRIEND_REQUEST_STATUS_OBJ.pending,
+            })
+            .andWhere("requestToken.status = :rstatus", {
+                rstatus: FRIEND_REQUEST_TOKEN_STATUS_OBJ.active,
             })
             .orderBy("friendRequest.createdAt", "DESC")
             .getMany()

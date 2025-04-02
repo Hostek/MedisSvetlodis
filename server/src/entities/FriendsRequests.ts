@@ -1,3 +1,4 @@
+import { FRIEND_REQUESTS_STATUS_TYPE } from "@hostek/shared"
 import { Field, Int, ObjectType } from "type-graphql"
 import {
     BaseEntity,
@@ -10,9 +11,8 @@ import {
     Relation,
     Unique,
 } from "typeorm"
-import { User } from "./User.js"
-import { FRIEND_REQUEST_TOKEN_STATUS_TYPE } from "@hostek/shared"
 import { FriendRequestToken } from "./FriendRequestToken.js"
+import { User } from "./User.js"
 
 @ObjectType()
 @Entity()
@@ -50,5 +50,5 @@ export class FriendRequests extends BaseEntity {
         length: "30",
         default: "pending",
     })
-    status: FRIEND_REQUEST_TOKEN_STATUS_TYPE
+    status: FRIEND_REQUESTS_STATUS_TYPE
 }
