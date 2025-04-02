@@ -86,7 +86,7 @@ const HomePage: React.FC<HomePageProps> = ({}) => {
             <div className="full-width">
                 <Button
                     as="a"
-                    href="/"
+                    href="/friend-request"
                     fullWidth
                     className="uppercase text-lg"
                     color="secondary"
