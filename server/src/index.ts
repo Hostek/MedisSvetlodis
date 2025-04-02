@@ -15,11 +15,11 @@ import { COOKIE_NAME, isInProduction, TEN_YEARS } from "./constants.js"
 import { AppDataSource, redisClient } from "./DataSource.js"
 import { pubSub } from "./pubSub.js"
 import { generalRateLimiter } from "./rateLimiters.js"
+import { FriendRequestsResolver } from "./resolvers/friendRequests.js"
+import { FriendRequestTokenResolver } from "./resolvers/friendRequestToken.js"
 import { HelloResolver } from "./resolvers/hello.js"
 import { MessageResolver } from "./resolvers/message.js"
 import { UserResolver } from "./resolvers/user.js"
-import { FriendRequestTokenResolver } from "./resolvers/friendRequestToken.js"
-import { FriendRequestsResolver } from "./resolvers/friendRequests.js"
 
 await AppDataSource.initialize()
 
@@ -176,7 +176,7 @@ app.use(
     })
 )
 
-app.get("/", (_req, res) => {
+app.get("/", async (_req, res) => {
     return res.send("Hello World!")
 })
 

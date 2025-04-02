@@ -6,6 +6,7 @@ import {
 import {
     Arg,
     Ctx,
+    Int,
     Mutation,
     Query,
     Resolver,
@@ -142,5 +143,98 @@ export class FriendRequestsResolver {
             .getMany()
 
         return friendRequests
+    }
+
+    @Mutation(() => FieldError, { nullable: true })
+    @UseMiddleware(isAuth)
+    async acceptFriendRequest(
+        @Arg("friendRequestId", () => Int) friendRequestId: number,
+        @Ctx() ctx: MyContext
+    ): Promise<FieldError | null> {
+        // Validate input
+        if (friendRequestId <= 0) {
+            return { message: errors.invalidInput }
+        }
+
+        try {
+            const userId = ctx.req.session.userId
+
+            await AppDataSource.manager.transaction(async (tm) => {
+                const subQb = tm
+                    .getRepository(FriendRequests)
+                    .createQueryBuilder("fr")
+                    .select("fr.id")
+                    .innerJoin("fr.requestToken", "rt")
+                    .where("rt.userId = :userId", { userId })
+
+                const [subQuery, subParams] = subQb.getQueryAndParameters()
+
+                // update friend request's status
+                const response = await tm
+                    .getRepository(FriendRequests)
+                    .createQueryBuilder()
+                    .update()
+                    .set({
+                        status: FRIEND_REQUEST_STATUS_OBJ.accepted,
+                    })
+                    .where(`id IN (${subQuery})`)
+                    .andWhere("status = :rstatus")
+                    .andWhere("id = :friendRequestId")
+                    .setParameters({
+                        ...subParams,
+                        rstatus: FRIEND_REQUEST_STATUS_OBJ.pending,
+                        friendRequestId,
+                    })
+                    .execute()
+
+                if (response.affected === 0) {
+                    throw new Error(errors.friendRequestNotFound)
+                }
+
+                // just get senderId
+                const friendRequest = await tm
+                    .getRepository(FriendRequests)
+                    .findOneOrFail({
+                        where: {
+                            id: friendRequestId,
+                        },
+                    })
+
+                const [userA, userB] = await Promise.all([
+                    tm.getRepository(User).findOneOrFail({
+                        where: { id: userId },
+                    }),
+                    tm.getRepository(User).findOneOrFail({
+                        where: { id: friendRequest.senderId },
+                    }),
+                ])
+
+                // Check existing friendship in either direction
+                const existing = await tm
+                    .getRepository(User)
+                    .createQueryBuilder("user")
+                    .innerJoin("user.friends", "friend")
+                    .where("(user.id = :idA AND friend.id = :idB)")
+                    .orWhere("(user.id = :idB AND friend.id = :idA)")
+                    .setParameters({ idA: userA.id, idB: userB.id })
+                    .getOne()
+
+                if (existing) {
+                    throw new Error(errors.friendshipAlreadyExists)
+                }
+
+                // Add bidirectional relationships
+                userA.friends = [...(userA.friends || []), userB]
+                userB.friends = [...(userB.friends || []), userA]
+
+                await tm.getRepository(User).save([userA, userB])
+            })
+        } catch (error) {
+            if (error instanceof Error) {
+                return { message: errors.unknownError }
+            }
+            return { message: errors.unknownError }
+        }
+        return null
     }
 }

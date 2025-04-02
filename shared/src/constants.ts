@@ -38,6 +38,8 @@ export const errors = {
         "Token usage limit exhausted. Token has reached the maximum allowed consumption.",
     limitCannotBeNegative: "Limit cannot be negative",
     friendRequestNotFound: "Friend request not found",
+    friendshipAlreadyExists: "Friendship already exists",
+    invalidInput: "Invalid input",
 } as const
 
 export const errors_values = Object.values(errors)
