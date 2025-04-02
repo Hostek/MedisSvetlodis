@@ -4,6 +4,8 @@ import {
     Column,
     CreateDateColumn,
     Entity,
+    JoinTable,
+    ManyToMany,
     OneToMany,
     PrimaryGeneratedColumn,
     Relation,
@@ -53,8 +55,17 @@ export class User extends BaseEntity {
     generatedDefaultFriendRequestTokens: boolean
 
     @Field(() => Int)
-    @Column({ type: "int", default: 0})
+    @Column({ type: "int", default: 0 })
     numberOfFriendRequests: number
+
+    @Field(() => [User])
+    @ManyToMany(() => User, (user) => user.friends)
+    @JoinTable({
+        name: "user_friends",
+        joinColumn: { name: "user_id", referencedColumnName: "id" },
+        inverseJoinColumn: { name: "friend_id", referencedColumnName: "id" },
+    })
+    friends: User[]
 
     @OneToMany(() => Message, (m) => m.creator, {
         onDelete: "CASCADE",

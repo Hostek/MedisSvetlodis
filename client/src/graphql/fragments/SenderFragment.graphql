@@ -1,0 +1,5 @@
+fragment SenderFragment on User {
+    id
+    identifier
+    username
+}

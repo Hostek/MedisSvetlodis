@@ -1,15 +1,14 @@
 "use client"
-import FriendRequestForm from "@/components/friend_request/FriendRequestForm"
 import ChangePasswordTab from "@/components/settings/ChangePasswordTab"
 import FriendRequestTokens from "@/components/settings/tokens/FriendRequestTokens"
 import UpdateUsername from "@/components/settings/UpdateUsername"
+import BackButton from "@/components/ui/BackButton"
 import { useIsAuth } from "@/hooks/isAuth"
 import { createUrqlClient } from "@/utils/createUrqlClient"
 import { Button, Divider, Tab, Tabs } from "@heroui/react"
 import { NextPage } from "next"
 import { withUrqlClient } from "next-urql"
 import { useState } from "react"
-import { ArrowLeft } from "react-feather"
 
 const Page: NextPage = () => {
     const { user } = useIsAuth()
@@ -22,9 +21,7 @@ const Page: NextPage = () => {
 
     return (
         <div className="flex flex-col gap-4 w-full max-w-screen-md mx-auto p-4">
-            <Button as="a" href="/">
-                <ArrowLeft />
-            </Button>
+            <BackButton />
 
             <h1 className="text-2xl font-bold">Account Settings</h1>
 
@@ -69,9 +66,6 @@ const Page: NextPage = () => {
             />
 
             <Divider />
-
-            {/* temporary placement for this */}
-            <FriendRequestForm />
         </div>
     )
 }
