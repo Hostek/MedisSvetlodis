@@ -1,4 +1,8 @@
 "use client"
+import {
+    FriendRequestEnum,
+    useHandleFriendRequestMutation,
+} from "@/generated/graphql"
 import { FriendRequestType } from "@/types"
 import { formatUniversalDate } from "@/utils/formatTimestamp"
 import {
@@ -8,15 +12,51 @@ import {
     CardHeader,
     Code,
     Divider,
+    Spinner,
 } from "@heroui/react"
-import React from "react"
+import { errors } from "@hostek/shared"
+import React, { useCallback, useState } from "react"
 import { Check, X } from "react-feather"
+import Error from "../helper/Error"
 
 interface FriendRequestCardProps {
     request: FriendRequestType
 }
 
 const FriendRequestCard: React.FC<FriendRequestCardProps> = ({ request }) => {
+    const [error, setError] = useState<string | null>(null)
+    const [{ fetching }, handleFriendRequest] = useHandleFriendRequestMutation()
+    // const fetching = true
+
+    // if(fetching) {}
+
+    const handleClick = useCallback(
+        async (actionType: FriendRequestEnum) => {
+            if (fetching) return
+
+            setError(null)
+
+            const res = await handleFriendRequest({
+                actionType,
+                friendRequestId: request.id,
+            })
+
+            console.log({ res })
+
+            if (res.error || !res.data) {
+                return setError(errors.unknownError)
+            }
+
+            if (res.data.handleFriendRequest?.message) {
+                return setError(res.data.handleFriendRequest.message)
+            }
+
+            // Good
+            // @TODO add some info that the friend request is good. ...
+        },
+        [fetching, handleFriendRequest, request.id]
+    )
+
     return (
         <Card
             className="border-none shadow-lg hover:shadow-xl transition-shadow duration-200"
@@ -65,6 +105,10 @@ const FriendRequestCard: React.FC<FriendRequestCardProps> = ({ request }) => {
                         </Code>
                     </div>
                 </div>
+
+                {error && <Error>{error}</Error>}
+
+                {fetching && <Spinner aria-hidden />}
             </CardHeader>
 
             <Divider aria-hidden="true" />
@@ -74,6 +118,8 @@ const FriendRequestCard: React.FC<FriendRequestCardProps> = ({ request }) => {
                     color="success"
                     className="flex-1 flex items-center justify-center gap-2 hover:bg-green-700 transition-colors"
                     aria-label={`Accept friend request from ${request.sender.identifier}`}
+                    disabled={fetching}
+                    onPress={() => handleClick(FriendRequestEnum.Accept)}
                 >
                     <Check className="w-4 h-4" aria-hidden="true" />
                     <span aria-hidden="true">Accept</span>
@@ -82,6 +128,8 @@ const FriendRequestCard: React.FC<FriendRequestCardProps> = ({ request }) => {
                     color="danger"
                     className="flex-1 flex items-center justify-center gap-2 hover:bg-red-700 transition-colors"
                     aria-label={`Decline friend request from ${request.sender.identifier}`}
+                    disabled={fetching}
+                    onPress={() => handleClick(FriendRequestEnum.Reject)}
                 >
                     <X className="w-4 h-4" aria-hidden="true" />
                     <span aria-hidden="true">Cancel</span>
