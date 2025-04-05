@@ -16,6 +16,7 @@ import {
 import React, { useMemo } from "react"
 import MaxLimitTokenForm from "./stuff/MaxLimitTokenForm"
 import RegenerateTokenBtn from "./stuff/RegenerateTokenBtn"
+import TableToken from "./stuff/TableToken"
 import ToggleLockBtn from "./stuff/ToggleLockBtn"
 
 interface TokensTableProps {
@@ -70,7 +71,7 @@ const TokensTable: React.FC<TokensTableProps> = ({
                                 className="font-mono"
                                 style={{ fontSize: "0.8rem" }}
                             >
-                                {value.token}
+                                <TableToken token={value.token} />
                             </TableCell>
                             <TableCell>
                                 <ToggleLockBtn
