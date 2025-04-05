@@ -1,6 +1,6 @@
 "use client"
-import { Tooltip } from "@heroui/react"
-import React, { useState } from "react"
+import React, { useMemo, useState } from "react"
+import { Tooltip } from "react-tooltip"
 
 interface TableTokenProps {
     token: string
@@ -11,12 +11,17 @@ interface TableTokenProps {
 const TableToken: React.FC<TableTokenProps> = ({ token }) => {
     const [tooltipContent, setTooltipContent] = useState("Click to copy!")
     const [tooltipColor, setTooltipColor] = useState<
-        "default" | "success" | "danger"
-    >("default")
+        "dark" | "success" | "error"
+    >("dark")
+    const id = useMemo(() => `${token}_unique_id_tooltip`, [token])
 
     return (
-        <Tooltip content={tooltipContent} color={tooltipColor}>
+        <>
             <div
+                data-tooltip-id={id}
+                data-tooltip-content={tooltipContent}
+                data-tooltip-variant={tooltipColor}
+                data-tooltip-delay-hide={250}
                 onClick={async () => {
                     try {
                         await navigator.clipboard.writeText(token)
@@ -24,13 +29,14 @@ const TableToken: React.FC<TableTokenProps> = ({ token }) => {
                         setTooltipColor("success")
                     } catch {
                         setTooltipContent("Failed to copy")
-                        setTooltipColor("danger")
+                        setTooltipColor("error")
                     }
                 }}
             >
                 {token}
             </div>
-        </Tooltip>
+            <Tooltip id={id} className="text-lg" />
+        </>
     )
 }
 
