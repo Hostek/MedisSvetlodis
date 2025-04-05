@@ -1,0 +1,11 @@
+mutation HandleFriendRequest(
+    $actionType: FriendRequestEnum!
+    $friendRequestId: Int!
+) {
+    handleFriendRequest(
+        actionType: $actionType
+        friendRequestId: $friendRequestId
+    ) {
+        ...ErrorFragment
+    }
+}
