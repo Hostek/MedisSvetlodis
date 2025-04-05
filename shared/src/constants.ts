@@ -75,3 +75,8 @@ export const FRIEND_REQUEST_TOKEN_STATUS_OBJ: FRIEND_REQUEST_TOKEN_STATUS_OBJ_TY
         blocked: "blocked",
         deleted: "deleted",
     } as const
+
+export enum FriendRequestEnum {
+    ACCEPT = "accept",
+    REJECT = "reject",
+}
