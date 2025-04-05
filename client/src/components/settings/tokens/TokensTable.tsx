@@ -16,6 +16,7 @@ import {
 import React, { useMemo } from "react"
 import MaxLimitTokenForm from "./stuff/MaxLimitTokenForm"
 import RegenerateTokenBtn from "./stuff/RegenerateTokenBtn"
+import TableToken from "./stuff/TableToken"
 import ToggleLockBtn from "./stuff/ToggleLockBtn"
 
 interface TokensTableProps {
@@ -66,7 +67,12 @@ const TokensTable: React.FC<TokensTableProps> = ({
                 {tokens.map((value, i) => {
                     return (
                         <TableRow key={i}>
-                            <TableCell>{value.token}</TableCell>
+                            <TableCell
+                                className="font-mono"
+                                style={{ fontSize: "0.8rem" }}
+                            >
+                                <TableToken token={value.token} />
+                            </TableCell>
                             <TableCell>
                                 <ToggleLockBtn
                                     allFetching={allFetching}

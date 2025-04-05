@@ -3,6 +3,7 @@ import {
     FRIEND_REQUEST_STATUS_OBJ,
     FRIEND_REQUEST_TOKEN_STATUS_OBJ,
     FRIEND_REQUESTS_STATUS_TYPE,
+    FriendRequestEnum,
 } from "@hostek/shared"
 import {
     Arg,
@@ -10,6 +11,7 @@ import {
     Int,
     Mutation,
     Query,
+    registerEnumType,
     Resolver,
     UseMiddleware,
 } from "type-graphql"
@@ -21,6 +23,10 @@ import { isAuth } from "../middleware/isAuth.js"
 import { FieldError, MyContext } from "../types.js"
 import { withSerializableRetry } from "../utils/withSerializableRetry.js"
 import { EntityManager } from "typeorm"
+
+registerEnumType(FriendRequestEnum, {
+    name: "FriendRequestEnum",
+})
 
 @Resolver()
 export class FriendRequestsResolver {
@@ -169,7 +175,10 @@ export class FriendRequestsResolver {
     ) {
         const subQb = this.getFriendRequestSubquery(tm, userId, friendRequestId)
 
-        const [subQuery, subParams] = subQb.getQueryAndParameters()
+        const subQuery = subQb.getQuery()
+        const subParams = subQb.getParameters()
+
+        // console.log({ subParams, subQuery })
 
         return tm
             .getRepository(FriendRequests)
@@ -205,6 +214,8 @@ export class FriendRequestsResolver {
                     friendRequestId,
                     FRIEND_REQUEST_STATUS_OBJ.accepted
                 ).execute()
+
+                // console.log({ response })
 
                 if (response.affected === 0) {
                     throw new Error(errors.friendRequestNotFound)
@@ -260,7 +271,7 @@ export class FriendRequestsResolver {
             })
         } catch (error) {
             if (error instanceof Error) {
-                return { message: errors.unknownError }
+                return { message: error.message }
             }
             return { message: errors.unknownError }
         }
@@ -295,11 +306,29 @@ export class FriendRequestsResolver {
             })
         } catch (error) {
             if (error instanceof Error) {
-                return { message: errors.unknownError }
+                return { message: error.message }
             }
             return { message: errors.unknownError }
         }
 
         return null
+    }
+
+    @Mutation(() => FieldError, { nullable: true })
+    async handleFriendRequest(
+        @Arg("friendRequestId", () => Int) friendRequestId: number,
+        @Arg("actionType", () => FriendRequestEnum)
+        actionType: FriendRequestEnum,
+        @Ctx() ctx: MyContext
+    ): Promise<FieldError | null> {
+        console.log({ actionType })
+        if (actionType === FriendRequestEnum.ACCEPT) {
+            return this.acceptFriendRequest(friendRequestId, ctx)
+        } else if (actionType === FriendRequestEnum.REJECT) {
+            return this.rejectFriendRequest(friendRequestId, ctx)
+        } else {
+            console.log({ actionType })
+            return { message: errors.unknownError }
+        }
     }
 }

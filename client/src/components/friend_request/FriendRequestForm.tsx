@@ -34,6 +34,8 @@ const FriendRequestForm: React.FC<FriendRequestFormProps> = ({}) => {
                 return setError(res.data.createFriendRequest.message)
             }
 
+            setInputToken("")
+
             MySwal.fire({
                 title: "Success",
                 text: "Successfully sent friend request!",

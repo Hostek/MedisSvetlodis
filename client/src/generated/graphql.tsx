@@ -25,6 +25,11 @@ export type FieldError = {
   message: Scalars['String']['output'];
 };
 
+export enum FriendRequestEnum {
+  Accept = 'ACCEPT',
+  Reject = 'REJECT'
+}
+
 export type FriendRequestToken = {
   __typename?: 'FriendRequestToken';
   createdAt: Scalars['String']['output'];
@@ -79,6 +84,7 @@ export type Mutation = {
   createDefaultTokens?: Maybe<FieldError>;
   createFriendRequest?: Maybe<FieldError>;
   createMessage?: Maybe<FieldError>;
+  handleFriendRequest?: Maybe<FieldError>;
   login: LoginResponse;
   logout: Scalars['Boolean']['output'];
   regenerateFriendRequestToken: FriendRequestTokenOrError;
@@ -110,6 +116,12 @@ export type MutationCreateFriendRequestArgs = {
 
 export type MutationCreateMessageArgs = {
   content: Scalars['String']['input'];
+};
+
+
+export type MutationHandleFriendRequestArgs = {
+  actionType: FriendRequestEnum;
+  friendRequestId: Scalars['Int']['input'];
 };
 
 
@@ -245,6 +257,14 @@ export type CreateMessageMutationVariables = Exact<{
 
 
 export type CreateMessageMutation = { __typename?: 'Mutation', createMessage?: { __typename?: 'FieldError', message: string } | null };
+
+export type HandleFriendRequestMutationVariables = Exact<{
+  actionType: FriendRequestEnum;
+  friendRequestId: Scalars['Int']['input'];
+}>;
+
+
+export type HandleFriendRequestMutation = { __typename?: 'Mutation', handleFriendRequest?: { __typename?: 'FieldError', message: string } | null };
 
 export type LoginMutationVariables = Exact<{
   email: Scalars['String']['input'];
@@ -480,6 +500,17 @@ export const CreateMessageDocument = gql`
 
 export function useCreateMessageMutation() {
   return Urql.useMutation<CreateMessageMutation, CreateMessageMutationVariables>(CreateMessageDocument);
+};
+export const HandleFriendRequestDocument = gql`
+    mutation HandleFriendRequest($actionType: FriendRequestEnum!, $friendRequestId: Int!) {
+  handleFriendRequest(actionType: $actionType, friendRequestId: $friendRequestId) {
+    ...ErrorFragment
+  }
+}
+    ${ErrorFragmentFragmentDoc}`;
+
+export function useHandleFriendRequestMutation() {
+  return Urql.useMutation<HandleFriendRequestMutation, HandleFriendRequestMutationVariables>(HandleFriendRequestDocument);
 };
 export const LoginDocument = gql`
     mutation Login($email: String!, $oauthProof: String, $password: String) {

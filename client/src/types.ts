@@ -2,10 +2,11 @@ import { Cache } from "@urql/exchange-graphcache"
 import {
     useBlockFriendRequestTokenMutation,
     useFriendRequestTokensOfUserQuery,
+    useGetFriendRequestsQuery,
     useRegenerateFriendRequestTokenMutation,
     useUnblockFriendRequestTokenMutation,
 } from "./generated/graphql"
-import { DeepMerge, ExtractPromiseType } from "@hostek/shared"
+import { DeepMerge, ExtractPromiseType, NonNullableType } from "@hostek/shared"
 
 export type betterUpdateQueryFn<R, Q> = (r: R, q: Q) => Q
 
@@ -67,3 +68,7 @@ export type blockOrUnblockMutRT = DeepMerge<
 export type regenerateFriendRequestTokenMutationType = ReturnType<
     typeof useRegenerateFriendRequestTokenMutation
 >[1]
+
+export type FriendRequestType = NonNullableType<
+    ReturnType<typeof useGetFriendRequestsQuery>[0]["data"]
+>["getFriendRequests"][number]
