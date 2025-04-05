@@ -66,7 +66,12 @@ const TokensTable: React.FC<TokensTableProps> = ({
                 {tokens.map((value, i) => {
                     return (
                         <TableRow key={i}>
-                            <TableCell>{value.token}</TableCell>
+                            <TableCell
+                                className="font-mono"
+                                style={{ fontSize: "0.8rem" }}
+                            >
+                                {value.token}
+                            </TableCell>
                             <TableCell>
                                 <ToggleLockBtn
                                     allFetching={allFetching}
