@@ -14,8 +14,8 @@ import {
     Divider,
     Spinner,
 } from "@heroui/react"
-import { errors } from "@hostek/shared"
-import React, { useCallback, useState } from "react"
+import { errors, FRIEND_REQUEST_STATUS_OBJ } from "@hostek/shared"
+import React, { useCallback, useMemo, useState } from "react"
 import { Check, X } from "react-feather"
 import Error from "../helper/Error"
 
@@ -26,6 +26,18 @@ interface FriendRequestCardProps {
 const FriendRequestCard: React.FC<FriendRequestCardProps> = ({ request }) => {
     const [error, setError] = useState<string | null>(null)
     const [{ fetching }, handleFriendRequest] = useHandleFriendRequestMutation()
+    const [accepted, setAccepted] = useState(false)
+    const [rejected, setRejected] = useState(false)
+
+    const realStatus = useMemo(() => {
+        if (accepted) {
+            return FRIEND_REQUEST_STATUS_OBJ.accepted
+        } else if (rejected) {
+            return FRIEND_REQUEST_STATUS_OBJ.rejected
+        } else {
+            return request.status
+        }
+    }, [request, accepted, rejected])
     // const fetching = true
 
     // if(fetching) {}
@@ -41,7 +53,7 @@ const FriendRequestCard: React.FC<FriendRequestCardProps> = ({ request }) => {
                 friendRequestId: request.id,
             })
 
-            console.log({ res })
+            // console.log({ res })
 
             if (res.error || !res.data) {
                 return setError(errors.unknownError)
@@ -52,7 +64,11 @@ const FriendRequestCard: React.FC<FriendRequestCardProps> = ({ request }) => {
             }
 
             // Good
-            // @TODO add some info that the friend request is good. ...
+            if (actionType === FriendRequestEnum.Accept) {
+                setAccepted(true)
+            } else {
+                setRejected(true)
+            }
         },
         [fetching, handleFriendRequest, request.id]
     )
@@ -71,9 +87,9 @@ const FriendRequestCard: React.FC<FriendRequestCardProps> = ({ request }) => {
                     <div
                         className={`px-2 py-1 rounded-full text-lg`}
                         role="status"
-                        aria-label={`Request status: ${request.status}`}
+                        aria-label={`Request status: ${realStatus}`}
                     >
-                        {request.status.toUpperCase()}
+                        {realStatus.toUpperCase()}
                     </div>
                 </div>
 
@@ -114,26 +130,38 @@ const FriendRequestCard: React.FC<FriendRequestCardProps> = ({ request }) => {
             <Divider aria-hidden="true" />
 
             <CardBody className="flex flex-col sm:flex-row gap-3 pt-4">
-                <Button
-                    color="success"
-                    className="flex-1 flex items-center justify-center gap-2 hover:bg-green-700 transition-colors"
-                    aria-label={`Accept friend request from ${request.sender.identifier}`}
-                    disabled={fetching}
-                    onPress={() => handleClick(FriendRequestEnum.Accept)}
-                >
-                    <Check className="w-4 h-4" aria-hidden="true" />
-                    <span aria-hidden="true">Accept</span>
-                </Button>
-                <Button
-                    color="danger"
-                    className="flex-1 flex items-center justify-center gap-2 hover:bg-red-700 transition-colors"
-                    aria-label={`Decline friend request from ${request.sender.identifier}`}
-                    disabled={fetching}
-                    onPress={() => handleClick(FriendRequestEnum.Reject)}
-                >
-                    <X className="w-4 h-4" aria-hidden="true" />
-                    <span aria-hidden="true">Cancel</span>
-                </Button>
+                {accepted || rejected ? (
+                    <div className="text-green-600">
+                        Success! New status: {realStatus.toUpperCase()}
+                    </div>
+                ) : (
+                    <>
+                        <Button
+                            color="success"
+                            className="flex-1 flex items-center justify-center gap-2 hover:bg-green-700 transition-colors"
+                            aria-label={`Accept friend request from ${request.sender.identifier}`}
+                            disabled={fetching}
+                            onPress={() =>
+                                handleClick(FriendRequestEnum.Accept)
+                            }
+                        >
+                            <Check className="w-4 h-4" aria-hidden="true" />
+                            <span aria-hidden="true">Accept</span>
+                        </Button>
+                        <Button
+                            color="danger"
+                            className="flex-1 flex items-center justify-center gap-2 hover:bg-red-700 transition-colors"
+                            aria-label={`Decline friend request from ${request.sender.identifier}`}
+                            disabled={fetching}
+                            onPress={() =>
+                                handleClick(FriendRequestEnum.Reject)
+                            }
+                        >
+                            <X className="w-4 h-4" aria-hidden="true" />
+                            <span aria-hidden="true">Cancel</span>
+                        </Button>
+                    </>
+                )}
             </CardBody>
         </Card>
     )
