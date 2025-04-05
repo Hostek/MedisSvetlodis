@@ -10,6 +10,7 @@ import {
     Int,
     Mutation,
     Query,
+    registerEnumType,
     Resolver,
     UseMiddleware,
 } from "type-graphql"
@@ -21,6 +22,15 @@ import { isAuth } from "../middleware/isAuth.js"
 import { FieldError, MyContext } from "../types.js"
 import { withSerializableRetry } from "../utils/withSerializableRetry.js"
 import { EntityManager } from "typeorm"
+
+enum FriendRequestEnum {
+    ACCEPT = "accept",
+    REJECT = "reject",
+}
+
+registerEnumType(FriendRequestEnum, {
+    name: "FriendRequestEnum",
+})
 
 @Resolver()
 export class FriendRequestsResolver {
@@ -301,5 +311,21 @@ export class FriendRequestsResolver {
         }
 
         return null
+    }
+
+    @Mutation(() => FieldError, { nullable: true })
+    async handleFriendRequest(
+        @Arg("friendRequestId", () => Int) friendRequestId: number,
+        @Arg("actionType", () => FriendRequestEnum)
+        actionType: FriendRequestEnum,
+        @Ctx() ctx: MyContext
+    ): Promise<FieldError | null> {
+        if (actionType === FriendRequestEnum.ACCEPT) {
+            return this.acceptFriendRequest(friendRequestId, ctx)
+        } else if (actionType === FriendRequestEnum.REJECT) {
+            return this.rejectFriendRequest(friendRequestId, ctx)
+        } else {
+            return { message: errors.unknownError }
+        }
     }
 }
