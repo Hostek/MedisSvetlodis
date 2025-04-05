@@ -32,3 +32,5 @@ export type FRIEND_REQUEST_STATUS_OBJ_TYPE = {
 export type FRIEND_REQUEST_TOKEN_STATUS_OBJ_TYPE = {
     [K in FRIEND_REQUEST_TOKEN_STATUS_TYPE]: K
 }
+
+export type NonNullableType<T> = Exclude<T, undefined | null>
