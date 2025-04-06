@@ -1,22 +1,11 @@
 "use client"
 import Error from "@/components/helper/Error"
 import { useFriendRequestTokensOfUserQuery } from "@/generated/graphql"
-import {
-    Alert,
-    Button,
-    CircularProgress,
-    Modal,
-    ModalBody,
-    ModalContent,
-    ModalFooter,
-    ModalHeader,
-    useDisclosure,
-} from "@heroui/react"
-import React, { useCallback, useEffect, useState } from "react"
-import TokensTable from "./TokensTable"
 import { FriendRequestTokensType } from "@/types"
-import { QRCodeSVG } from "qrcode.react"
-import { useWindowSize } from "@/hooks/useWindowSize"
+import { Alert, Button, CircularProgress, useDisclosure } from "@heroui/react"
+import React, { useCallback, useEffect, useState } from "react"
+import QrCodeModal from "./stuff/QrCodeModal"
+import TokensTable from "./TokensTable"
 
 interface ListOfTokensProps {}
 
@@ -24,8 +13,6 @@ const ListOfTokens: React.FC<ListOfTokensProps> = ({}) => {
     const [{ fetching, data }] = useFriendRequestTokensOfUserQuery()
     const [showFriendRequestTokens, setShowFriendRequestTokens] =
         useState(false)
-
-    const { width } = useWindowSize()
 
     const { isOpen, onOpen, onClose } = useDisclosure()
 
@@ -82,64 +69,11 @@ const ListOfTokens: React.FC<ListOfTokensProps> = ({}) => {
                         Show QR Codes
                     </Button>
 
-                    <Modal isOpen={isOpen} size={"4xl"} onClose={onClose}>
-                        <ModalContent>
-                            {(onClose) => (
-                                <>
-                                    <ModalHeader className="flex flex-col gap-1">
-                                        QR Codes for tokens
-                                    </ModalHeader>
-                                    <ModalBody>
-                                        <div className="flex justify-between bg-orange-700 p-5">
-                                            {tokens.map((token) => {
-                                                return (
-                                                    <div
-                                                        key={`${token.token}_${token.token}`}
-                                                    >
-                                                        <div
-                                                            style={{
-                                                                maxWidth: width
-                                                                    ? Math.min(
-                                                                          width /
-                                                                              5,
-                                                                          217.5
-                                                                      )
-                                                                    : 256,
-                                                            }}
-                                                            className="mb-2"
-                                                        >
-                                                            {token.token}
-                                                        </div>
-                                                        <QRCodeSVG
-                                                            size={
-                                                                width
-                                                                    ? Math.min(
-                                                                          width /
-                                                                              5,
-                                                                          217.5
-                                                                      )
-                                                                    : 256
-                                                            }
-                                                            value={`${process.env.NEXT_PUBLIC_BASE_URL}/friend-request?defaulttoken=${encodeURIComponent(token.token)}`}
-                                                        />
-                                                    </div>
-                                                )
-                                            })}
-                                        </div>
-                                    </ModalBody>
-                                    <ModalFooter>
-                                        <Button
-                                            color="danger"
-                                            variant="light"
-                                            onPress={onClose}
-                                        >
-                                            Close
-                                        </Button>
-                                    </ModalFooter>
-                                </>
-                            )}
-                        </ModalContent>
-                    </Modal>
+                    <QrCodeModal
+                        isOpen={isOpen}
+                        onClose={onClose}
+                        tokens={tokens}
+                    />
                 </>
             )}
         </>
