@@ -1,10 +1,22 @@
 "use client"
 import Error from "@/components/helper/Error"
 import { useFriendRequestTokensOfUserQuery } from "@/generated/graphql"
-import { Alert, Button, CircularProgress } from "@heroui/react"
-import React, { useEffect, useState } from "react"
+import {
+    Alert,
+    Button,
+    CircularProgress,
+    Modal,
+    ModalBody,
+    ModalContent,
+    ModalFooter,
+    ModalHeader,
+    useDisclosure,
+} from "@heroui/react"
+import React, { useCallback, useEffect, useState } from "react"
 import TokensTable from "./TokensTable"
 import { FriendRequestTokensType } from "@/types"
+import { QRCodeSVG } from "qrcode.react"
+import { useWindowSize } from "@/hooks/useWindowSize"
 
 interface ListOfTokensProps {}
 
@@ -12,6 +24,14 @@ const ListOfTokens: React.FC<ListOfTokensProps> = ({}) => {
     const [{ fetching, data }] = useFriendRequestTokensOfUserQuery()
     const [showFriendRequestTokens, setShowFriendRequestTokens] =
         useState(false)
+
+    const { width } = useWindowSize()
+
+    const { isOpen, onOpen, onClose } = useDisclosure()
+
+    const handleOpen = useCallback(() => {
+        onOpen()
+    }, [onOpen])
 
     const [allError, setAllError] = useState<string | null>(null)
 
@@ -52,6 +72,61 @@ const ListOfTokens: React.FC<ListOfTokensProps> = ({}) => {
                         setTokens={setTokens}
                         tokens={tokens}
                     />
+
+                    <Button
+                        fullWidth
+                        className="mt-2"
+                        color="primary"
+                        onPress={() => handleOpen()}
+                    >
+                        Show QR Codes
+                    </Button>
+
+                    <Modal isOpen={isOpen} size={"4xl"} onClose={onClose}>
+                        <ModalContent>
+                            {(onClose) => (
+                                <>
+                                    <ModalHeader className="flex flex-col gap-1">
+                                        QR Codes for tokens
+                                    </ModalHeader>
+                                    <ModalBody>
+                                        <div className="flex justify-between">
+                                            {tokens.map((token) => {
+                                                return (
+                                                    <div
+                                                        key={`${token.token}_${token.token}`}
+                                                    >
+                                                        <div>{token.token}</div>
+                                                        <QRCodeSVG
+                                                            size={
+                                                                width
+                                                                    ? Math.min(
+                                                                          width /
+                                                                              5,
+                                                                          222.5
+                                                                      )
+                                                                    : 256
+                                                            }
+                                                            value={`${process.env.NEXT_PUBLIC_BASE_URL}/friend-request?${encodeURIComponent(token.token)}`}
+                                                        />
+                                                    </div>
+                                                )
+                                            })}
+                                        </div>
+                                    </ModalBody>
+                                    <ModalFooter>
+                                        <Button
+                                            color="danger"
+                                            variant="light"
+                                            onPress={onClose}
+                                        >
+                                            Close
+                                        </Button>
+                                    </ModalFooter>
+                                </>
+                            )}
+                        </ModalContent>
+                    </Modal>
                 </>
             )}
         </>
