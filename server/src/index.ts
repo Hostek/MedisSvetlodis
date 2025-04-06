@@ -20,6 +20,7 @@ import { FriendRequestTokenResolver } from "./resolvers/friendRequestToken.js"
 import { HelloResolver } from "./resolvers/hello.js"
 import { MessageResolver } from "./resolvers/message.js"
 import { UserResolver } from "./resolvers/user.js"
+import { BlockResolver } from "./resolvers/block.js"
 
 await AppDataSource.initialize()
 
@@ -125,6 +126,7 @@ const schema = await buildSchema({
         MessageResolver,
         FriendRequestTokenResolver,
         FriendRequestsResolver,
+        BlockResolver,
     ],
     validate: false,
     pubSub: pubSub,

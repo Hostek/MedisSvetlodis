@@ -41,6 +41,8 @@ export const errors = {
     friendshipAlreadyExists: "Friendship already exists",
     invalidInput: "Invalid input",
     invalidToken: "Invalid token",
+    cannotBlockYourself: "Cannot block yourself",
+    notBlocked: "Cannot unblock because it is not blocked.",
 } as const
 
 export const errors_values = Object.values(errors)
