@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useState } from "react"
 import Error from "../helper/Error"
 import { useCreateFriendRequestMutation } from "@/generated/graphql"
 import { HandleSubmit } from "@/types"
-import { errors } from "@hostek/shared"
+import { errors, UUID_Regex } from "@hostek/shared"
 import { MySwal } from "@/utils/MySwal"
 
 interface FriendRequestFormProps {
@@ -28,6 +28,10 @@ const FriendRequestForm: React.FC<FriendRequestFormProps> = ({
             e.preventDefault()
 
             setError(null)
+
+            if (!UUID_Regex.test(inputToken)) {
+                return setError(errors.invalidToken)
+            }
 
             const res = await createFriendRequest({
                 friendRequestToken: inputToken,
