@@ -18,6 +18,16 @@ export type Scalars = {
   DateTime: { input: any; output: any; }
 };
 
+export type Block = {
+  __typename?: 'Block';
+  blocked: User;
+  blockedId: Scalars['Int']['output'];
+  blocker: User;
+  blockerId: Scalars['Int']['output'];
+  createdAt: Scalars['DateTime']['output'];
+  id: Scalars['Float']['output'];
+};
+
 export type FieldError = {
   __typename?: 'FieldError';
   additional_info?: Maybe<Scalars['String']['output']>;
@@ -81,6 +91,7 @@ export type Mutation = {
   __typename?: 'Mutation';
   acceptFriendRequest?: Maybe<FieldError>;
   blockFriendRequestToken?: Maybe<FieldError>;
+  blockUser?: Maybe<FieldError>;
   createDefaultTokens?: Maybe<FieldError>;
   createFriendRequest?: Maybe<FieldError>;
   createMessage?: Maybe<FieldError>;
@@ -93,6 +104,7 @@ export type Mutation = {
   resetUsageCountFriendRequestToken?: Maybe<FieldError>;
   toggleBlockFriendRequestToken?: Maybe<FieldError>;
   unblockFriendRequestToken?: Maybe<FieldError>;
+  unblockUser?: Maybe<FieldError>;
   updateMaxLimitFriendRequestToken?: Maybe<FieldError>;
   updatePassword?: Maybe<FieldError>;
   updateUsername?: Maybe<FieldError>;
@@ -106,6 +118,11 @@ export type MutationAcceptFriendRequestArgs = {
 
 export type MutationBlockFriendRequestTokenArgs = {
   tokenId: Scalars['Int']['input'];
+};
+
+
+export type MutationBlockUserArgs = {
+  userId: Scalars['Float']['input'];
 };
 
 
@@ -163,6 +180,11 @@ export type MutationUnblockFriendRequestTokenArgs = {
 };
 
 
+export type MutationUnblockUserArgs = {
+  userId: Scalars['Float']['input'];
+};
+
+
 export type MutationUpdateMaxLimitFriendRequestTokenArgs = {
   new_max_limit?: InputMaybe<Scalars['Int']['input']>;
   tokenId: Scalars['Int']['input'];
@@ -195,6 +217,8 @@ export type Subscription = {
 
 export type User = {
   __typename?: 'User';
+  blockers: Array<Block>;
+  blocking: Array<Block>;
   createdAt: Scalars['String']['output'];
   email: Scalars['String']['output'];
   friends: Array<User>;
@@ -238,6 +262,13 @@ export type BlockFriendRequestTokenMutationVariables = Exact<{
 
 
 export type BlockFriendRequestTokenMutation = { __typename?: 'Mutation', blockFriendRequestToken?: { __typename?: 'FieldError', message: string } | null };
+
+export type BlockUserMutationVariables = Exact<{
+  userId: Scalars['Float']['input'];
+}>;
+
+
+export type BlockUserMutation = { __typename?: 'Mutation', blockUser?: { __typename?: 'FieldError', message: string } | null };
 
 export type CreateDefaultTokensMutationVariables = Exact<{ [key: string]: never; }>;
 
@@ -322,6 +353,13 @@ export type UnblockFriendRequestTokenMutationVariables = Exact<{
 
 
 export type UnblockFriendRequestTokenMutation = { __typename?: 'Mutation', unblockFriendRequestToken?: { __typename?: 'FieldError', message: string } | null };
+
+export type UnblockUserMutationVariables = Exact<{
+  userId: Scalars['Float']['input'];
+}>;
+
+
+export type UnblockUserMutation = { __typename?: 'Mutation', unblockUser?: { __typename?: 'FieldError', message: string } | null };
 
 export type UpdateMaxLimitFriendRequestTokenMutationVariables = Exact<{
   tokenId: Scalars['Int']['input'];
@@ -468,6 +506,17 @@ export const BlockFriendRequestTokenDocument = gql`
 export function useBlockFriendRequestTokenMutation() {
   return Urql.useMutation<BlockFriendRequestTokenMutation, BlockFriendRequestTokenMutationVariables>(BlockFriendRequestTokenDocument);
 };
+export const BlockUserDocument = gql`
+    mutation BlockUser($userId: Float!) {
+  blockUser(userId: $userId) {
+    ...ErrorFragment
+  }
+}
+    ${ErrorFragmentFragmentDoc}`;
+
+export function useBlockUserMutation() {
+  return Urql.useMutation<BlockUserMutation, BlockUserMutationVariables>(BlockUserDocument);
+};
 export const CreateDefaultTokensDocument = gql`
     mutation CreateDefaultTokens {
   createDefaultTokens {
@@ -603,6 +652,17 @@ export const UnblockFriendRequestTokenDocument = gql`
 
 export function useUnblockFriendRequestTokenMutation() {
   return Urql.useMutation<UnblockFriendRequestTokenMutation, UnblockFriendRequestTokenMutationVariables>(UnblockFriendRequestTokenDocument);
+};
+export const UnblockUserDocument = gql`
+    mutation UnblockUser($userId: Float!) {
+  unblockUser(userId: $userId) {
+    ...ErrorFragment
+  }
+}
+    ${ErrorFragmentFragmentDoc}`;
+
+export function useUnblockUserMutation() {
+  return Urql.useMutation<UnblockUserMutation, UnblockUserMutationVariables>(UnblockUserDocument);
 };
 export const UpdateMaxLimitFriendRequestTokenDocument = gql`
     mutation UpdateMaxLimitFriendRequestToken($tokenId: Int!, $newMaxLimit: Int) {
