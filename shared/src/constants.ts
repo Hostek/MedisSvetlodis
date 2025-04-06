@@ -40,6 +40,9 @@ export const errors = {
     friendRequestNotFound: "Friend request not found",
     friendshipAlreadyExists: "Friendship already exists",
     invalidInput: "Invalid input",
+    invalidToken: "Invalid token",
+    cannotBlockYourself: "Cannot block yourself",
+    notBlocked: "Cannot unblock because it is not blocked.",
 } as const
 
 export const errors_values = Object.values(errors)
@@ -50,6 +53,9 @@ export const EmailRegex =
 export const UsernameRegex = /^[a-zA-Z0-9_]{1,128}$/
 
 export const PasswordRegex = /^[a-zA-Z0-9_!@#$%^&*()'"<>/?=+\-|\\[\]{}]{1,128}$/
+
+export const UUID_Regex =
+    /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/
 
 export const FRIEND_REQUEST_TOKEN_STATUS = [
     "active",

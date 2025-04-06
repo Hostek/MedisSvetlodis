@@ -4,6 +4,7 @@ import {
     FRIEND_REQUEST_TOKEN_STATUS_OBJ,
     FRIEND_REQUESTS_STATUS_TYPE,
     FriendRequestEnum,
+    UUID_Regex,
 } from "@hostek/shared"
 import {
     Arg,
@@ -36,6 +37,10 @@ export class FriendRequestsResolver {
         @Arg("friendRequestToken") friendRequestToken: string,
         @Ctx() ctx: MyContext
     ): Promise<FieldError | null> {
+        if (!UUID_Regex.test(friendRequestToken)) {
+            return { message: errors.invalidToken }
+        }
+
         try {
             return await withSerializableRetry(() =>
                 AppDataSource.transaction<null>("SERIALIZABLE", async (tm) => {

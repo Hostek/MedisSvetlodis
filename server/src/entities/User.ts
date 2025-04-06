@@ -14,6 +14,7 @@ import {
 import { Message } from "./Message.js"
 import { FriendRequestToken } from "./FriendRequestToken.js"
 import { FriendRequests } from "./FriendsRequests.js"
+import { Block } from "./Block.js"
 
 @ObjectType()
 @Entity()
@@ -81,4 +82,12 @@ export class User extends BaseEntity {
         onDelete: "CASCADE",
     })
     sentFriendRequests: Relation<FriendRequests>[]
+
+    @Field(() => [Block])
+    @OneToMany(() => Block, (block) => block.blocker)
+    blocking!: Relation<Block>[]
+
+    @Field(() => [Block])
+    @OneToMany(() => Block, (block) => block.blocked)
+    blockers!: Relation<Block>[]
 }

@@ -18,6 +18,7 @@ import { errors, FRIEND_REQUEST_STATUS_OBJ } from "@hostek/shared"
 import React, { useCallback, useMemo, useState } from "react"
 import { Check, X } from "react-feather"
 import Error from "../helper/Error"
+import BlockIcon from "../icons/BlockIcon"
 
 interface FriendRequestCardProps {
     request: FriendRequestType
@@ -159,6 +160,19 @@ const FriendRequestCard: React.FC<FriendRequestCardProps> = ({ request }) => {
                         >
                             <X className="w-4 h-4" aria-hidden="true" />
                             <span aria-hidden="true">Cancel</span>
+                        </Button>
+                        <Button
+                            color="danger"
+                            className="flex-1 flex items-center justify-center gap-2 hover:bg-red-500 transition-colors"
+                            aria-label={`Block user ${request.sender.identifier}`}
+                            disabled={fetching}
+                            // @TODO
+                            onPress={() => {}}
+                        >
+                            <div className="w-4 h-4" aria-hidden="true">
+                                <BlockIcon />
+                            </div>
+                            <span aria-hidden="true">Block User</span>
                         </Button>
                     </>
                 )}

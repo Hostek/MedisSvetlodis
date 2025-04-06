@@ -23,7 +23,7 @@ const BlockIcon: React.FC<BlockIconProps> = ({ ...props }) => {
             options={props}
         >
             <path
-                stroke="#000"
+                stroke="currentColor"
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth="2"

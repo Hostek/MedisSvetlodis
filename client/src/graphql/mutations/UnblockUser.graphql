@@ -1,0 +1,5 @@
+mutation UnblockUser($userId: Float!) {
+    unblockUser(userId: $userId) {
+        ...ErrorFragment
+    }
+}
