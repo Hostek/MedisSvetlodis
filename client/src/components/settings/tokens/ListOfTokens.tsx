@@ -90,24 +90,37 @@ const ListOfTokens: React.FC<ListOfTokensProps> = ({}) => {
                                         QR Codes for tokens
                                     </ModalHeader>
                                     <ModalBody>
-                                        <div className="flex justify-between">
+                                        <div className="flex justify-between bg-orange-700 p-5">
                                             {tokens.map((token) => {
                                                 return (
                                                     <div
                                                         key={`${token.token}_${token.token}`}
                                                     >
-                                                        <div>{token.token}</div>
+                                                        <div
+                                                            style={{
+                                                                maxWidth: width
+                                                                    ? Math.min(
+                                                                          width /
+                                                                              5,
+                                                                          217.5
+                                                                      )
+                                                                    : 256,
+                                                            }}
+                                                            className="mb-2"
+                                                        >
+                                                            {token.token}
+                                                        </div>
                                                         <QRCodeSVG
                                                             size={
                                                                 width
                                                                     ? Math.min(
                                                                           width /
                                                                               5,
-                                                                          222.5
+                                                                          217.5
                                                                       )
                                                                     : 256
                                                             }
-                                                            value={`${process.env.NEXT_PUBLIC_BASE_URL}/friend-request?${encodeURIComponent(token.token)}`}
+                                                            value={`${process.env.NEXT_PUBLIC_BASE_URL}/friend-request?defaulttoken=${encodeURIComponent(token.token)}`}
                                                         />
                                                     </div>
                                                 )
