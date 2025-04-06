@@ -1,17 +1,25 @@
 "use client"
 import { Button, Form, Input } from "@heroui/react"
-import React, { useCallback, useState } from "react"
+import React, { useCallback, useEffect, useState } from "react"
 import Error from "../helper/Error"
 import { useCreateFriendRequestMutation } from "@/generated/graphql"
 import { HandleSubmit } from "@/types"
 import { errors } from "@hostek/shared"
 import { MySwal } from "@/utils/MySwal"
 
-interface FriendRequestFormProps {}
+interface FriendRequestFormProps {
+    defaultToken?: string
+}
 
-const FriendRequestForm: React.FC<FriendRequestFormProps> = ({}) => {
+const FriendRequestForm: React.FC<FriendRequestFormProps> = ({
+    defaultToken,
+}) => {
     const [inputToken, setInputToken] = useState("")
     const [error, setError] = useState<string | null>(null)
+
+    useEffect(() => {
+        if (defaultToken) return setInputToken(defaultToken)
+    }, [defaultToken])
 
     const [{ fetching }, createFriendRequest] = useCreateFriendRequestMutation()
 
