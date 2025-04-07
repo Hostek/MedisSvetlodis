@@ -275,4 +275,22 @@ export class UserResolver {
 
         return null
     }
+
+    @Query(() => LoginResponse)
+    async getUserByPublicId(
+        @Arg("publicId") publicId: string
+    ): Promise<LoginResponse> {
+        try {
+            const result = await User.findOne({
+                where: { identifier: publicId },
+                select: ["identifier", "username", "id"],
+            })
+            if (!result) {
+                return { errors: [{ message: errors.userNotFound }] }
+            }
+            return { user: result }
+        } catch {
+            return { errors: [{ message: errors.unknownError }] }
+        }
+    }
 }
