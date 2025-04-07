@@ -9,6 +9,8 @@ import {
 } from "@/generated/graphql"
 import { errors } from "@hostek/shared"
 import Error from "../helper/Error"
+import { MySwal } from "@/utils/MySwal"
+import { GREEN_COLOR, RED_COLOR } from "@/constants"
 
 interface PublicProfileProps {
     user: UserFromGetUserByPublicIdQueryType
@@ -32,7 +34,23 @@ const PublicProfile: React.FC<PublicProfileProps> = ({
     const handlePress = useCallback(async () => {
         if (fetching) return
 
+        const result = await MySwal.fire({
+            title: "Are you sure?",
+            icon: "warning",
+            theme: "dark",
+            showCancelButton: true,
+            confirmButtonColor: RED_COLOR,
+            cancelButtonColor: GREEN_COLOR,
+            confirmButtonText: "Yes",
+        })
+
+        if (!result.isConfirmed) {
+            return
+        }
+
         setError(null)
+
+        let isGood = false
 
         if (!blocked) {
             const res = await blockUser({
@@ -48,6 +66,7 @@ const PublicProfile: React.FC<PublicProfileProps> = ({
             }
 
             // good
+            isGood = true
             setBlocked(true)
         } else {
             const res = await unblockUser({
@@ -62,7 +81,16 @@ const PublicProfile: React.FC<PublicProfileProps> = ({
                 return setError(res.data.unblockUser.message)
             }
 
+            isGood = true
             setBlocked(false)
+        }
+
+        if (isGood) {
+            MySwal.fire({
+                title: "Success",
+                icon: "success",
+                theme: "dark",
+            })
         }
     }, [fetching, user, blockUser, blocked, unblockUser])
 
