@@ -41,7 +41,7 @@ export class BlockResolver {
                     })
                     .andWhere(
                         "requestTokenId IN " +
-                            "(SELECT id FROM friend_request_token WHERE userId IN (:...userIds))",
+                            `(SELECT id FROM friend_request_token WHERE "userId" IN (:...userIds))`,
                         { userIds: [ctx.req.session.userId, userId] }
                     )
                     .execute()
