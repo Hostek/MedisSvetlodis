@@ -4,7 +4,6 @@ import { useGetUserByPublicIdQuery } from "@/generated/graphql"
 import { Divider, Spinner } from "@heroui/react"
 import React, { useEffect, useState } from "react"
 import Error from "../helper/Error"
-import { errors } from "@hostek/shared"
 import PublicProfile from "../profile/PublicProfile"
 
 interface ProfilePageProps {
@@ -21,10 +20,8 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ realIdentifier }) => {
     const [error, setError] = useState<string | null>(null)
 
     useEffect(() => {
-        if (data?.getUserByPublicId.errors) {
-            if (data.getUserByPublicId.errors.length > 0)
-                setError(data.getUserByPublicId.errors[0].message)
-            else setError(errors.unknownError)
+        if (data?.getUserByPublicId.error) {
+            setError(data.getUserByPublicId.error.message)
         } else if (data?.getUserByPublicId.user) {
             setError(null)
         }
