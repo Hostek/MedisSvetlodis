@@ -23,7 +23,8 @@ import { User } from "../entities/User.js"
 import { isAuth } from "../middleware/isAuth.js"
 import { FieldError, MyContext } from "../types.js"
 import { withSerializableRetry } from "../utils/withSerializableRetry.js"
-import { EntityManager } from "typeorm"
+import { EntityManager, In } from "typeorm"
+import { Block } from "../entities/Block.js"
 
 registerEnumType(FriendRequestEnum, {
     name: "FriendRequestEnum",
@@ -64,6 +65,19 @@ export class FriendRequestsResolver {
                     // make sure user can't send friend request to themselves ...
                     if (senderId === foundToken.userId) {
                         throw new Error(errors.cantSendFriendRequestToYourself)
+                    }
+
+                    const usersArrHelper = [senderId, foundToken.userId]
+                    // check if user is not blocked by other user:
+                    const isBlocked = await tm.getRepository(Block).findOne({
+                        where: {
+                            blockedId: In(usersArrHelper),
+                            blockerId: In(usersArrHelper),
+                        },
+                    })
+
+                    if (isBlocked) {
+                        throw new Error(errors.youAreBlocked)
                     }
 
                     // create friend request (and automatically check if user already sent friend request using given token)
