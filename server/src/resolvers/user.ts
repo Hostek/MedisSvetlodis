@@ -1,4 +1,9 @@
-import { errors, getUsernameError, verifyOAuthProof } from "@hostek/shared"
+import {
+    errors,
+    getUsernameError,
+    UUID_Regex,
+    verifyOAuthProof,
+} from "@hostek/shared"
 import argon2 from "argon2"
 import {
     Arg,
@@ -280,6 +285,9 @@ export class UserResolver {
     async getUserByPublicId(
         @Arg("publicId") publicId: string
     ): Promise<LoginResponse> {
+        if (!UUID_Regex.test(publicId)) {
+            return { errors: [{ message: errors.invalidToken }] }
+        }
         try {
             const result = await User.findOne({
                 where: { identifier: publicId },
