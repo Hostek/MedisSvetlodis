@@ -2,24 +2,17 @@
 import { useAppContext } from "@/context/AppContext"
 import { useGetUserByPublicIdQuery } from "@/generated/graphql"
 import { Divider, Spinner } from "@heroui/react"
-import { useRouter } from "next/router"
-import React, { useEffect, useMemo, useState } from "react"
+import React, { useEffect, useState } from "react"
 import Error from "../helper/Error"
 import { errors } from "@hostek/shared"
 import PublicProfile from "../profile/PublicProfile"
 
-interface ProfilePageProps {}
+interface ProfilePageProps {
+    realIdentifier: string
+}
 
-const ProfilePage: React.FC<ProfilePageProps> = ({}) => {
+const ProfilePage: React.FC<ProfilePageProps> = ({ realIdentifier }) => {
     const { user } = useAppContext()
-
-    const Router = useRouter()
-    const { id } = Router.query
-
-    const realIdentifier = useMemo(() => {
-        if (typeof id === "string") return id
-        else return "x"
-    }, [id])
 
     const [{ fetching, data }] = useGetUserByPublicIdQuery({
         variables: { publicId: realIdentifier },
@@ -32,6 +25,8 @@ const ProfilePage: React.FC<ProfilePageProps> = ({}) => {
             if (data.getUserByPublicId.errors.length > 0)
                 setError(data.getUserByPublicId.errors[0].message)
             else setError(errors.unknownError)
+        } else if (data?.getUserByPublicId.user) {
+            setError(null)
         }
     }, [data])
 
