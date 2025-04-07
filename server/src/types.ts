@@ -33,6 +33,18 @@ export class LoginResponse {
 }
 
 @ObjectType()
+export class UserResponse {
+    @Field(() => FieldError, { nullable: true })
+    error?: FieldError
+
+    @Field(() => User, { nullable: true })
+    user?: User
+
+    @Field(() => Boolean, { nullable: true })
+    isBlocked?: boolean
+}
+
+@ObjectType()
 export class FriendRequestTokenOrError {
     @Field(() => [FieldError], { nullable: true })
     errors?: FieldError[]

@@ -15,11 +15,12 @@ import {
 } from "type-graphql"
 import { COOKIE_NAME } from "../constants.js"
 import { User } from "../entities/User.js"
-import { FieldError, LoginResponse, MyContext } from "../types.js"
+import { FieldError, LoginResponse, MyContext, UserResponse } from "../types.js"
 import { verifyEmailAndPassword } from "../utils/validateEmailAndPassword.js"
 import { loginRateLimiter } from "../rateLimiters.js"
 import { isAuth } from "../middleware/isAuth.js"
 import { v4 as uuid } from "uuid"
+import { Block } from "../entities/Block.js"
 
 @Resolver()
 export class UserResolver {
@@ -281,24 +282,32 @@ export class UserResolver {
         return null
     }
 
-    @Query(() => LoginResponse)
+    @Query(() => UserResponse)
+    @UseMiddleware(isAuth)
     async getUserByPublicId(
-        @Arg("publicId") publicId: string
-    ): Promise<LoginResponse> {
+        @Arg("publicId") publicId: string,
+        @Ctx() ctx: MyContext
+    ): Promise<UserResponse> {
         if (!UUID_Regex.test(publicId)) {
-            return { errors: [{ message: errors.invalidToken }] }
+            return { error: { message: errors.invalidPublicId } }
         }
         try {
-            const result = await User.findOne({
+            const user = await User.findOne({
                 where: { identifier: publicId },
                 select: ["identifier", "username", "id"],
             })
-            if (!result) {
-                return { errors: [{ message: errors.userNotFound }] }
+            if (!user) {
+                return { error: { message: errors.userNotFound } }
             }
-            return { user: result }
+            const isBlocked = await Block.findOne({
+                where: {
+                    blockerId: ctx.req.session.userId,
+                    blockedId: user.id,
+                },
+            })
+            return { user: user, isBlocked: !!isBlocked }
         } catch {
-            return { errors: [{ message: errors.unknownError }] }
+            return { error: { message: errors.unknownError } }
         }
     }
 }
