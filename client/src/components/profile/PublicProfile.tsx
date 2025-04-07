@@ -1,43 +1,70 @@
 "use client"
 import { UserFromGetUserByPublicIdQueryType } from "@/types"
 import { Button, Divider } from "@heroui/react"
-import React, { useCallback, useState } from "react"
+import React, { useCallback, useMemo, useState } from "react"
 import BlockIcon from "../icons/BlockIcon"
-import { useBlockUserMutation } from "@/generated/graphql"
+import {
+    useBlockUserMutation,
+    useUnblockUserMutation,
+} from "@/generated/graphql"
 import { errors } from "@hostek/shared"
 import Error from "../helper/Error"
 
 interface PublicProfileProps {
     user: UserFromGetUserByPublicIdQueryType
+    isBlocked: boolean
 }
 
-const PublicProfile: React.FC<PublicProfileProps> = ({ user }) => {
-    const [{ fetching }, blockUser] = useBlockUserMutation()
+const PublicProfile: React.FC<PublicProfileProps> = ({
+    user,
+    isBlocked: isBlockedSomeParam,
+}) => {
+    const [{ fetching: blockFetching }, blockUser] = useBlockUserMutation()
+    const [{ fetching: unblockFetching }, unblockUser] =
+        useUnblockUserMutation()
     const [error, setError] = useState<string | null>(null)
-    // const [blocked, setBlocked] = useState(false)
+    const [blocked, setBlocked] = useState(isBlockedSomeParam)
+
+    const fetching = useMemo(() => {
+        return blockFetching || unblockFetching
+    }, [unblockFetching, blockFetching])
 
     const handlePress = useCallback(async () => {
         if (fetching) return
 
         setError(null)
 
-        const res = await blockUser({
-            userId: user.id,
-        })
+        if (!blocked) {
+            const res = await blockUser({
+                userId: user.id,
+            })
 
-        // console.log({ res })
+            if (res.error || !res.data) {
+                return setError(errors.unknownError)
+            }
 
-        if (res.error || !res.data) {
-            return setError(errors.unknownError)
+            if (res.data.blockUser?.message) {
+                return setError(res.data.blockUser.message)
+            }
+
+            // good
+            setBlocked(true)
+        } else {
+            const res = await unblockUser({
+                userId: user.id,
+            })
+
+            if (res.error || !res.data) {
+                return setError(errors.unknownError)
+            }
+
+            if (res.data.unblockUser?.message) {
+                return setError(res.data.unblockUser.message)
+            }
+
+            setBlocked(false)
         }
-
-        if (res.data.blockUser?.message) {
-            return setError(res.data.blockUser.message)
-        }
-
-        // good
-        // setBlocked(true)
-    }, [fetching, user, blockUser])
+    }, [fetching, user, blockUser, blocked, unblockUser])
 
     return (
         <>
@@ -50,14 +77,14 @@ const PublicProfile: React.FC<PublicProfileProps> = ({ user }) => {
             <div className="flex">
                 <Button
                     fullWidth
-                    color="danger"
+                    color={blocked ? "secondary" : "danger"}
                     disabled={fetching}
                     onPress={() => handlePress()}
                 >
                     <div aria-hidden className="w-4 h-4">
                         <BlockIcon />
                     </div>
-                    Block User
+                    {blocked ? "Unblock User" : "Block User"}
                 </Button>
             </div>
         </>

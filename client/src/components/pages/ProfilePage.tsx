@@ -37,7 +37,10 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ realIdentifier }) => {
             <Divider />
             {error && <Error>Error: {error}</Error>}
             {data?.getUserByPublicId.user && (
-                <PublicProfile user={data.getUserByPublicId.user} />
+                <PublicProfile
+                    user={data.getUserByPublicId.user}
+                    isBlocked={!!data.getUserByPublicId.isBlocked}
+                />
             )}
         </div>
     )
