@@ -206,8 +206,14 @@ export type Query = {
   friendRequestTokensOfUser: Array<FriendRequestToken>;
   getAllMessages: Array<Message>;
   getFriendRequests: Array<FriendRequests>;
+  getUserByPublicId: LoginResponse;
   hello: Scalars['String']['output'];
   user?: Maybe<User>;
+};
+
+
+export type QueryGetUserByPublicIdArgs = {
+  publicId: Scalars['String']['input'];
 };
 
 export type Subscription = {
@@ -398,6 +404,13 @@ export type GetFriendRequestsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type GetFriendRequestsQuery = { __typename?: 'Query', getFriendRequests: Array<{ __typename?: 'FriendRequests', id: number, createdAt: string, status: string, sender: { __typename?: 'User', id: number, identifier: string, username: string }, requestToken: { __typename?: 'FriendRequestToken', id: number, token: string } }> };
+
+export type GetUserByPublicIdQueryVariables = Exact<{
+  publicId: Scalars['String']['input'];
+}>;
+
+
+export type GetUserByPublicIdQuery = { __typename?: 'Query', getUserByPublicId: { __typename?: 'LoginResponse', errors?: Array<{ __typename?: 'FieldError', message: string }> | null, user?: { __typename?: 'User', id: number, identifier: string, username: string } | null } };
 
 export type UserQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -738,6 +751,24 @@ ${RequestToken_GetFriendRequesFragmentFragmentDoc}`;
 
 export function useGetFriendRequestsQuery(options?: Omit<Urql.UseQueryArgs<GetFriendRequestsQueryVariables>, 'query'>) {
   return Urql.useQuery<GetFriendRequestsQuery, GetFriendRequestsQueryVariables>({ query: GetFriendRequestsDocument, ...options });
+};
+export const GetUserByPublicIdDocument = gql`
+    query GetUserByPublicId($publicId: String!) {
+  getUserByPublicId(publicId: $publicId) {
+    errors {
+      ...ErrorFragment
+    }
+    user {
+      id
+      identifier
+      username
+    }
+  }
+}
+    ${ErrorFragmentFragmentDoc}`;
+
+export function useGetUserByPublicIdQuery(options: Omit<Urql.UseQueryArgs<GetUserByPublicIdQueryVariables>, 'query'>) {
+  return Urql.useQuery<GetUserByPublicIdQuery, GetUserByPublicIdQueryVariables>({ query: GetUserByPublicIdDocument, ...options });
 };
 export const UserDocument = gql`
     query User {

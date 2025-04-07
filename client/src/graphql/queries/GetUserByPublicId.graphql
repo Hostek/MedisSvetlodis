@@ -1,0 +1,12 @@
+query GetUserByPublicId($publicId: String!) {
+    getUserByPublicId(publicId: $publicId) {
+        errors {
+            ...ErrorFragment
+        }
+        user {
+            id
+            identifier
+            username
+        }
+    }
+}
