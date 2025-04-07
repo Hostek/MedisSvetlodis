@@ -1,4 +1,9 @@
-import { errors, getUsernameError, verifyOAuthProof } from "@hostek/shared"
+import {
+    errors,
+    getUsernameError,
+    UUID_Regex,
+    verifyOAuthProof,
+} from "@hostek/shared"
 import argon2 from "argon2"
 import {
     Arg,
@@ -10,11 +15,12 @@ import {
 } from "type-graphql"
 import { COOKIE_NAME } from "../constants.js"
 import { User } from "../entities/User.js"
-import { FieldError, LoginResponse, MyContext } from "../types.js"
+import { FieldError, LoginResponse, MyContext, UserResponse } from "../types.js"
 import { verifyEmailAndPassword } from "../utils/validateEmailAndPassword.js"
 import { loginRateLimiter } from "../rateLimiters.js"
 import { isAuth } from "../middleware/isAuth.js"
 import { v4 as uuid } from "uuid"
+import { Block } from "../entities/Block.js"
 
 @Resolver()
 export class UserResolver {
@@ -274,5 +280,34 @@ export class UserResolver {
         }
 
         return null
+    }
+
+    @Query(() => UserResponse)
+    @UseMiddleware(isAuth)
+    async getUserByPublicId(
+        @Arg("publicId") publicId: string,
+        @Ctx() ctx: MyContext
+    ): Promise<UserResponse> {
+        if (!UUID_Regex.test(publicId)) {
+            return { error: { message: errors.invalidPublicId } }
+        }
+        try {
+            const user = await User.findOne({
+                where: { identifier: publicId },
+                select: ["identifier", "username", "id"],
+            })
+            if (!user) {
+                return { error: { message: errors.userNotFound } }
+            }
+            const isBlocked = await Block.findOne({
+                where: {
+                    blockerId: ctx.req.session.userId,
+                    blockedId: user.id,
+                },
+            })
+            return { user: user, isBlocked: !!isBlocked }
+        } catch {
+            return { error: { message: errors.unknownError } }
+        }
     }
 }

@@ -1,9 +1,11 @@
-import { Resolver, Mutation, Arg, Ctx, UseMiddleware } from "type-graphql"
-import { Block } from "../entities/Block.js"
-import { FieldError, MyContext } from "../types.js"
-import { isAuth } from "../middleware/isAuth.js"
 import { errors } from "@hostek/shared"
+import { Arg, Ctx, Mutation, Resolver, UseMiddleware } from "type-graphql"
+import { AppDataSource } from "../DataSource.js"
+import { Block } from "../entities/Block.js"
+import { FriendRequests } from "../entities/FriendsRequests.js"
 import { User } from "../entities/User.js"
+import { isAuth } from "../middleware/isAuth.js"
+import { FieldError, MyContext } from "../types.js"
 
 @Resolver()
 export class BlockResolver {
@@ -21,9 +23,28 @@ export class BlockResolver {
         if (!userExists) return { message: errors.userNotFound }
 
         try {
-            await Block.insert({
-                blockerId: ctx.req.session.userId,
-                blockedId: userId,
+            await AppDataSource.transaction(async (tm) => {
+                await tm.getRepository(Block).insert({
+                    blockerId: ctx.req.session.userId,
+                    blockedId: userId,
+                })
+
+                // auto-reject friend requests
+                await tm
+                    .getRepository(FriendRequests)
+                    .createQueryBuilder()
+                    .update()
+                    .set({ status: "rejected" })
+                    .where("status = :status", { status: "pending" })
+                    .andWhere("senderId IN (:...senderIds)", {
+                        senderIds: [ctx.req.session.userId, userId],
+                    })
+                    .andWhere(
+                        "requestTokenId IN " +
+                            `(SELECT id FROM friend_request_token WHERE "userId" IN (:...userIds))`,
+                        { userIds: [ctx.req.session.userId, userId] }
+                    )
+                    .execute()
             })
         } catch (error) {
             // postgres duplicate error

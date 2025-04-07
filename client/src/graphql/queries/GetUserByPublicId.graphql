@@ -1,0 +1,13 @@
+query GetUserByPublicId($publicId: String!) {
+    getUserByPublicId(publicId: $publicId) {
+        error {
+            ...ErrorFragment
+        }
+        user {
+            id
+            identifier
+            username
+        }
+        isBlocked
+    }
+}
