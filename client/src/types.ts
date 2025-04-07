@@ -3,6 +3,7 @@ import {
     useBlockFriendRequestTokenMutation,
     useFriendRequestTokensOfUserQuery,
     useGetFriendRequestsQuery,
+    useGetUserByPublicIdQuery,
     useRegenerateFriendRequestTokenMutation,
     useUnblockFriendRequestTokenMutation,
 } from "./generated/graphql"
@@ -72,3 +73,9 @@ export type regenerateFriendRequestTokenMutationType = ReturnType<
 export type FriendRequestType = NonNullableType<
     ReturnType<typeof useGetFriendRequestsQuery>[0]["data"]
 >["getFriendRequests"][number]
+
+export type UserFromGetUserByPublicIdQueryType = NonNullableType<
+    NonNullableType<
+        ReturnType<typeof useGetUserByPublicIdQuery>[0]["data"]
+    >["getUserByPublicId"]["user"]
+>
