@@ -11,6 +11,7 @@ import { errors } from "@hostek/shared"
 import Error from "../helper/Error"
 import { MySwal } from "@/utils/MySwal"
 import { GREEN_COLOR, RED_COLOR } from "@/constants"
+import UnblockIcon from "../icons/UnblockIcon"
 
 interface PublicProfileProps {
     user: UserFromGetUserByPublicIdQueryType
@@ -110,7 +111,7 @@ const PublicProfile: React.FC<PublicProfileProps> = ({
                     onPress={() => handlePress()}
                 >
                     <div aria-hidden className="w-4 h-4">
-                        <BlockIcon />
+                        {blocked ? <UnblockIcon /> : <BlockIcon />}
                     </div>
                     {blocked ? "Unblock User" : "Block User"}
                 </Button>
