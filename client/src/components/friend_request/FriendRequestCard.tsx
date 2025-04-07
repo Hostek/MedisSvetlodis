@@ -1,6 +1,7 @@
 "use client"
 import {
     FriendRequestEnum,
+    useBlockUserMutation,
     useHandleFriendRequestMutation,
 } from "@/generated/graphql"
 import { FriendRequestType } from "@/types"
@@ -26,9 +27,16 @@ interface FriendRequestCardProps {
 
 const FriendRequestCard: React.FC<FriendRequestCardProps> = ({ request }) => {
     const [error, setError] = useState<string | null>(null)
-    const [{ fetching }, handleFriendRequest] = useHandleFriendRequestMutation()
+    const [{ fetching: handleFriendRequestFetching }, handleFriendRequest] =
+        useHandleFriendRequestMutation()
+    const [{ fetching: blockUserFetching }, blockUser] = useBlockUserMutation()
     const [accepted, setAccepted] = useState(false)
     const [rejected, setRejected] = useState(false)
+    const [blocked, setBlocked] = useState(false)
+
+    const fetching = useMemo(() => {
+        return handleFriendRequestFetching || blockUserFetching
+    }, [handleFriendRequestFetching, blockUserFetching])
 
     const realStatus = useMemo(() => {
         if (accepted) {
@@ -73,6 +81,29 @@ const FriendRequestCard: React.FC<FriendRequestCardProps> = ({ request }) => {
         },
         [fetching, handleFriendRequest, request.id]
     )
+
+    const handleUserBlock = useCallback(async () => {
+        if (fetching) return
+
+        setError(null)
+
+        const res = await blockUser({
+            userId: request.sender.id,
+        })
+
+        // console.log({ res })
+
+        if (res.error || !res.data) {
+            return setError(errors.unknownError)
+        }
+
+        if (res.data.blockUser?.message) {
+            return setError(res.data.blockUser.message)
+        }
+
+        // good
+        setBlocked(true)
+    }, [blockUser, request, fetching])
 
     return (
         <Card
@@ -135,6 +166,11 @@ const FriendRequestCard: React.FC<FriendRequestCardProps> = ({ request }) => {
                     <div className="text-green-600">
                         Success! New status: {realStatus.toUpperCase()}
                     </div>
+                ) : blocked ? (
+                    <div className="text-red-500">
+                        Blocked user {request.sender.identifier} (@
+                        {request.sender.username})
+                    </div>
                 ) : (
                     <>
                         <Button
@@ -166,8 +202,9 @@ const FriendRequestCard: React.FC<FriendRequestCardProps> = ({ request }) => {
                             className="flex-1 flex items-center justify-center gap-2 hover:bg-red-500 transition-colors"
                             aria-label={`Block user ${request.sender.identifier}`}
                             disabled={fetching}
-                            // @TODO
-                            onPress={() => {}}
+                            onPress={() => {
+                                handleUserBlock()
+                            }}
                         >
                             <div className="w-4 h-4" aria-hidden="true">
                                 <BlockIcon />
