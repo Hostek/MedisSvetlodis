@@ -310,4 +310,9 @@ export class UserResolver {
             return { error: { message: errors.unknownError } }
         }
     }
+
+    // @TODO tmp query (add pagination)
+    @Query(() => User)
+    @UseMiddleware(isAuth)
+    async getFriends(@Ctx() ctx: MyContext) {}
 }

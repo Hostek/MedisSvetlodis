@@ -63,8 +63,16 @@ export class User extends BaseEntity {
     @ManyToMany(() => User, (user) => user.friends)
     @JoinTable({
         name: "user_friends",
-        joinColumn: { name: "user_id", referencedColumnName: "id" },
-        inverseJoinColumn: { name: "friend_id", referencedColumnName: "id" },
+        joinColumn: {
+            name: "user_id",
+            referencedColumnName: "id",
+            foreignKeyConstraintName: "FK_USER_FRIENDS",
+        },
+        inverseJoinColumn: {
+            name: "friend_id",
+            referencedColumnName: "id",
+            foreignKeyConstraintName: "FK_FRIEND_USERS",
+        },
     })
     friends: User[]
 

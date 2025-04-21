@@ -12,6 +12,7 @@ import {
     Card,
     CardBody,
     CardHeader,
+    Divider,
     Form,
     Textarea,
 } from "@heroui/react"
@@ -105,6 +106,10 @@ const HomePage: React.FC<HomePageProps> = ({}) => {
                     Incoming friend requests
                 </Button>
             </div>
+            <div className="space-y-4">
+                <h2 className="text-lg font-medium text-foreground">Friends</h2>
+            </div>
+            <Divider />
             <div className="space-y-4">
                 <h2 className="text-lg font-medium text-foreground">
                     Messages

@@ -16,6 +16,7 @@ import { FieldError, MyContext } from "../types.js"
 
 @Resolver()
 export class MessageResolver {
+    // @TODO –> add pagination ..
     @Query(() => [Message])
     @UseMiddleware(isAuth)
     async getAllMessages(): Promise<Message[]> {

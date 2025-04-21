@@ -78,6 +78,7 @@ export class FriendRequestTokenResolver {
         return null
     }
 
+    // user has only 3 friend request tokens, so pagination not needed
     @Query(() => [FriendRequestToken])
     @UseMiddleware(isAuth)
     async friendRequestTokensOfUser(
