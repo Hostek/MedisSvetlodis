@@ -1,0 +1,18 @@
+query GetFriends($input: PaginationCursorArgs!) {
+    getFriends(input: $input) {
+        totalCount
+        pageInfo {
+            endCursor
+            hasNextPage
+            startCursor
+        }
+        edges {
+            cursor
+            node {
+                id
+                identifier
+                username
+            }
+        }
+    }
+}

@@ -6,6 +6,7 @@ import { betterUpdateQuery } from "./betterUpdateQuery"
 import { cachePusher } from "./cachePusher"
 import { areObjectsEqual } from "./isEqual"
 import { createClient as createWSClient } from "graphql-ws"
+import { relayPagination } from "@urql/exchange-graphcache/extras"
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const cursorPagination = (
@@ -167,9 +168,17 @@ export const createUrqlClient = (ssrExchange: any) => ({
             keys: {
                 FieldError: () => null,
                 Message: (data) => data.id as any,
+                FriendsConnection: () => null,
+                FriendsEdge: () => null,
+                PageInfo: () => null,
             },
             resolvers: {
-                Query: {},
+                Query: {
+                    friends: relayPagination({
+                        mergeMode: "inwards",
+                        // limit: 20, // Default page size
+                    }),
+                },
             },
             updates: {
                 Mutation: {

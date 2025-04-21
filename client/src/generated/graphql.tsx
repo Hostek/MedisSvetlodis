@@ -71,6 +71,19 @@ export type FriendRequests = {
   status: Scalars['String']['output'];
 };
 
+export type FriendsConnection = {
+  __typename?: 'FriendsConnection';
+  edges: Array<FriendsEdge>;
+  pageInfo: PageInfo;
+  totalCount: Scalars['Int']['output'];
+};
+
+export type FriendsEdge = {
+  __typename?: 'FriendsEdge';
+  cursor: Scalars['String']['output'];
+  node: User;
+};
+
 export type LoginResponse = {
   __typename?: 'LoginResponse';
   errors?: Maybe<Array<FieldError>>;
@@ -201,14 +214,33 @@ export type MutationUpdateUsernameArgs = {
   newUsername: Scalars['String']['input'];
 };
 
+export type PageInfo = {
+  __typename?: 'PageInfo';
+  endCursor?: Maybe<Scalars['String']['output']>;
+  hasNextPage: Scalars['Boolean']['output'];
+  startCursor?: Maybe<Scalars['String']['output']>;
+};
+
+export type PaginationCursorArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+};
+
 export type Query = {
   __typename?: 'Query';
   friendRequestTokensOfUser: Array<FriendRequestToken>;
   getAllMessages: Array<Message>;
   getFriendRequests: Array<FriendRequests>;
+  getFriends: FriendsConnection;
   getUserByPublicId: UserResponse;
   hello: Scalars['String']['output'];
   user?: Maybe<User>;
+};
+
+
+export type QueryGetFriendsArgs = {
+  input: PaginationCursorArgs;
 };
 
 
@@ -411,6 +443,13 @@ export type GetFriendRequestsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type GetFriendRequestsQuery = { __typename?: 'Query', getFriendRequests: Array<{ __typename?: 'FriendRequests', id: number, createdAt: string, status: string, sender: { __typename?: 'User', id: number, identifier: string, username: string }, requestToken: { __typename?: 'FriendRequestToken', id: number, token: string } }> };
+
+export type GetFriendsQueryVariables = Exact<{
+  input: PaginationCursorArgs;
+}>;
+
+
+export type GetFriendsQuery = { __typename?: 'Query', getFriends: { __typename?: 'FriendsConnection', totalCount: number, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean, startCursor?: string | null }, edges: Array<{ __typename?: 'FriendsEdge', cursor: string, node: { __typename?: 'User', id: number, identifier: string, username: string } }> } };
 
 export type GetUserByPublicIdQueryVariables = Exact<{
   publicId: Scalars['String']['input'];
@@ -758,6 +797,30 @@ ${RequestToken_GetFriendRequesFragmentFragmentDoc}`;
 
 export function useGetFriendRequestsQuery(options?: Omit<Urql.UseQueryArgs<GetFriendRequestsQueryVariables>, 'query'>) {
   return Urql.useQuery<GetFriendRequestsQuery, GetFriendRequestsQueryVariables>({ query: GetFriendRequestsDocument, ...options });
+};
+export const GetFriendsDocument = gql`
+    query GetFriends($input: PaginationCursorArgs!) {
+  getFriends(input: $input) {
+    totalCount
+    pageInfo {
+      endCursor
+      hasNextPage
+      startCursor
+    }
+    edges {
+      cursor
+      node {
+        id
+        identifier
+        username
+      }
+    }
+  }
+}
+    `;
+
+export function useGetFriendsQuery(options: Omit<Urql.UseQueryArgs<GetFriendsQueryVariables>, 'query'>) {
+  return Urql.useQuery<GetFriendsQuery, GetFriendsQueryVariables>({ query: GetFriendsDocument, ...options });
 };
 export const GetUserByPublicIdDocument = gql`
     query GetUserByPublicId($publicId: String!) {
