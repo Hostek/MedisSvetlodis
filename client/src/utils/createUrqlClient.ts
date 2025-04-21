@@ -176,7 +176,6 @@ export const createUrqlClient = (ssrExchange: any) => ({
                 Query: {
                     friends: relayPagination({
                         mergeMode: "inwards",
-                        // limit: 20, // Default page size
                     }),
                 },
             },
