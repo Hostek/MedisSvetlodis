@@ -13,14 +13,21 @@ import {
     Resolver,
     UseMiddleware,
 } from "type-graphql"
-import { COOKIE_NAME } from "../constants.js"
-import { User } from "../entities/User.js"
-import { FieldError, LoginResponse, MyContext, UserResponse } from "../types.js"
-import { verifyEmailAndPassword } from "../utils/validateEmailAndPassword.js"
-import { loginRateLimiter } from "../rateLimiters.js"
-import { isAuth } from "../middleware/isAuth.js"
 import { v4 as uuid } from "uuid"
+import { COOKIE_NAME } from "../constants.js"
 import { Block } from "../entities/Block.js"
+import { User } from "../entities/User.js"
+import { isAuth } from "../middleware/isAuth.js"
+import { loginRateLimiter } from "../rateLimiters.js"
+import {
+    FieldError,
+    FriendsConnection,
+    LoginResponse,
+    MyContext,
+    PaginationCursorArgs,
+    UserResponse,
+} from "../types.js"
+import { verifyEmailAndPassword } from "../utils/validateEmailAndPassword.js"
 
 @Resolver()
 export class UserResolver {
@@ -311,8 +318,67 @@ export class UserResolver {
         }
     }
 
-    // @TODO tmp query (add pagination)
-    @Query(() => User)
+    // @FieldResolver()
+    // async tmp() {
+
+    // }
+
+    @Query(() => FriendsConnection)
     @UseMiddleware(isAuth)
-    async getFriends(@Ctx() ctx: MyContext) {}
+    async getFriends(
+        @Arg("input") input: PaginationCursorArgs,
+        @Ctx() ctx: MyContext
+    ): Promise<FriendsConnection> {
+        const userId = ctx.req.session.userId
+        const queryBuilder = User.createQueryBuilder("user")
+            .innerJoinAndSelect("user.friends", "friends")
+            .where("user.id = :userId", { userId })
+            .orderBy("friends.id", "ASC")
+            .take(input.first + 1)
+
+        if (input.after) {
+            const afterId = this.decodeCursor(input.after)
+            queryBuilder.andWhere("friends.id > :afterId", { afterId })
+        }
+
+        if (input.before) {
+            const beforeId = this.decodeCursor(input.before)
+            queryBuilder.andWhere("friends.id < :beforeId", { beforeId })
+        }
+
+        const friends = await queryBuilder.getMany()
+        const hasNextPage = friends.length > input.first
+        if (hasNextPage) friends.pop()
+
+        const edges = friends.map((friend) => ({
+            node: friend,
+            cursor: this.encodeCursor(friend.id),
+        }))
+
+        return {
+            edges,
+            totalCount: await this.getTotalFriendCount(userId),
+            pageInfo: {
+                startCursor: edges[0]?.cursor,
+                endCursor: edges[edges.length - 1]?.cursor,
+                hasNextPage,
+            },
+        }
+    }
+
+    private encodeCursor(id: number): string {
+        return Buffer.from(id.toString()).toString("base64")
+    }
+
+    private decodeCursor(cursor: string): number {
+        return parseInt(Buffer.from(cursor, "base64").toString("ascii"), 10)
+    }
+
+    private async getTotalFriendCount(userId: number): Promise<number> {
+        const user = await User.findOne({
+            where: { id: userId },
+            relations: ["friends"],
+        })
+        return user?.friends?.length || 0
+    }
 }
