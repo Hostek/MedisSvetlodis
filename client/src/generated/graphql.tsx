@@ -107,6 +107,8 @@ export type Mutation = {
   blockUser?: Maybe<FieldError>;
   createDefaultTokens?: Maybe<FieldError>;
   createFriendRequest?: Maybe<FieldError>;
+  createHoaxUsers?: Maybe<FieldError>;
+  createHoaxUsersAndAddToFriends?: Maybe<FieldError>;
   createMessage?: Maybe<FieldError>;
   handleFriendRequest?: Maybe<FieldError>;
   login: LoginResponse;
@@ -144,6 +146,17 @@ export type MutationCreateFriendRequestArgs = {
 };
 
 
+export type MutationCreateHoaxUsersArgs = {
+  secret_key: Scalars['String']['input'];
+};
+
+
+export type MutationCreateHoaxUsersAndAddToFriendsArgs = {
+  secret_key: Scalars['String']['input'];
+  userId: Scalars['Int']['input'];
+};
+
+
 export type MutationCreateMessageArgs = {
   content: Scalars['String']['input'];
 };
@@ -168,6 +181,7 @@ export type MutationRegenerateFriendRequestTokenArgs = {
 
 
 export type MutationRegisterArgs = {
+  donotuse?: InputMaybe<Scalars['Int']['input']>;
   email: Scalars['String']['input'];
   password: Scalars['String']['input'];
 };

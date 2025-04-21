@@ -174,8 +174,8 @@ export const createUrqlClient = (ssrExchange: any) => ({
             },
             resolvers: {
                 Query: {
-                    friends: relayPagination({
-                        mergeMode: "inwards",
+                    getFriends: relayPagination({
+                        mergeMode: "outwards",
                     }),
                 },
             },
