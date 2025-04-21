@@ -15,12 +15,13 @@ import { COOKIE_NAME, isInProduction, TEN_YEARS } from "./constants.js"
 import { AppDataSource, redisClient } from "./DataSource.js"
 import { pubSub } from "./pubSub.js"
 import { generalRateLimiter } from "./rateLimiters.js"
+import { BlockResolver } from "./resolvers/block.js"
 import { FriendRequestsResolver } from "./resolvers/friendRequests.js"
 import { FriendRequestTokenResolver } from "./resolvers/friendRequestToken.js"
 import { HelloResolver } from "./resolvers/hello.js"
 import { MessageResolver } from "./resolvers/message.js"
+import { ServerResolver } from "./resolvers/server.js"
 import { UserResolver } from "./resolvers/user.js"
-import { BlockResolver } from "./resolvers/block.js"
 
 await AppDataSource.initialize()
 
@@ -127,6 +128,7 @@ const schema = await buildSchema({
         FriendRequestTokenResolver,
         FriendRequestsResolver,
         BlockResolver,
+        ServerResolver,
     ],
     validate: false,
     pubSub: pubSub,

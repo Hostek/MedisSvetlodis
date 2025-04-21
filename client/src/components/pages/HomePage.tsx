@@ -12,11 +12,13 @@ import {
     Card,
     CardBody,
     CardHeader,
+    Divider,
     Form,
     Textarea,
 } from "@heroui/react"
 import { errors, getMessageError, MAX_MESSAGE_LENGTH } from "@hostek/shared"
 import React, { useCallback, useEffect, useState } from "react"
+import FriendsList from "../friends/FriendsList"
 
 interface HomePageProps {}
 
@@ -105,6 +107,13 @@ const HomePage: React.FC<HomePageProps> = ({}) => {
                     Incoming friend requests
                 </Button>
             </div>
+            <div className="space-y-4">
+                <h2 className="text-lg font-medium text-foreground">
+                    Friends ({user.id})
+                </h2>
+                <FriendsList />
+            </div>
+            <Divider />
             <div className="space-y-4">
                 <h2 className="text-lg font-medium text-foreground">
                     Messages

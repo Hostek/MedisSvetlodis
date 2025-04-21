@@ -1,6 +1,6 @@
 import { Request, Response } from "express"
 import { Redis } from "ioredis"
-import { Field, ObjectType } from "type-graphql"
+import { Field, InputType, Int, ObjectType } from "type-graphql"
 import { User } from "./entities/User.js"
 import { FriendRequestToken } from "./entities/FriendRequestToken.js"
 
@@ -61,3 +61,48 @@ export interface MyContext {
 }
 
 export type Probably<T> = T | undefined | null
+
+@InputType()
+export class PaginationCursorArgs {
+    @Field({ nullable: true })
+    before?: string
+
+    @Field({ nullable: true })
+    after?: string
+
+    @Field(() => Int, { defaultValue: 10 })
+    first: number
+}
+
+@ObjectType()
+export class PageInfo {
+    @Field({ nullable: true })
+    startCursor?: string
+
+    @Field({ nullable: true })
+    endCursor?: string
+
+    @Field()
+    hasNextPage: boolean
+}
+
+@ObjectType()
+export class FriendsConnection {
+    @Field(() => [FriendsEdge])
+    edges: FriendsEdge[]
+
+    @Field(() => PageInfo)
+    pageInfo: PageInfo
+
+    @Field(() => Int)
+    totalCount: number
+}
+
+@ObjectType()
+export class FriendsEdge {
+    @Field(() => User)
+    node: User
+
+    @Field()
+    cursor: string
+}

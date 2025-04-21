@@ -12,6 +12,8 @@ declare global {
       COOKIE_DOMAIN: string;
       REDIS_URL: string;
       OAUTH_PROOF_SECRET: string;
+      PRIVATE_SERVER_KEY: string;
+      HOAX_USER_PASSWORD: string;
     }
   }
 }

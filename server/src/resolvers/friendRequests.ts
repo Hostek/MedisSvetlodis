@@ -149,6 +149,7 @@ export class FriendRequestsResolver {
         }
     }
 
+    // @TODO –> add pagination ..
     @Query(() => [FriendRequests])
     @UseMiddleware(isAuth)
     async getFriendRequests(@Ctx() ctx: MyContext): Promise<FriendRequests[]> {

@@ -8,19 +8,27 @@ import argon2 from "argon2"
 import {
     Arg,
     Ctx,
+    Int,
     Mutation,
     Query,
     Resolver,
     UseMiddleware,
 } from "type-graphql"
-import { COOKIE_NAME } from "../constants.js"
-import { User } from "../entities/User.js"
-import { FieldError, LoginResponse, MyContext, UserResponse } from "../types.js"
-import { verifyEmailAndPassword } from "../utils/validateEmailAndPassword.js"
-import { loginRateLimiter } from "../rateLimiters.js"
-import { isAuth } from "../middleware/isAuth.js"
 import { v4 as uuid } from "uuid"
+import { COOKIE_NAME } from "../constants.js"
 import { Block } from "../entities/Block.js"
+import { User } from "../entities/User.js"
+import { isAuth } from "../middleware/isAuth.js"
+import { loginRateLimiter } from "../rateLimiters.js"
+import {
+    FieldError,
+    FriendsConnection,
+    LoginResponse,
+    MyContext,
+    PaginationCursorArgs,
+    UserResponse,
+} from "../types.js"
+import { verifyEmailAndPassword } from "../utils/validateEmailAndPassword.js"
 
 @Resolver()
 export class UserResolver {
@@ -56,6 +64,8 @@ export class UserResolver {
         password?: string
         oauthProvider?: string
     }): Promise<User> {
+        input.email = input.email.toLocaleLowerCase()
+
         const existingUser = await User.findOne({
             where: { email: input.email },
         })
@@ -152,7 +162,9 @@ export class UserResolver {
     async register(
         @Arg("email") email: string,
         @Arg("password") password: string,
-        @Ctx() { req, ip }: MyContext
+        @Ctx() { req, ip }: MyContext,
+        @Arg("donotuse", () => Int, { nullable: true })
+        donotuse: boolean = false
     ): Promise<LoginResponse> {
         try {
             await loginRateLimiter.consume(ip)
@@ -171,7 +183,7 @@ export class UserResolver {
                 password,
             })
 
-            req.session.userId = user.id
+            if (!donotuse) req.session.userId = user.id
             return { user }
         } catch (error) {
             return {
@@ -310,4 +322,76 @@ export class UserResolver {
             return { error: { message: errors.unknownError } }
         }
     }
+
+    // @FieldResolver()
+    // async tmp() {
+
+    // }
+
+    @Query(() => FriendsConnection)
+    @UseMiddleware(isAuth)
+    async getFriends(
+        @Arg("input") input: PaginationCursorArgs,
+        @Ctx() ctx: MyContext
+    ): Promise<FriendsConnection> {
+        const userId = ctx.req.session.userId
+
+        // 1. Create query for FRIENDS (not users)
+        const friendQuery = User.createQueryBuilder("friend")
+            .innerJoin("friend.friendOf", "user", "user.id = :userId", {
+                userId,
+            })
+            .orderBy("friend.id", "ASC")
+            .take(input.first + 1)
+
+        // 2. Apply cursor filter
+        if (input.after) {
+            const afterId = this.decodeCursor(input.after)
+            friendQuery.andWhere("friend.id > :afterId", { afterId })
+        }
+
+        // 3. Get paginated friends
+        const friends = await friendQuery.getMany()
+        const hasNextPage = friends.length > input.first
+        if (hasNextPage) friends.pop()
+
+        // 4. Create edges
+        const edges = friends.map((friend) => ({
+            node: friend,
+            cursor: this.encodeCursor(friend.id),
+        }))
+
+        // 5. Get total count efficiently
+        const totalCount = await User.createQueryBuilder("friend")
+            .innerJoin("friend.friendOf", "user", "user.id = :userId", {
+                userId,
+            })
+            .getCount()
+
+        return {
+            edges,
+            totalCount,
+            pageInfo: {
+                startCursor: edges[0]?.cursor,
+                endCursor: edges[edges.length - 1]?.cursor,
+                hasNextPage,
+            },
+        }
+    }
+
+    private encodeCursor(id: number): string {
+        return Buffer.from(id.toString()).toString("base64")
+    }
+
+    private decodeCursor(cursor: string): number {
+        return parseInt(Buffer.from(cursor, "base64").toString("ascii"), 10)
+    }
+
+    // private async getTotalFriendCount(userId: number): Promise<number> {
+    //     const user = await User.findOne({
+    //         where: { id: userId },
+    //         relations: ["friends"],
+    //     })
+    //     return user?.friends?.length || 0
+    // }
 }
