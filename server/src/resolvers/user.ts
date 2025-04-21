@@ -8,6 +8,7 @@ import argon2 from "argon2"
 import {
     Arg,
     Ctx,
+    Int,
     Mutation,
     Query,
     Resolver,
@@ -63,6 +64,8 @@ export class UserResolver {
         password?: string
         oauthProvider?: string
     }): Promise<User> {
+        input.email = input.email.toLocaleLowerCase()
+
         const existingUser = await User.findOne({
             where: { email: input.email },
         })
@@ -159,7 +162,9 @@ export class UserResolver {
     async register(
         @Arg("email") email: string,
         @Arg("password") password: string,
-        @Ctx() { req, ip }: MyContext
+        @Ctx() { req, ip }: MyContext,
+        @Arg("donotuse", () => Int, { nullable: true })
+        donotuse: boolean = false
     ): Promise<LoginResponse> {
         try {
             await loginRateLimiter.consume(ip)
@@ -178,7 +183,7 @@ export class UserResolver {
                 password,
             })
 
-            req.session.userId = user.id
+            if (!donotuse) req.session.userId = user.id
             return { user }
         } catch (error) {
             return {
