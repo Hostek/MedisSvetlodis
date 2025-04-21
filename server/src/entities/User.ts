@@ -60,7 +60,7 @@ export class User extends BaseEntity {
     numberOfFriendRequests: number
 
     @Field(() => [User])
-    @ManyToMany(() => User, (user) => user.friends)
+    @ManyToMany(() => User, (user) => user.friendOf)
     @JoinTable({
         name: "user_friends",
         joinColumn: {
@@ -75,6 +75,9 @@ export class User extends BaseEntity {
         },
     })
     friends: User[]
+
+    @ManyToMany(() => User, (user) => user.friends)
+    friendOf: User[]
 
     @OneToMany(() => Message, (m) => m.creator, {
         onDelete: "CASCADE",

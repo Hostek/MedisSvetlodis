@@ -18,6 +18,8 @@ const FriendsList: React.FC<FriendsListProps> = ({}) => {
         requestPolicy: "cache-and-network",
     })
 
+    console.log({ data })
+
     const loadMore = useCallback(() => {
         setVariables((prev) => ({
             ...prev,

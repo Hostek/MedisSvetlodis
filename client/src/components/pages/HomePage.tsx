@@ -108,7 +108,9 @@ const HomePage: React.FC<HomePageProps> = ({}) => {
                 </Button>
             </div>
             <div className="space-y-4">
-                <h2 className="text-lg font-medium text-foreground">Friends</h2>
+                <h2 className="text-lg font-medium text-foreground">
+                    Friends ({user.id})
+                </h2>
                 <FriendsList />
             </div>
             <Divider />

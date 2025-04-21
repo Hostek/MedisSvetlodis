@@ -335,34 +335,42 @@ export class UserResolver {
         @Ctx() ctx: MyContext
     ): Promise<FriendsConnection> {
         const userId = ctx.req.session.userId
-        const queryBuilder = User.createQueryBuilder("user")
-            .innerJoinAndSelect("user.friends", "friends")
-            .where("user.id = :userId", { userId })
-            .orderBy("friends.id", "ASC")
+
+        // 1. Create query for FRIENDS (not users)
+        const friendQuery = User.createQueryBuilder("friend")
+            .innerJoin("friend.friendOf", "user", "user.id = :userId", {
+                userId,
+            })
+            .orderBy("friend.id", "ASC")
             .take(input.first + 1)
 
+        // 2. Apply cursor filter
         if (input.after) {
             const afterId = this.decodeCursor(input.after)
-            queryBuilder.andWhere("friends.id > :afterId", { afterId })
+            friendQuery.andWhere("friend.id > :afterId", { afterId })
         }
 
-        if (input.before) {
-            const beforeId = this.decodeCursor(input.before)
-            queryBuilder.andWhere("friends.id < :beforeId", { beforeId })
-        }
-
-        const friends = await queryBuilder.getMany()
+        // 3. Get paginated friends
+        const friends = await friendQuery.getMany()
         const hasNextPage = friends.length > input.first
         if (hasNextPage) friends.pop()
 
+        // 4. Create edges
         const edges = friends.map((friend) => ({
             node: friend,
             cursor: this.encodeCursor(friend.id),
         }))
 
+        // 5. Get total count efficiently
+        const totalCount = await User.createQueryBuilder("friend")
+            .innerJoin("friend.friendOf", "user", "user.id = :userId", {
+                userId,
+            })
+            .getCount()
+
         return {
             edges,
-            totalCount: await this.getTotalFriendCount(userId),
+            totalCount,
             pageInfo: {
                 startCursor: edges[0]?.cursor,
                 endCursor: edges[edges.length - 1]?.cursor,
@@ -379,11 +387,11 @@ export class UserResolver {
         return parseInt(Buffer.from(cursor, "base64").toString("ascii"), 10)
     }
 
-    private async getTotalFriendCount(userId: number): Promise<number> {
-        const user = await User.findOne({
-            where: { id: userId },
-            relations: ["friends"],
-        })
-        return user?.friends?.length || 0
-    }
+    // private async getTotalFriendCount(userId: number): Promise<number> {
+    //     const user = await User.findOne({
+    //         where: { id: userId },
+    //         relations: ["friends"],
+    //     })
+    //     return user?.friends?.length || 0
+    // }
 }
