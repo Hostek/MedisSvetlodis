@@ -155,6 +155,11 @@ const cursorPagination = (
 
 const wsClient = createWSClient({
     url: "ws://localhost:3001/graphql",
+    on: {
+        connected: () => console.log("✅ WebSocket connected"),
+        closed: () => console.log("❌ WebSocket disconnected"),
+        error: (err) => console.error("WebSocket error", err),
+    },
 })
 
 export const createUrqlClient = (ssrExchange: any) => ({

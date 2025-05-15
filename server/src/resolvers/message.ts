@@ -60,7 +60,7 @@ export class MessageResolver {
         }
 
         try {
-            // console.log("pubsub")
+            console.log("pubsub ", { msg })
             await pubSub.publish("MESSAGE_ADDED", msg)
         } catch {
             console.error("wtf")
