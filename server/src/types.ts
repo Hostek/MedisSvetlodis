@@ -3,6 +3,7 @@ import { Redis } from "ioredis"
 import { Field, InputType, Int, ObjectType } from "type-graphql"
 import { User } from "./entities/User.js"
 import { FriendRequestToken } from "./entities/FriendRequestToken.js"
+import { Message } from "./entities/Message.js"
 
 @ObjectType()
 export class FieldError {
@@ -102,6 +103,27 @@ export class FriendsConnection {
 export class FriendsEdge {
     @Field(() => User)
     node: User
+
+    @Field()
+    cursor: string
+}
+
+@ObjectType()
+export class MessagesConnection {
+    @Field(() => [MessageEdge])
+    edges: MessageEdge[]
+
+    @Field()
+    totalCount: number
+
+    @Field(() => PageInfo)
+    pageInfo: PageInfo
+}
+
+@ObjectType()
+class MessageEdge {
+    @Field(() => Message)
+    node: Message
 
     @Field()
     cursor: string

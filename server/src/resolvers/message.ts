@@ -12,19 +12,63 @@ import {
 import { Message } from "../entities/Message.js"
 import { isAuth } from "../middleware/isAuth.js"
 import { pubSub } from "../pubSub.js"
-import { FieldError, MyContext } from "../types.js"
+import {
+    FieldError,
+    MessagesConnection,
+    MyContext,
+    PaginationCursorArgs,
+} from "../types.js"
+import { decodeCursor, encodeCursor } from "../utils/cursor.js"
 
 @Resolver()
 export class MessageResolver {
-    // @TODO –> add pagination ..
-    @Query(() => [Message])
-    @UseMiddleware(isAuth)
-    async getAllMessages(): Promise<Message[]> {
-        const res = await Message.createQueryBuilder("m")
-            .leftJoinAndSelect("m.creator", "creator")
-            .getMany()
+    // // @TODO –> add pagination ..
+    // @Query(() => [Message])
+    // @UseMiddleware(isAuth)
+    // async getAllMessages(): Promise<Message[]> {
+    //     const res = await Message.createQueryBuilder("m")
+    //         .leftJoinAndSelect("m.creator", "creator")
+    //         .getMany()
 
-        return res
+    //     return res
+    // }
+
+    @Query(() => MessagesConnection)
+    @UseMiddleware(isAuth)
+    async getMessages(
+        @Arg("input") input: PaginationCursorArgs
+    ): Promise<MessagesConnection> {
+        const messageQuery = Message.createQueryBuilder("m")
+            .leftJoinAndSelect("m.creator", "creator")
+            .orderBy("m.id", "DESC")
+            .take(input.first + 1)
+
+        // Apply cursor (if provided)
+        if (input.after) {
+            const afterId = decodeCursor(input.after)
+            messageQuery.andWhere("m.id < :afterId", { afterId }) // DESC => use "<"
+        }
+
+        const messages = await messageQuery.getMany()
+        const hasNextPage = messages.length > input.first
+        if (hasNextPage) messages.pop()
+
+        const edges = messages.map((msg) => ({
+            node: msg,
+            cursor: encodeCursor(msg.id),
+        }))
+
+        const totalCount = await Message.count()
+
+        return {
+            edges,
+            totalCount,
+            pageInfo: {
+                startCursor: edges[0]?.cursor,
+                endCursor: edges[edges.length - 1]?.cursor,
+                hasNextPage,
+            },
+        }
     }
 
     @Mutation(() => FieldError, { nullable: true })
