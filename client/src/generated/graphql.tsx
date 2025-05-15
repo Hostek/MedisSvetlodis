@@ -100,6 +100,19 @@ export type Message = {
   updatedAt: Scalars['String']['output'];
 };
 
+export type MessageEdge = {
+  __typename?: 'MessageEdge';
+  cursor: Scalars['String']['output'];
+  node: Message;
+};
+
+export type MessagesConnection = {
+  __typename?: 'MessagesConnection';
+  edges: Array<MessageEdge>;
+  pageInfo: PageInfo;
+  totalCount: Scalars['Float']['output'];
+};
+
 export type Mutation = {
   __typename?: 'Mutation';
   acceptFriendRequest?: Maybe<FieldError>;
@@ -244,9 +257,9 @@ export type PaginationCursorArgs = {
 export type Query = {
   __typename?: 'Query';
   friendRequestTokensOfUser: Array<FriendRequestToken>;
-  getAllMessages: Array<Message>;
   getFriendRequests: Array<FriendRequests>;
   getFriends: FriendsConnection;
+  getMessages: MessagesConnection;
   getUserByPublicId: UserResponse;
   hello: Scalars['String']['output'];
   user?: Maybe<User>;
@@ -254,6 +267,11 @@ export type Query = {
 
 
 export type QueryGetFriendsArgs = {
+  input: PaginationCursorArgs;
+};
+
+
+export type QueryGetMessagesArgs = {
   input: PaginationCursorArgs;
 };
 
@@ -448,11 +466,6 @@ export type FriendRequestTokensOfUserQueryVariables = Exact<{ [key: string]: nev
 
 export type FriendRequestTokensOfUserQuery = { __typename?: 'Query', friendRequestTokensOfUser: Array<{ __typename?: 'FriendRequestToken', createdAt: string, id: number, usage_count: number, token: string, status: string, max_limit?: number | null }> };
 
-export type GetAllMessagesQueryVariables = Exact<{ [key: string]: never; }>;
-
-
-export type GetAllMessagesQuery = { __typename?: 'Query', getAllMessages: Array<{ __typename?: 'Message', content: string, createdAt: string, creatorId: number, id: number, updatedAt: string, creator: { __typename?: 'User', username: string, id: number } }> };
-
 export type GetFriendRequestsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -464,6 +477,13 @@ export type GetFriendsQueryVariables = Exact<{
 
 
 export type GetFriendsQuery = { __typename?: 'Query', getFriends: { __typename?: 'FriendsConnection', totalCount: number, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean, startCursor?: string | null }, edges: Array<{ __typename?: 'FriendsEdge', cursor: string, node: { __typename?: 'User', id: number, identifier: string, username: string } }> } };
+
+export type GetMessagesQueryVariables = Exact<{
+  input: PaginationCursorArgs;
+}>;
+
+
+export type GetMessagesQuery = { __typename?: 'Query', getMessages: { __typename?: 'MessagesConnection', totalCount: number, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean, startCursor?: string | null }, edges: Array<{ __typename?: 'MessageEdge', cursor: string, node: { __typename?: 'Message', content: string, createdAt: string, creatorId: number, id: number, updatedAt: string, creator: { __typename?: 'User', username: string, id: number } } }> } };
 
 export type GetUserByPublicIdQueryVariables = Exact<{
   publicId: Scalars['String']['input'];
@@ -781,17 +801,6 @@ export const FriendRequestTokensOfUserDocument = gql`
 export function useFriendRequestTokensOfUserQuery(options?: Omit<Urql.UseQueryArgs<FriendRequestTokensOfUserQueryVariables>, 'query'>) {
   return Urql.useQuery<FriendRequestTokensOfUserQuery, FriendRequestTokensOfUserQueryVariables>({ query: FriendRequestTokensOfUserDocument, ...options });
 };
-export const GetAllMessagesDocument = gql`
-    query GetAllMessages {
-  getAllMessages {
-    ...MessageWithCreatorFragment
-  }
-}
-    ${MessageWithCreatorFragmentFragmentDoc}`;
-
-export function useGetAllMessagesQuery(options?: Omit<Urql.UseQueryArgs<GetAllMessagesQueryVariables>, 'query'>) {
-  return Urql.useQuery<GetAllMessagesQuery, GetAllMessagesQueryVariables>({ query: GetAllMessagesDocument, ...options });
-};
 export const GetFriendRequestsDocument = gql`
     query GetFriendRequests {
   getFriendRequests {
@@ -835,6 +844,28 @@ export const GetFriendsDocument = gql`
 
 export function useGetFriendsQuery(options: Omit<Urql.UseQueryArgs<GetFriendsQueryVariables>, 'query'>) {
   return Urql.useQuery<GetFriendsQuery, GetFriendsQueryVariables>({ query: GetFriendsDocument, ...options });
+};
+export const GetMessagesDocument = gql`
+    query GetMessages($input: PaginationCursorArgs!) {
+  getMessages(input: $input) {
+    totalCount
+    pageInfo {
+      endCursor
+      hasNextPage
+      startCursor
+    }
+    edges {
+      cursor
+      node {
+        ...MessageWithCreatorFragment
+      }
+    }
+  }
+}
+    ${MessageWithCreatorFragmentFragmentDoc}`;
+
+export function useGetMessagesQuery(options: Omit<Urql.UseQueryArgs<GetMessagesQueryVariables>, 'query'>) {
+  return Urql.useQuery<GetMessagesQuery, GetMessagesQueryVariables>({ query: GetMessagesDocument, ...options });
 };
 export const GetUserByPublicIdDocument = gql`
     query GetUserByPublicId($publicId: String!) {
