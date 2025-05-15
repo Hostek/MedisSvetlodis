@@ -1,5 +1,6 @@
-query GetAllMessages {
-    getAllMessages {
-        ...MessageWithCreatorFragment
-    }
-}
+# Old – Not used anymore, see GetMessages with pagination ..
+# query GetAllMessages {
+#     getAllMessages {
+#         ...MessageWithCreatorFragment
+#     }
+# }

@@ -1,0 +1,16 @@
+query GetMessages($input: PaginationCursorArgs!) {
+    getMessages(input: $input) {
+        totalCount
+        pageInfo {
+            endCursor
+            hasNextPage
+            startCursor
+        }
+        edges {
+            cursor
+            node {
+                ...MessageWithCreatorFragment
+            }
+        }
+    }
+}

@@ -29,6 +29,7 @@ import {
     UserResponse,
 } from "../types.js"
 import { verifyEmailAndPassword } from "../utils/validateEmailAndPassword.js"
+import { decodeCursor, encodeCursor } from "../utils/cursor.js"
 
 @Resolver()
 export class UserResolver {
@@ -342,11 +343,12 @@ export class UserResolver {
                 userId,
             })
             .orderBy("friend.id", "ASC")
+            .addOrderBy("friend.id", "ASC")
             .take(input.first + 1)
 
         // 2. Apply cursor filter
         if (input.after) {
-            const afterId = this.decodeCursor(input.after)
+            const afterId = decodeCursor(input.after)
             friendQuery.andWhere("friend.id > :afterId", { afterId })
         }
 
@@ -358,7 +360,7 @@ export class UserResolver {
         // 4. Create edges
         const edges = friends.map((friend) => ({
             node: friend,
-            cursor: this.encodeCursor(friend.id),
+            cursor: encodeCursor(friend.id),
         }))
 
         // 5. Get total count efficiently
@@ -377,14 +379,6 @@ export class UserResolver {
                 hasNextPage,
             },
         }
-    }
-
-    private encodeCursor(id: number): string {
-        return Buffer.from(id.toString()).toString("base64")
-    }
-
-    private decodeCursor(cursor: string): number {
-        return parseInt(Buffer.from(cursor, "base64").toString("ascii"), 10)
     }
 
     // private async getTotalFriendCount(userId: number): Promise<number> {

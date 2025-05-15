@@ -22,6 +22,7 @@ import { HelloResolver } from "./resolvers/hello.js"
 import { MessageResolver } from "./resolvers/message.js"
 import { ServerResolver } from "./resolvers/server.js"
 import { UserResolver } from "./resolvers/user.js"
+import { getSessionFromCookie } from "./utils/getSessionFromCookie.js"
 
 await AppDataSource.initialize()
 
@@ -136,7 +137,23 @@ const schema = await buildSchema({
 
 // Hand in the schema we just created and have the
 // WebSocketServer start listening.
-const serverCleanup = useServer({ schema }, wsServer)
+const serverCleanup = useServer(
+    {
+        schema,
+        context: async (ctx) => {
+            const rawCookie = ctx.extra.request.headers.cookie
+            const session = await getSessionFromCookie(rawCookie)
+
+            return {
+                req: {
+                    session: session || {},
+                },
+                redis: redisClient,
+            }
+        },
+    },
+    wsServer
+)
 
 const apolloServer = new ApolloServer({
     schema: schema,
