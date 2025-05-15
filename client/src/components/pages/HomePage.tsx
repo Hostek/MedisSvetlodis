@@ -26,12 +26,12 @@ const HomePage: React.FC<HomePageProps> = ({}) => {
     const [content, setContent] = useState("")
     const [error, setError] = useState("")
     const [{ fetching }, createMessage] = useCreateMessageMutation()
-    const [{ fetching: queryFetching, data }] = useGetAllMessagesQuery()
+    const [{ data, fetching: queryFetching }] = useGetAllMessagesQuery()
     const [{ data: newMsgData }] = useMessageAddedSubscription()
     // const { user } = useIsAuth()
     const { user } = useAppContext()
 
-    console.log({ fetching, queryFetching })
+    // console.log({ fetching, queryFetching })
 
     // Combine initial messages + subscription updates
     const [messages, setMessages] = useState<
@@ -47,10 +47,11 @@ const HomePage: React.FC<HomePageProps> = ({}) => {
 
     // Append new messages from the subscription
     useEffect(() => {
+        console.log({ newMsgData })
         if (newMsgData?.messageAdded) {
             setMessages((prev) => [...prev, newMsgData.messageAdded])
         }
-    }, [newMsgData?.messageAdded])
+    }, [newMsgData?.messageAdded, newMsgData])
 
     const handleSubmit = useCallback<React.FormEventHandler<HTMLFormElement>>(
         async (e) => {
