@@ -3,29 +3,22 @@ import { useAppContext } from "@/context/AppContext"
 import {
     MessageWithCreatorFragmentFragment,
     useCreateMessageMutation,
-    useGetAllMessagesQuery,
     useMessageAddedSubscription,
 } from "@/generated/graphql"
-import { formatUniversalDate } from "@/utils/formatTimestamp"
-import {
-    Button,
-    Card,
-    CardBody,
-    CardHeader,
-    Divider,
-    Form,
-    Textarea,
-} from "@heroui/react"
+import { Button, Divider, Form, Textarea } from "@heroui/react"
 import { errors, getMessageError, MAX_MESSAGE_LENGTH } from "@hostek/shared"
 import React, { useCallback, useEffect, useState } from "react"
 import FriendsList from "../friends/FriendsList"
+import Messages from "../messages/Messages"
 
 interface HomePageProps {}
 
 const HomePage: React.FC<HomePageProps> = ({}) => {
     const [content, setContent] = useState("")
     const [error, setError] = useState("")
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [{ fetching }, createMessage] = useCreateMessageMutation()
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [{ data, fetching: queryFetching }] = useGetAllMessagesQuery()
     const [{ data: newMsgData }] = useMessageAddedSubscription()
     // const { user } = useIsAuth()
@@ -115,26 +108,7 @@ const HomePage: React.FC<HomePageProps> = ({}) => {
                 <FriendsList />
             </div>
             <Divider />
-            <div className="space-y-4">
-                <h2 className="text-lg font-medium text-foreground">
-                    Messages
-                </h2>
-                <div className="space-y-3">
-                    {messages.map((msg) => (
-                        <Card key={msg.id} shadow="sm" className="border-none">
-                            <CardHeader className="flex justify-between pb-0">
-                                <span className="font-bold text-foreground">
-                                    {msg.creator.username}
-                                </span>
-                                <span className="text-sm text-default-500">
-                                    {formatUniversalDate(msg.createdAt)}
-                                </span>
-                            </CardHeader>
-                            <CardBody className="py-2">{msg.content}</CardBody>
-                        </Card>
-                    ))}
-                </div>
-            </div>
+            <Messages messages={messages} />
 
             <div
                 className={`flex justify-start mt-2 text-sm ${
