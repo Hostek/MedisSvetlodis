@@ -80,6 +80,8 @@ const lighterColors1 = [
     "#699A9A", // Lighter slate teal
 ]
 
+const letter = "A"
+
 const Page: NextPage = () => {
     return (
         <div className="flex items-center justify-center">
@@ -90,22 +92,22 @@ const Page: NextPage = () => {
                 <CircleAvatar color="orange" letter="X" />
                 <CircleAvatar color="#FF6B6B" letter="X" /> */}
                 {gradientColors.map((c) => (
-                    <CircleAvatar color={c} key={c} letter="M" />
+                    <CircleAvatar color={c} key={c} letter={letter} />
                 ))}
                 {darkBaseColors.map((c) => (
-                    <CircleAvatar color={c} key={c} letter="M" />
+                    <CircleAvatar color={c} key={c} letter={letter} />
                 ))}
                 {diverseDarkColors.map((c) => (
-                    <CircleAvatar color={c} key={c} letter="M" />
+                    <CircleAvatar color={c} key={c} letter={letter} />
                 ))}
                 {lighterColors.map((c) => (
-                    <CircleAvatar color={c} key={c} letter="M" />
+                    <CircleAvatar color={c} key={c} letter={letter} />
                 ))}
                 {diverseDarkColors1.map((c) => (
-                    <CircleAvatar color={c} key={c} letter="M" />
+                    <CircleAvatar color={c} key={c} letter={letter} />
                 ))}
                 {lighterColors1.map((c) => (
-                    <CircleAvatar color={c} key={c} letter="M" />
+                    <CircleAvatar color={c} key={c} letter={letter} />
                 ))}
             </div>
         </div>

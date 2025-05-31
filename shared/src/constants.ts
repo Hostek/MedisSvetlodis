@@ -88,3 +88,26 @@ export enum FriendRequestEnum {
     ACCEPT = "accept",
     REJECT = "reject",
 }
+
+export const CircleAvatarColors = [
+    "#8B2D2D", // Dark warm red (brick)
+    "#994D1E", // Dark burnt orange
+    "#7A5230", // Dark golden brown
+    "#3B5B45", // Deep forest green
+    "#2E4A7A", // Dark steel blue
+    "#673B7A", // Dark purple
+    "#A04A4A", // Medium dark coral red
+    "#6A4A2E", // Dark amber
+    "#7A6A2E", // Dark mustard yellow
+    "#4A6A6A", // Slate teal
+    "#C56B6B", // Lighter warm red (brick)
+    "#C87A4B", // Lighter burnt orange
+    "#B38A57", // Lighter golden brown
+    "#699A71", // Lighter forest green
+    "#557EB5", // Lighter steel blue
+    "#925DB5", // Lighter purple
+    "#D07878", // Lighter coral red
+    "#A67857", // Lighter amber
+    "#C6B14A", // Lighter mustard yellow
+    "#699A9A", // Lighter slate teal
+]
