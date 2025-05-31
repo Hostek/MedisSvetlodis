@@ -5,12 +5,14 @@ import React, { useCallback, useEffect, useState } from "react"
 import Error from "../helper/Error"
 import { errors } from "@hostek/shared"
 import { FRIENDS_PAGE_SIZE } from "@/constants"
+import { FriendListEdge } from "@/types"
+import FriendCard from "./FriendCard"
 
 interface FriendsListProps {}
 
 const FriendsList: React.FC<FriendsListProps> = () => {
     const [cursor, setCursor] = useState<string | null>(null)
-    const [allEdges, setAllEdges] = useState<any[]>([])
+    const [allEdges, setAllEdges] = useState<FriendListEdge[]>([])
     const [hasNextPage, setHasNextPage] = useState(true)
 
     const [{ data, fetching, error }, reexecuteGetFriends] = useGetFriendsQuery(
@@ -51,10 +53,8 @@ const FriendsList: React.FC<FriendsListProps> = () => {
 
     return (
         <div>
-            {allEdges.map(({ node, cursor }) => (
-                <div key={cursor} className="friend-item">
-                    {node.identifier} | @{node.username}
-                </div>
+            {allEdges.map((edge) => (
+                <FriendCard edge={edge} key={edge.cursor} />
             ))}
 
             {fetching ? (

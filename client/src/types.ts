@@ -3,6 +3,7 @@ import {
     useBlockFriendRequestTokenMutation,
     useFriendRequestTokensOfUserQuery,
     useGetFriendRequestsQuery,
+    useGetFriendsQuery,
     useGetUserByPublicIdQuery,
     useRegenerateFriendRequestTokenMutation,
     useUnblockFriendRequestTokenMutation,
@@ -78,4 +79,12 @@ export type UserFromGetUserByPublicIdQueryType = NonNullableType<
     NonNullableType<
         ReturnType<typeof useGetUserByPublicIdQuery>[0]["data"]
     >["getUserByPublicId"]["user"]
+>
+
+export type ElementType<T> = T extends (infer U)[] ? U : T
+
+export type FriendListEdge = ElementType<
+    NonNullableType<
+        ReturnType<typeof useGetFriendsQuery>[0]["data"]
+    >["getFriends"]["edges"]
 >
