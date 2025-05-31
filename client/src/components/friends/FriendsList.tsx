@@ -57,16 +57,20 @@ const FriendsList: React.FC<FriendsListProps> = () => {
                 </div>
             ))}
 
-            {hasNextPage && (
-                <Button
-                    onPress={loadFriends}
-                    disabled={fetching}
-                    color="primary"
-                    fullWidth
-                    className="my-2"
-                >
-                    {fetching ? "Loading..." : "Load More"}
-                </Button>
+            {fetching ? (
+                <Spinner />
+            ) : (
+                hasNextPage && (
+                    <Button
+                        onPress={loadFriends}
+                        disabled={fetching}
+                        color="primary"
+                        fullWidth
+                        className="my-2"
+                    >
+                        Load More
+                    </Button>
+                )
             )}
         </div>
     )
