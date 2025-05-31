@@ -12,6 +12,7 @@ query GetFriends($input: PaginationCursorArgs!) {
                 id
                 identifier
                 username
+                avatarBgColor
             }
         }
     }
