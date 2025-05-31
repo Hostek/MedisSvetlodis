@@ -3,60 +3,69 @@ import { useAppContext } from "@/context/AppContext"
 import {
     MessageWithCreatorFragmentFragment,
     useCreateMessageMutation,
-    useGetAllMessagesQuery,
+    useGetMessagesQuery,
     useMessageAddedSubscription,
 } from "@/generated/graphql"
-import { formatUniversalDate } from "@/utils/formatTimestamp"
-import {
-    Button,
-    Card,
-    CardBody,
-    CardHeader,
-    Divider,
-    Form,
-    Textarea,
-} from "@heroui/react"
+import { Button, Divider, Form, Textarea } from "@heroui/react"
 import { errors, getMessageError, MAX_MESSAGE_LENGTH } from "@hostek/shared"
+import Link from "next/link"
 import React, { useCallback, useEffect, useState } from "react"
-import FriendsList from "../friends/FriendsList"
+import FriendsListOldUI from "../friends/FriendsListOldUI"
+import Messages from "../messages/Messages"
+import { MESSAGE_PAGE_SIZE } from "@/constants"
 
 interface HomePageProps {}
 
 const HomePage: React.FC<HomePageProps> = ({}) => {
     const [content, setContent] = useState("")
     const [error, setError] = useState("")
-    const [{ fetching }, createMessage] = useCreateMessageMutation()
-    const [{ data, fetching: queryFetching }] = useGetAllMessagesQuery()
-    const [{ data: newMsgData }] = useMessageAddedSubscription()
-    // const { user } = useIsAuth()
+    const [{ fetching: creatingFetching }, createMessage] =
+        useCreateMessageMutation()
     const { user } = useAppContext()
 
-    // console.log({ fetching, queryFetching })
-
-    // Combine initial messages + subscription updates
     const [messages, setMessages] = useState<
         MessageWithCreatorFragmentFragment[]
     >([])
+    const [cursor, setCursor] = useState<string | null>(null)
+    const [hasNextPage, setHasNextPage] = useState(true)
 
-    // Initialize with data from the initial query
+    const [{ data, fetching }, reexecuteGetMessages] = useGetMessagesQuery({
+        variables: {
+            input: {
+                after: cursor,
+                first: MESSAGE_PAGE_SIZE,
+            },
+        },
+        pause: true, // always pause
+    })
+
+    const [{ data: newMsgData }] = useMessageAddedSubscription()
+
+    // Append paginated messages when fetched
     useEffect(() => {
-        if (data?.getAllMessages) {
-            setMessages(data.getAllMessages)
+        if (data?.getMessages?.edges) {
+            console.log({ data })
+
+            setMessages((prev) => [
+                ...data.getMessages.edges.map((e) => e.node).toReversed(),
+                ...prev,
+            ])
+
+            setHasNextPage(data.getMessages.pageInfo.hasNextPage)
+            setCursor(data.getMessages.pageInfo.endCursor || null)
         }
-    }, [data?.getAllMessages])
+    }, [data])
 
-    // Append new messages from the subscription
+    // Append new messages from subscription
     useEffect(() => {
-        console.log({ newMsgData })
         if (newMsgData?.messageAdded) {
             setMessages((prev) => [...prev, newMsgData.messageAdded])
         }
-    }, [newMsgData?.messageAdded, newMsgData])
+    }, [newMsgData])
 
     const handleSubmit = useCallback<React.FormEventHandler<HTMLFormElement>>(
         async (e) => {
             e.preventDefault()
-
             if (!user) return
 
             const msg_errors = getMessageError(content)
@@ -66,7 +75,6 @@ const HomePage: React.FC<HomePageProps> = ({}) => {
             }
 
             const res = await createMessage({ content })
-
             if (res.error || !res.data) {
                 return setError(errors.unknownError)
             }
@@ -80,12 +88,23 @@ const HomePage: React.FC<HomePageProps> = ({}) => {
         [createMessage, content, user]
     )
 
+    const loadOlderMessages = () => {
+        if (hasNextPage && !fetching) {
+            reexecuteGetMessages({ requestPolicy: "network-only" })
+        }
+    }
+
     if (!user) {
         return null
     }
 
     return (
         <div className="max-w-screen-md mx-auto p-6 space-y-6">
+            <div className="full-width">
+                USER ID: {user.id}
+                <br />
+                <Link href={"/friends"}>Friends Link</Link>
+            </div>
             <div className="full-width">
                 <Button
                     as="a"
@@ -109,32 +128,21 @@ const HomePage: React.FC<HomePageProps> = ({}) => {
                 </Button>
             </div>
             <div className="space-y-4">
-                <h2 className="text-lg font-medium text-foreground">
-                    Friends ({user.id})
-                </h2>
-                <FriendsList />
+                <h2 className="text-lg font-medium text-foreground">Friends</h2>
+                <FriendsListOldUI />
             </div>
+
             <Divider />
-            <div className="space-y-4">
-                <h2 className="text-lg font-medium text-foreground">
-                    Messages
-                </h2>
-                <div className="space-y-3">
-                    {messages.map((msg) => (
-                        <Card key={msg.id} shadow="sm" className="border-none">
-                            <CardHeader className="flex justify-between pb-0">
-                                <span className="font-bold text-foreground">
-                                    {msg.creator.username}
-                                </span>
-                                <span className="text-sm text-default-500">
-                                    {formatUniversalDate(msg.createdAt)}
-                                </span>
-                            </CardHeader>
-                            <CardBody className="py-2">{msg.content}</CardBody>
-                        </Card>
-                    ))}
+
+            {hasNextPage && (
+                <div className="flex justify-center">
+                    <Button onPress={loadOlderMessages} disabled={fetching}>
+                        {fetching ? "Loading..." : "Load older messages"}
+                    </Button>
                 </div>
-            </div>
+            )}
+
+            <Messages messages={messages} />
 
             <div
                 className={`flex justify-start mt-2 text-sm ${
@@ -160,7 +168,12 @@ const HomePage: React.FC<HomePageProps> = ({}) => {
                 {error && (
                     <div className="w-full text-red-500">Error: {error}</div>
                 )}
-                <Button type="submit" color="primary" className="w-full">
+                <Button
+                    type="submit"
+                    color="primary"
+                    className="w-full"
+                    disabled={creatingFetching}
+                >
                     Submit
                 </Button>
             </Form>

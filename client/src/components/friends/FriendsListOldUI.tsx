@@ -1,25 +1,25 @@
 "use client"
 import { useGetFriendsQuery } from "@/generated/graphql"
-import { Button, Spinner } from "@heroui/react"
+import { Spinner } from "@heroui/react"
 import React, { useCallback, useEffect, useState } from "react"
 import Error from "../helper/Error"
 import { errors } from "@hostek/shared"
-import { FRIENDS_PAGE_SIZE } from "@/constants"
-import { FriendListEdge } from "@/types"
-import FriendCard from "./FriendCard"
 
 interface FriendsListProps {}
 
-const FriendsList: React.FC<FriendsListProps> = () => {
+/*
+archived component? idk, keep it for now
+*/
+const FriendsListOldUI: React.FC<FriendsListProps> = () => {
     const [cursor, setCursor] = useState<string | null>(null)
-    const [allEdges, setAllEdges] = useState<FriendListEdge[]>([])
+    const [allEdges, setAllEdges] = useState<any[]>([])
     const [hasNextPage, setHasNextPage] = useState(true)
 
     const [{ data, fetching, error }, reexecuteGetFriends] = useGetFriendsQuery(
         {
             variables: {
                 input: {
-                    first: FRIENDS_PAGE_SIZE,
+                    first: 10,
                     after: cursor,
                 },
             },
@@ -53,27 +53,19 @@ const FriendsList: React.FC<FriendsListProps> = () => {
 
     return (
         <div>
-            {allEdges.map((edge) => (
-                <FriendCard edge={edge} key={edge.cursor} />
+            {allEdges.map(({ node, cursor }) => (
+                <div key={cursor} className="friend-item">
+                    {node.identifier} | @{node.username}
+                </div>
             ))}
 
-            {fetching ? (
-                <Spinner />
-            ) : (
-                hasNextPage && (
-                    <Button
-                        onPress={loadFriends}
-                        disabled={fetching}
-                        color="primary"
-                        fullWidth
-                        className="my-2"
-                    >
-                        Load More
-                    </Button>
-                )
+            {hasNextPage && (
+                <button onClick={loadFriends} disabled={fetching}>
+                    {fetching ? "Loading..." : "Load More"}
+                </button>
             )}
         </div>
     )
 }
 
-export default FriendsList
+export default FriendsListOldUI

@@ -1,5 +1,7 @@
 import {
+    CircleAvatarColors,
     errors,
+    getRandomValueFromArray,
     getUsernameError,
     UUID_Regex,
     verifyOAuthProof,
@@ -80,6 +82,7 @@ export class UserResolver {
             username: input.username || input.email.split("@")[0], // Default name
             password: input.password ? await argon2.hash(input.password) : "",
             identifier: uuid(),
+            avatarBgColor: getRandomValueFromArray(CircleAvatarColors),
             // oauthProvider: input.oauthProvider,
         })
 

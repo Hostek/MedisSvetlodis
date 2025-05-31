@@ -287,6 +287,7 @@ export type Subscription = {
 
 export type User = {
   __typename?: 'User';
+  avatarBgColor: Scalars['String']['output'];
   blockers: Array<Block>;
   blocking: Array<Block>;
   createdAt: Scalars['String']['output'];
@@ -476,7 +477,7 @@ export type GetFriendsQueryVariables = Exact<{
 }>;
 
 
-export type GetFriendsQuery = { __typename?: 'Query', getFriends: { __typename?: 'FriendsConnection', totalCount: number, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean, startCursor?: string | null }, edges: Array<{ __typename?: 'FriendsEdge', cursor: string, node: { __typename?: 'User', id: number, identifier: string, username: string } }> } };
+export type GetFriendsQuery = { __typename?: 'Query', getFriends: { __typename?: 'FriendsConnection', totalCount: number, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean, startCursor?: string | null }, edges: Array<{ __typename?: 'FriendsEdge', cursor: string, node: { __typename?: 'User', id: number, identifier: string, username: string, avatarBgColor: string } }> } };
 
 export type GetMessagesQueryVariables = Exact<{
   input: PaginationCursorArgs;
@@ -836,6 +837,7 @@ export const GetFriendsDocument = gql`
         id
         identifier
         username
+        avatarBgColor
       }
     }
   }
