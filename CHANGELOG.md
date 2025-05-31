@@ -10,3 +10,5 @@
 - Friends and Friend Requests
 - Option to update username and password
 - Basic data validation
+- Pagination
+- Beautiful Friends List with Circle Avatars
