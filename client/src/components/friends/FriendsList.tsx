@@ -8,34 +8,45 @@ import { errors } from "@hostek/shared"
 interface FriendsListProps {}
 
 const FriendsList: React.FC<FriendsListProps> = () => {
-    const [variables, setVariables] = useState({
-        first: 10,
-        after: null as string | null,
-    })
+    const [cursor, setCursor] = useState<string | null>(null)
     const [allEdges, setAllEdges] = useState<any[]>([])
+    const [hasNextPage, setHasNextPage] = useState(true)
 
-    const [{ data, fetching, error }] = useGetFriendsQuery({
-        variables: { input: variables },
-        requestPolicy: "cache-and-network",
-    })
+    const [{ data, fetching, error }, reexecuteGetFriends] = useGetFriendsQuery(
+        {
+            variables: {
+                input: {
+                    first: 10,
+                    after: cursor,
+                },
+            },
+            pause: true, // Always pause
+        }
+    )
+
+    const loadFriends = useCallback(() => {
+        if (hasNextPage && !fetching) {
+            reexecuteGetFriends({ requestPolicy: "network-only" })
+        }
+    }, [hasNextPage, fetching, reexecuteGetFriends])
 
     useEffect(() => {
-        if (data && !fetching) {
+        if (data?.getFriends?.edges) {
             setAllEdges((prev) => [...prev, ...data.getFriends.edges])
+            setHasNextPage(data.getFriends.pageInfo.hasNextPage)
+            setCursor(data.getFriends.pageInfo.endCursor ?? null)
         }
-    }, [data, fetching])
-
-    const loadMore = useCallback(() => {
-        if (!data?.getFriends.pageInfo.hasNextPage) return
-        setVariables((prev) => ({
-            first: prev.first,
-            after: data.getFriends.pageInfo.endCursor ?? null,
-        }))
     }, [data])
 
-    if (!data && fetching) return <Spinner />
+    // Load first page on mount
+    useEffect(() => {
+        loadFriends()
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []) // empty deps → runs once
+
+    if (fetching && allEdges.length === 0) return <Spinner />
     if (error) return <Error>{errors.unknownError}</Error>
-    if (!data) return <Error>No friends found</Error>
+    if (allEdges.length === 0) return <Error>No friends found</Error>
 
     return (
         <div>
@@ -45,8 +56,8 @@ const FriendsList: React.FC<FriendsListProps> = () => {
                 </div>
             ))}
 
-            {data.getFriends.pageInfo.hasNextPage && (
-                <button onClick={loadMore} disabled={fetching}>
+            {hasNextPage && (
+                <button onClick={loadFriends} disabled={fetching}>
                     {fetching ? "Loading..." : "Load More"}
                 </button>
             )}
