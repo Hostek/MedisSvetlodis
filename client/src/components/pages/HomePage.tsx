@@ -3,6 +3,7 @@ import { useAppContext } from "@/context/AppContext"
 import {
     MessageWithCreatorFragmentFragment,
     useCreateMessageMutation,
+    useGetMessagesQuery,
     useMessageAddedSubscription,
 } from "@/generated/graphql"
 import { Button, Divider, Form, Textarea } from "@heroui/react"
@@ -13,43 +14,56 @@ import Messages from "../messages/Messages"
 
 interface HomePageProps {}
 
+const MESSAGE_PAGE_SIZE = 4
+
 const HomePage: React.FC<HomePageProps> = ({}) => {
     const [content, setContent] = useState("")
     const [error, setError] = useState("")
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [{ fetching }, createMessage] = useCreateMessageMutation()
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [{ data, fetching: queryFetching }] = useGetAllMessagesQuery()
-    const [{ data: newMsgData }] = useMessageAddedSubscription()
-    // const { user } = useIsAuth()
+    const [{ fetching: creating }, createMessage] = useCreateMessageMutation()
     const { user } = useAppContext()
 
-    // console.log({ fetching, queryFetching })
-
-    // Combine initial messages + subscription updates
     const [messages, setMessages] = useState<
         MessageWithCreatorFragmentFragment[]
     >([])
+    const [cursor, setCursor] = useState<string | null>(null)
+    const [hasNextPage, setHasNextPage] = useState(true)
 
-    // Initialize with data from the initial query
+    const [{ data, fetching }, reexecuteGetMessages] = useGetMessagesQuery({
+        variables: {
+            input: {
+                after: cursor,
+                first: MESSAGE_PAGE_SIZE,
+            },
+        },
+        pause: true, // always pause
+    })
+
+    const [{ data: newMsgData }] = useMessageAddedSubscription()
+
+    // Append paginated messages when fetched
     useEffect(() => {
-        if (data?.getAllMessages) {
-            setMessages(data.getAllMessages)
+        if (data?.getMessages?.edges) {
+            setMessages((prev) => [
+                ...data.getMessages.edges.map((e) => e.node),
+                ...prev,
+            ])
+
+            setHasNextPage(data.getMessages.pageInfo.hasNextPage)
+            setCursor(data.getMessages.pageInfo.endCursor || null)
         }
-    }, [data?.getAllMessages])
+    }, [data])
 
-    // Append new messages from the subscription
+    // Append new messages from subscription
     useEffect(() => {
-        console.log({ newMsgData })
         if (newMsgData?.messageAdded) {
             setMessages((prev) => [...prev, newMsgData.messageAdded])
         }
-    }, [newMsgData?.messageAdded, newMsgData])
+    }, [newMsgData])
 
     const handleSubmit = useCallback<React.FormEventHandler<HTMLFormElement>>(
         async (e) => {
             e.preventDefault()
-
             if (!user) return
 
             const msg_errors = getMessageError(content)
@@ -59,7 +73,6 @@ const HomePage: React.FC<HomePageProps> = ({}) => {
             }
 
             const res = await createMessage({ content })
-
             if (res.error || !res.data) {
                 return setError(errors.unknownError)
             }
@@ -72,6 +85,12 @@ const HomePage: React.FC<HomePageProps> = ({}) => {
         },
         [createMessage, content, user]
     )
+
+    const loadOlderMessages = () => {
+        if (hasNextPage && !fetching) {
+            reexecuteGetMessages({ requestPolicy: "network-only" })
+        }
+    }
 
     if (!user) {
         return null
@@ -107,7 +126,17 @@ const HomePage: React.FC<HomePageProps> = ({}) => {
                 </h2>
                 <FriendsList />
             </div>
+
             <Divider />
+
+            {hasNextPage && (
+                <div className="flex justify-center">
+                    <Button onClick={loadOlderMessages} disabled={fetching}>
+                        {fetching ? "Loading..." : "Load older messages"}
+                    </Button>
+                </div>
+            )}
+
             <Messages messages={messages} />
 
             <div
