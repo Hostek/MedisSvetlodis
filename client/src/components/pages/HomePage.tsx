@@ -12,11 +12,9 @@ import Link from "next/link"
 import React, { useCallback, useEffect, useState } from "react"
 import FriendsListOldUI from "../friends/FriendsListOldUI"
 import Messages from "../messages/Messages"
+import { MESSAGE_PAGE_SIZE } from "@/constants"
 
 interface HomePageProps {}
-
-// @TODO – tmp value
-const MESSAGE_PAGE_SIZE = 4
 
 const HomePage: React.FC<HomePageProps> = ({}) => {
     const [content, setContent] = useState("")

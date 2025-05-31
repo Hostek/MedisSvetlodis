@@ -1,9 +1,10 @@
 "use client"
 import { useGetFriendsQuery } from "@/generated/graphql"
-import { Spinner } from "@heroui/react"
+import { Button, Spinner } from "@heroui/react"
 import React, { useCallback, useEffect, useState } from "react"
 import Error from "../helper/Error"
 import { errors } from "@hostek/shared"
+import { FRIENDS_PAGE_SIZE } from "@/constants"
 
 interface FriendsListProps {}
 
@@ -16,7 +17,7 @@ const FriendsList: React.FC<FriendsListProps> = () => {
         {
             variables: {
                 input: {
-                    first: 10,
+                    first: FRIENDS_PAGE_SIZE,
                     after: cursor,
                 },
             },
@@ -57,9 +58,15 @@ const FriendsList: React.FC<FriendsListProps> = () => {
             ))}
 
             {hasNextPage && (
-                <button onClick={loadFriends} disabled={fetching}>
+                <Button
+                    onPress={loadFriends}
+                    disabled={fetching}
+                    color="primary"
+                    fullWidth
+                    className="my-2"
+                >
                     {fetching ? "Loading..." : "Load More"}
-                </button>
+                </Button>
             )}
         </div>
     )
