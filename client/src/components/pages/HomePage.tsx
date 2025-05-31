@@ -19,8 +19,8 @@ const MESSAGE_PAGE_SIZE = 4
 const HomePage: React.FC<HomePageProps> = ({}) => {
     const [content, setContent] = useState("")
     const [error, setError] = useState("")
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [{ fetching: creating }, createMessage] = useCreateMessageMutation()
+    const [{ fetching: creatingFetching }, createMessage] =
+        useCreateMessageMutation()
     const { user } = useAppContext()
 
     const [messages, setMessages] = useState<
@@ -44,8 +44,10 @@ const HomePage: React.FC<HomePageProps> = ({}) => {
     // Append paginated messages when fetched
     useEffect(() => {
         if (data?.getMessages?.edges) {
+            console.log({ data })
+
             setMessages((prev) => [
-                ...data.getMessages.edges.map((e) => e.node),
+                ...data.getMessages.edges.map((e) => e.node).toReversed(),
                 ...prev,
             ])
 
@@ -131,7 +133,7 @@ const HomePage: React.FC<HomePageProps> = ({}) => {
 
             {hasNextPage && (
                 <div className="flex justify-center">
-                    <Button onClick={loadOlderMessages} disabled={fetching}>
+                    <Button onPress={loadOlderMessages} disabled={fetching}>
                         {fetching ? "Loading..." : "Load older messages"}
                     </Button>
                 </div>
@@ -163,7 +165,12 @@ const HomePage: React.FC<HomePageProps> = ({}) => {
                 {error && (
                     <div className="w-full text-red-500">Error: {error}</div>
                 )}
-                <Button type="submit" color="primary" className="w-full">
+                <Button
+                    type="submit"
+                    color="primary"
+                    className="w-full"
+                    disabled={creatingFetching}
+                >
                     Submit
                 </Button>
             </Form>
