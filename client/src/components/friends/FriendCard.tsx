@@ -15,7 +15,7 @@ const FriendCard: React.FC<FriendCardProps> = ({ edge: { node } }) => {
             <div className="flex">
                 <div className="w-24 flex items-center justify-center">
                     <CircleAvatar
-                        color="blue"
+                        color={node.avatarBgColor}
                         letter={getFirstCharOrDefault(node.username)}
                     />
                 </div>
