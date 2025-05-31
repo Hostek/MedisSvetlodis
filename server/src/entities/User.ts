@@ -46,6 +46,10 @@ export class User extends BaseEntity {
     @Column({ type: "text", unique: true })
     identifier: string
 
+    @Field(() => String)
+    @Column({ default: "#6A4A2E" })
+    avatarBgColor: string
+
     @Field(() => Int)
     @Column("int", { default: 3 })
     updateUsernameAttempts: number
