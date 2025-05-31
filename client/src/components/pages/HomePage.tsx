@@ -8,12 +8,14 @@ import {
 } from "@/generated/graphql"
 import { Button, Divider, Form, Textarea } from "@heroui/react"
 import { errors, getMessageError, MAX_MESSAGE_LENGTH } from "@hostek/shared"
+import Link from "next/link"
 import React, { useCallback, useEffect, useState } from "react"
-import FriendsList from "../friends/FriendsList"
+import FriendsListOldUI from "../friends/FriendsListOldUI"
 import Messages from "../messages/Messages"
 
 interface HomePageProps {}
 
+// @TODO – tmp value
 const MESSAGE_PAGE_SIZE = 4
 
 const HomePage: React.FC<HomePageProps> = ({}) => {
@@ -101,6 +103,11 @@ const HomePage: React.FC<HomePageProps> = ({}) => {
     return (
         <div className="max-w-screen-md mx-auto p-6 space-y-6">
             <div className="full-width">
+                USER ID: {user.id}
+                <br />
+                <Link href={"/friends"}>Friends Link</Link>
+            </div>
+            <div className="full-width">
                 <Button
                     as="a"
                     href="/friend-request"
@@ -123,10 +130,8 @@ const HomePage: React.FC<HomePageProps> = ({}) => {
                 </Button>
             </div>
             <div className="space-y-4">
-                <h2 className="text-lg font-medium text-foreground">
-                    Friends ({user.id})
-                </h2>
-                <FriendsList />
+                <h2 className="text-lg font-medium text-foreground">Friends</h2>
+                <FriendsListOldUI />
             </div>
 
             <Divider />
