@@ -5,6 +5,7 @@ import Redis from "ioredis"
 import { FriendRequestToken } from "./entities/FriendRequestToken.js"
 import { FriendRequests } from "./entities/FriendsRequests.js"
 import { Block } from "./entities/Block.js"
+import { Channel } from "./entities/Channel.js"
 
 export const AppDataSource = new DataSource({
     type: "postgres",
@@ -13,7 +14,14 @@ export const AppDataSource = new DataSource({
     password: process.env.DB_PASS,
     logging: true,
     synchronize: true,
-    entities: [User, Message, FriendRequestToken, FriendRequests, Block],
+    entities: [
+        User,
+        Message,
+        FriendRequestToken,
+        FriendRequests,
+        Block,
+        Channel,
+    ],
     host: "localhost",
     port: parseInt(process.env.DB_PORT),
 })
