@@ -1,7 +1,8 @@
-import { errors, getMessageError } from "@hostek/shared"
+import { errors, generateChannelId, getMessageError } from "@hostek/shared"
 import {
     Arg,
     Ctx,
+    Int,
     Mutation,
     Query,
     Resolver,
@@ -19,6 +20,10 @@ import {
     PaginationCursorArgs,
 } from "../types.js"
 import { decodeCursor, encodeCursor } from "../utils/cursor.js"
+import { Block } from "../entities/Block.js"
+import { User } from "../entities/User.js"
+import { AppDataSource } from "../DataSource.js"
+import { Channel } from "../entities/Channel.js"
 
 @Resolver()
 export class MessageResolver {
@@ -71,6 +76,14 @@ export class MessageResolver {
         }
     }
 
+    /**
+     * @TODO
+     * @deprecated please - do not use – it's left for now as archive, will be reused, but pls
+     *
+     * @param content
+     * @param ctx
+     * @returns
+     */
     @Mutation(() => FieldError, { nullable: true })
     @UseMiddleware(isAuth)
     async createMessage(
@@ -113,6 +126,12 @@ export class MessageResolver {
         return null
     }
 
+    /**
+     *
+     * @deprecated see `createMessage` mutation for more details ..
+     *
+     * will delete soon this @TODO
+     */
     @Subscription(() => Message, {
         topics: "MESSAGE_ADDED",
         // For dynamic topics, use: topics: ({ args }) => `MESSAGE_ADDED_${args.channel}`
@@ -125,5 +144,108 @@ export class MessageResolver {
     ): Message {
         // console.log({ messagePayload })
         return messagePayload
+    }
+
+    @Mutation(() => FieldError, { nullable: true })
+    @UseMiddleware(isAuth)
+    async createMessageFriend(
+        @Arg("content") content: string,
+        @Arg("friendId", () => Int) friendId: number,
+        @Ctx() ctx: MyContext
+    ): Promise<FieldError | null> {
+        const creatorId = ctx.req.session.userId
+
+        if (creatorId === friendId) {
+            return { message: "You cannot send a message to yourself." }
+        }
+
+        const msg_error = getMessageError(content)
+        if (msg_error) {
+            return { message: msg_error }
+        }
+
+        const [userA, userB] = [creatorId, friendId]
+
+        const tm = AppDataSource.manager
+
+        // Check if users are friends (bidirectional)
+        const areFriends = await tm
+            .getRepository(User)
+            .createQueryBuilder("user")
+            .innerJoin("user.friends", "friend")
+            .where("(user.id = :idA AND friend.id = :idB)")
+            .orWhere("(user.id = :idB AND friend.id = :idA)")
+            .setParameters({ idA: userA, idB: userB })
+            .getExists()
+
+        if (!areFriends) {
+            return { message: "You can only message your friends." }
+        }
+
+        // Check for any blocking relationship (bidirectional)
+        const isBlocked = await tm
+            .getRepository(Block)
+            .createQueryBuilder("block")
+            .where(
+                "(block.blockerId = :idA AND block.blockedId = :idB) OR (block.blockerId = :idB AND block.blockedId = :idA)"
+            )
+            .setParameters({ idA: userA, idB: userB })
+            .getExists()
+
+        if (isBlocked) {
+            return { message: "You cannot message this user." }
+        }
+
+        const CreatorUser = await User.findOne({
+            where: { id: creatorId },
+        })
+        const FriendUser = await User.findOne({ where: { id: friendId } })
+
+        if (!CreatorUser || !FriendUser) {
+            return { message: errors.unknownError }
+        }
+
+        const channelIdentifier = generateChannelId(
+            CreatorUser.identifier,
+            FriendUser.identifier
+        )
+
+        const LocalChannel = await Channel.findOne({
+            where: { uniqueIdentifier: channelIdentifier },
+        })
+
+        if (!LocalChannel) {
+            return { message: errors.unknownError }
+        }
+
+        // Insert the message
+        const insertResult = await Message.createQueryBuilder()
+            .insert()
+            .into(Message)
+            .values({
+                creatorId,
+                content,
+                channelId: LocalChannel.id,
+            })
+            .execute()
+
+        const msg = await Message.createQueryBuilder("m")
+            .leftJoinAndSelect("m.creator", "creator")
+            .where("m.id = :id", { id: insertResult.raw[0].id })
+            .getOne()
+
+        if (!msg) {
+            throw new Error(errors.unknownError)
+        }
+
+        // Publish to both sender and friend
+        try {
+            await pubSub.publish(`MESSAGE_ADDED_${creatorId}`, msg)
+            await pubSub.publish(`MESSAGE_ADDED_${friendId}`, msg)
+        } catch (err) {
+            console.error("PubSub error: ", err)
+        }
+
+        return null
     }
 }
