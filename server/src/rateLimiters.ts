@@ -17,3 +17,11 @@ export const loginRateLimiter = new RateLimiterRedis({
     duration: 15 * 60,
     blockDuration: 60 * 60,
 })
+
+export const messageRateLimiter = new RateLimiterRedis({
+    storeClient: redisClient,
+    keyPrefix: "create_message_friend",
+    points: 80,
+    duration: 60 * 5,
+    blockDuration: 60 * 15,
+})
