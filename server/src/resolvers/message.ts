@@ -24,6 +24,7 @@ import { Block } from "../entities/Block.js"
 import { User } from "../entities/User.js"
 import { AppDataSource } from "../DataSource.js"
 import { Channel } from "../entities/Channel.js"
+import { messageRateLimiter } from "../rateLimiters.js"
 
 @Resolver()
 export class MessageResolver {
@@ -153,6 +154,12 @@ export class MessageResolver {
         @Arg("friendId", () => Int) friendId: number,
         @Ctx() ctx: MyContext
     ): Promise<FieldError | null> {
+        try {
+            await messageRateLimiter.consume(ctx.ip)
+        } catch (error) {
+            return { message: errors.tooManyRequests }
+        }
+
         const creatorId = ctx.req.session.userId
 
         if (creatorId === friendId) {
