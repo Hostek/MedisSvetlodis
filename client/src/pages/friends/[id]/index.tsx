@@ -1,4 +1,6 @@
 "use client"
+import BasicLayout from "@/components/layouts/BasicLayout"
+import OneOnOneChatPage from "@/components/pages/OneOnOneChatPage"
 import { createUrqlClient } from "@/utils/createUrqlClient"
 import { NextPage } from "next"
 import { withUrqlClient } from "next-urql"
@@ -14,7 +16,11 @@ const Page: NextPage = () => {
         else return "none"
     }, [id])
 
-    return <div>ID: {realId}</div>
+    return (
+        <BasicLayout>
+            <OneOnOneChatPage friendIdentifier={realId} />
+        </BasicLayout>
+    )
 }
 
 export default withUrqlClient(createUrqlClient)(Page)
