@@ -16,6 +16,14 @@ interface MessageCreationOldProps {
     user: UserType
 }
 
+/**
+ *
+ * Old component
+ * Stuff from this will be reused so it's stored in repo
+ * (for now atleast)
+ *
+ * hmm...
+ */
 const MessageCreationOld: React.FC<MessageCreationOldProps> = ({ user }) => {
     const [content, setContent] = useState("")
     const [error, setError] = useState("")

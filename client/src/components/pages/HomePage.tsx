@@ -4,6 +4,7 @@ import { Button } from "@heroui/react"
 import Link from "next/link"
 import React from "react"
 import FriendsListOldUI from "../friends/FriendsListOldUI"
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import MessageCreationOld from "../messages/old/MessageCreationOld"
 
 interface HomePageProps {}
@@ -49,7 +50,7 @@ const HomePage: React.FC<HomePageProps> = ({}) => {
                 <FriendsListOldUI />
             </div>
 
-            <MessageCreationOld user={user} />
+            {/* <MessageCreationOld user={user} /> */}
         </div>
     )
 }
