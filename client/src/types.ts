@@ -9,6 +9,7 @@ import {
     useUnblockFriendRequestTokenMutation,
 } from "./generated/graphql"
 import { DeepMerge, ExtractPromiseType, NonNullableType } from "@hostek/shared"
+import { useIsAuth } from "./hooks/isAuth"
 
 export type betterUpdateQueryFn<R, Q> = (r: R, q: Q) => Q
 
@@ -88,3 +89,5 @@ export type FriendListEdge = ElementType<
         ReturnType<typeof useGetFriendsQuery>[0]["data"]
     >["getFriends"]["edges"]
 >
+
+export type UserType = ReturnType<typeof useIsAuth>["user"]
