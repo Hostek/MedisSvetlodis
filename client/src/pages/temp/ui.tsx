@@ -1,5 +1,6 @@
 "use client"
 import CircleAvatar from "@/components/ui/CircleAvatar"
+import { Card, Divider, Link } from "@heroui/react"
 import { NextPage } from "next"
 
 const gradientColors = [
@@ -84,31 +85,45 @@ const letter = "A"
 
 const Page: NextPage = () => {
     return (
-        <div className="flex items-center justify-center">
-            <div className="grid grid-cols-10 auto-rows-auto gap-2 max-w-screen-md">
-                {/* <CircleAvatar color="blue" letter="W" />
+        <div>
+            <div className="flex items-center justify-center">
+                <div className="grid grid-cols-10 auto-rows-auto gap-2 max-w-screen-md">
+                    {/* <CircleAvatar color="blue" letter="W" />
                 <CircleAvatar color="green" letter="Z" />
                 <CircleAvatar color="red" letter="P" />
                 <CircleAvatar color="orange" letter="X" />
                 <CircleAvatar color="#FF6B6B" letter="X" /> */}
-                {gradientColors.map((c) => (
-                    <CircleAvatar color={c} key={c} letter={letter} />
-                ))}
-                {darkBaseColors.map((c) => (
-                    <CircleAvatar color={c} key={c} letter={letter} />
-                ))}
-                {diverseDarkColors.map((c) => (
-                    <CircleAvatar color={c} key={c} letter={letter} />
-                ))}
-                {lighterColors.map((c) => (
-                    <CircleAvatar color={c} key={c} letter={letter} />
-                ))}
-                {diverseDarkColors1.map((c) => (
-                    <CircleAvatar color={c} key={c} letter={letter} />
-                ))}
-                {lighterColors1.map((c) => (
-                    <CircleAvatar color={c} key={c} letter={letter} />
-                ))}
+                    {gradientColors.map((c) => (
+                        <CircleAvatar color={c} key={c} letter={letter} />
+                    ))}
+                    {darkBaseColors.map((c) => (
+                        <CircleAvatar color={c} key={c} letter={letter} />
+                    ))}
+                    {diverseDarkColors.map((c) => (
+                        <CircleAvatar color={c} key={c} letter={letter} />
+                    ))}
+                    {lighterColors.map((c) => (
+                        <CircleAvatar color={c} key={c} letter={letter} />
+                    ))}
+                    {diverseDarkColors1.map((c) => (
+                        <CircleAvatar color={c} key={c} letter={letter} />
+                    ))}
+                    {lighterColors1.map((c) => (
+                        <CircleAvatar color={c} key={c} letter={letter} />
+                    ))}
+                </div>
+            </div>
+            <Divider className="my-10" />
+            <div>
+                <Link as={Card} href="/" className="p-10" fullWidth>
+                    Hello Test
+                </Link>
+
+                <div className="my-6" />
+
+                <Card as="a" href="/" className="p-10" fullWidth>
+                    Hello Test
+                </Card>
             </div>
         </div>
     )

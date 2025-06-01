@@ -10,6 +10,7 @@ import {
     UpdateDateColumn,
 } from "typeorm"
 import { User } from "./User.js"
+import { Channel } from "./Channel.js"
 
 @ObjectType()
 @Entity()
@@ -37,4 +38,11 @@ export class Message extends BaseEntity {
     @Field(() => String)
     @Column("text")
     content: string
+
+    @Field(() => Int)
+    @Column("int")
+    channelId!: number
+
+    @ManyToOne(() => Channel, (channel) => channel.messages)
+    channel!: Relation<Channel>
 }

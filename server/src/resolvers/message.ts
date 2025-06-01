@@ -1,7 +1,8 @@
-import { errors, getMessageError } from "@hostek/shared"
+import { errors, generateChannelId, getMessageError } from "@hostek/shared"
 import {
     Arg,
     Ctx,
+    Int,
     Mutation,
     Query,
     Resolver,
@@ -19,6 +20,11 @@ import {
     PaginationCursorArgs,
 } from "../types.js"
 import { decodeCursor, encodeCursor } from "../utils/cursor.js"
+import { Block } from "../entities/Block.js"
+import { User } from "../entities/User.js"
+import { AppDataSource } from "../DataSource.js"
+import { Channel } from "../entities/Channel.js"
+import { messageRateLimiter } from "../rateLimiters.js"
 
 @Resolver()
 export class MessageResolver {
@@ -71,6 +77,14 @@ export class MessageResolver {
         }
     }
 
+    /**
+     * @TODO
+     * @deprecated please - do not use – it's left for now as archive, will be reused, but pls
+     *
+     * @param content
+     * @param ctx
+     * @returns
+     */
     @Mutation(() => FieldError, { nullable: true })
     @UseMiddleware(isAuth)
     async createMessage(
@@ -113,6 +127,12 @@ export class MessageResolver {
         return null
     }
 
+    /**
+     *
+     * @deprecated see `createMessage` mutation for more details ..
+     *
+     * will delete soon this @TODO
+     */
     @Subscription(() => Message, {
         topics: "MESSAGE_ADDED",
         // For dynamic topics, use: topics: ({ args }) => `MESSAGE_ADDED_${args.channel}`
@@ -126,4 +146,131 @@ export class MessageResolver {
         // console.log({ messagePayload })
         return messagePayload
     }
+
+    @Mutation(() => FieldError, { nullable: true })
+    @UseMiddleware(isAuth)
+    async createMessageFriend(
+        @Arg("content") content: string,
+        @Arg("friendId", () => Int) friendId: number,
+        @Ctx() ctx: MyContext
+    ): Promise<FieldError | null> {
+        try {
+            await messageRateLimiter.consume(ctx.ip)
+        } catch (error) {
+            return { message: errors.tooManyRequests }
+        }
+
+        const creatorId = ctx.req.session.userId
+
+        if (creatorId === friendId) {
+            return { message: "You cannot message yourself." }
+        }
+
+        const msgError = getMessageError(content)
+        if (msgError) {
+            return { message: msgError }
+        }
+
+        const userRepo = AppDataSource.getRepository(User)
+        const blockRepo = AppDataSource.getRepository(Block)
+        const channelRepo = AppDataSource.getRepository(Channel)
+        // const messageRepo = AppDataSource.getRepository(Message)
+
+        // Fetch both users and validate existence + friendship + block in one go
+        const [creator, friend] = await Promise.all([
+            userRepo.findOne({
+                where: { id: creatorId },
+                relations: ["friends"],
+            }),
+            userRepo.findOne({
+                where: { id: friendId },
+                relations: ["friends"],
+            }),
+        ])
+
+        if (!creator || !friend) {
+            return { message: errors.unknownError }
+        }
+
+        const isFriend =
+            creator.friends.some((f) => f.id === friendId) ||
+            friend.friends.some((f) => f.id === creatorId)
+
+        if (!isFriend) {
+            return { message: "You can only message your friends." }
+        }
+
+        // Check block in both directions
+        const isBlocked = await blockRepo
+            .createQueryBuilder("block")
+            .where(
+                "(block.blockerId = :creatorId AND block.blockedId = :friendId) OR (block.blockerId = :friendId AND block.blockedId = :creatorId)"
+            )
+            .setParameters({ creatorId, friendId })
+            .getExists()
+
+        if (isBlocked) {
+            return { message: "You cannot message this user." }
+        }
+
+        // Determine channel
+        const channelIdentifier = generateChannelId(
+            creator.identifier,
+            friend.identifier
+        )
+        const channel = await channelRepo.findOne({
+            where: { uniqueIdentifier: channelIdentifier },
+        })
+
+        if (!channel) {
+            return { message: errors.unknownError }
+        }
+
+        // Insert and fetch message in a single transaction
+        let message: Message | null = null
+
+        await AppDataSource.transaction(async (manager) => {
+            const result = await manager
+                .createQueryBuilder()
+                .insert()
+                .into(Message)
+                .values({ creatorId, content, channelId: channel.id })
+                .returning("*")
+                .execute()
+
+            const insertedId = result.raw[0]?.id
+            if (!insertedId) throw new Error("Message creation failed")
+
+            message = await manager
+                .getRepository(Message)
+                .createQueryBuilder("m")
+                .leftJoinAndSelect("m.creator", "creator")
+                .where("m.id = :id", { id: insertedId })
+                .getOne()
+        })
+
+        if (!message) {
+            throw new Error(errors.unknownError)
+        }
+
+        // Publish message events asynchronously
+        void pubSub.publish(`MESSAGE_ADDED_${creatorId}`, message)
+        void pubSub.publish(`MESSAGE_ADDED_${friendId}`, message)
+
+        return null
+    }
 }
+
+/*
+
+@Subscription(() => Message, {
+    topics: ({ args }) => [`MESSAGE_ADDED_${args.userId}`],
+})
+messageAdded(
+    @Arg("userId", () => Int) userId: number
+): AsyncIterator<Message> {
+    return pubSub.asyncIterator(`MESSAGE_ADDED_${userId}`)
+}
+
+
+*/

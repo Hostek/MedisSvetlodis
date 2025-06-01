@@ -1,8 +1,9 @@
 import { useIsAuth } from "@/hooks/isAuth"
+import { UserType } from "@/types"
 import React, { PropsWithChildren, useContext } from "react"
 
 interface AppContextInterface {
-    user: ReturnType<typeof useIsAuth>["user"]
+    user: UserType
 }
 
 const AppContext = React.createContext<AppContextInterface>({ user: undefined })
