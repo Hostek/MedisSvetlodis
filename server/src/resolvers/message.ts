@@ -156,96 +156,114 @@ export class MessageResolver {
         const creatorId = ctx.req.session.userId
 
         if (creatorId === friendId) {
-            return { message: "You cannot send a message to yourself." }
+            return { message: "You cannot message yourself." }
         }
 
-        const msg_error = getMessageError(content)
-        if (msg_error) {
-            return { message: msg_error }
+        const msgError = getMessageError(content)
+        if (msgError) {
+            return { message: msgError }
         }
 
-        const [userA, userB] = [creatorId, friendId]
+        const userRepo = AppDataSource.getRepository(User)
+        const blockRepo = AppDataSource.getRepository(Block)
+        const channelRepo = AppDataSource.getRepository(Channel)
+        // const messageRepo = AppDataSource.getRepository(Message)
 
-        const tm = AppDataSource.manager
+        // Fetch both users and validate existence + friendship + block in one go
+        const [creator, friend] = await Promise.all([
+            userRepo.findOne({
+                where: { id: creatorId },
+                relations: ["friends"],
+            }),
+            userRepo.findOne({
+                where: { id: friendId },
+                relations: ["friends"],
+            }),
+        ])
 
-        // Check if users are friends (bidirectional)
-        const areFriends = await tm
-            .getRepository(User)
-            .createQueryBuilder("user")
-            .innerJoin("user.friends", "friend")
-            .where("(user.id = :idA AND friend.id = :idB)")
-            .orWhere("(user.id = :idB AND friend.id = :idA)")
-            .setParameters({ idA: userA, idB: userB })
-            .getExists()
+        if (!creator || !friend) {
+            return { message: errors.unknownError }
+        }
 
-        if (!areFriends) {
+        const isFriend =
+            creator.friends.some((f) => f.id === friendId) ||
+            friend.friends.some((f) => f.id === creatorId)
+
+        if (!isFriend) {
             return { message: "You can only message your friends." }
         }
 
-        // Check for any blocking relationship (bidirectional)
-        const isBlocked = await tm
-            .getRepository(Block)
+        // Check block in both directions
+        const isBlocked = await blockRepo
             .createQueryBuilder("block")
             .where(
-                "(block.blockerId = :idA AND block.blockedId = :idB) OR (block.blockerId = :idB AND block.blockedId = :idA)"
+                "(block.blockerId = :creatorId AND block.blockedId = :friendId) OR (block.blockerId = :friendId AND block.blockedId = :creatorId)"
             )
-            .setParameters({ idA: userA, idB: userB })
+            .setParameters({ creatorId, friendId })
             .getExists()
 
         if (isBlocked) {
             return { message: "You cannot message this user." }
         }
 
-        const CreatorUser = await User.findOne({
-            where: { id: creatorId },
-        })
-        const FriendUser = await User.findOne({ where: { id: friendId } })
-
-        if (!CreatorUser || !FriendUser) {
-            return { message: errors.unknownError }
-        }
-
+        // Determine channel
         const channelIdentifier = generateChannelId(
-            CreatorUser.identifier,
-            FriendUser.identifier
+            creator.identifier,
+            friend.identifier
         )
-
-        const LocalChannel = await Channel.findOne({
+        const channel = await channelRepo.findOne({
             where: { uniqueIdentifier: channelIdentifier },
         })
 
-        if (!LocalChannel) {
+        if (!channel) {
             return { message: errors.unknownError }
         }
 
-        // Insert the message
-        const insertResult = await Message.createQueryBuilder()
-            .insert()
-            .into(Message)
-            .values({
-                creatorId,
-                content,
-                channelId: LocalChannel.id,
-            })
-            .execute()
+        // Insert and fetch message in a single transaction
+        let message: Message | null = null
 
-        const msg = await Message.createQueryBuilder("m")
-            .leftJoinAndSelect("m.creator", "creator")
-            .where("m.id = :id", { id: insertResult.raw[0].id })
-            .getOne()
+        await AppDataSource.transaction(async (manager) => {
+            const result = await manager
+                .createQueryBuilder()
+                .insert()
+                .into(Message)
+                .values({ creatorId, content, channelId: channel.id })
+                .returning("*")
+                .execute()
 
-        if (!msg) {
+            const insertedId = result.raw[0]?.id
+            if (!insertedId) throw new Error("Message creation failed")
+
+            message = await manager
+                .getRepository(Message)
+                .createQueryBuilder("m")
+                .leftJoinAndSelect("m.creator", "creator")
+                .where("m.id = :id", { id: insertedId })
+                .getOne()
+        })
+
+        if (!message) {
             throw new Error(errors.unknownError)
         }
 
-        // Publish to both sender and friend
-        try {
-            await pubSub.publish(`MESSAGE_ADDED_${creatorId}`, msg)
-            await pubSub.publish(`MESSAGE_ADDED_${friendId}`, msg)
-        } catch (err) {
-            console.error("PubSub error: ", err)
-        }
+        // Publish message events asynchronously
+        void pubSub.publish(`MESSAGE_ADDED_${creatorId}`, message)
+        void pubSub.publish(`MESSAGE_ADDED_${friendId}`, message)
 
         return null
     }
 }
+
+/*
+
+@Subscription(() => Message, {
+    topics: ({ args }) => [`MESSAGE_ADDED_${args.userId}`],
+})
+messageAdded(
+    @Arg("userId", () => Int) userId: number
+): AsyncIterator<Message> {
+    return pubSub.asyncIterator(`MESSAGE_ADDED_${userId}`)
+}
+
+
+*/
