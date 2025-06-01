@@ -11,7 +11,7 @@ interface FriendCardProps {
 
 const FriendCard: React.FC<FriendCardProps> = ({ edge: { node } }) => {
     return (
-        <Card className="my-7 py-5">
+        <Card className="my-7 py-5 cursor-pointer transform transition-transform duration-300 hover:scale-110">
             <div className="flex">
                 <div className="w-24 flex items-center justify-center">
                     <CircleAvatar
