@@ -1,5 +1,5 @@
 "use client"
-import FriendRequestForm from "@/components/friend_request/FriendRequestForm"
+import FriendRequestForm from "@/components/friends/friend_request/FriendRequestForm"
 import BasicLayout from "@/components/layouts/BasicLayout"
 import BackButton from "@/components/ui/BackButton"
 import { createUrqlClient } from "@/utils/createUrqlClient"

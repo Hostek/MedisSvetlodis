@@ -2,8 +2,8 @@
 import { useGetFriendRequestsQuery } from "@/generated/graphql"
 import { Spinner } from "@heroui/react"
 import React from "react"
-import FriendRequestCard from "../friend_request/FriendRequestCard"
 import BackButton from "../ui/BackButton"
+import FriendRequestCard from "../friends/friend_request/FriendRequestCard"
 
 interface FriendRequestsPageProps {}
 

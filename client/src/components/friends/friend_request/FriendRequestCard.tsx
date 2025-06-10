@@ -1,4 +1,6 @@
 "use client"
+import Error from "@/components/helper/Error"
+import BlockIcon from "@/components/icons/BlockIcon"
 import {
     FriendRequestEnum,
     useBlockUserMutation,
@@ -18,8 +20,6 @@ import {
 import { errors, FRIEND_REQUEST_STATUS_OBJ } from "@hostek/shared"
 import React, { useCallback, useMemo, useState } from "react"
 import { Check, X } from "react-feather"
-import Error from "../helper/Error"
-import BlockIcon from "../icons/BlockIcon"
 
 interface FriendRequestCardProps {
     request: FriendRequestType
