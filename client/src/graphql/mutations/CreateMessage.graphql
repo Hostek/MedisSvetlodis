@@ -1,3 +1,4 @@
+# do not use this!
 mutation CreateMessage($content: String!) {
     createMessage(content: $content) {
         ...ErrorFragment
