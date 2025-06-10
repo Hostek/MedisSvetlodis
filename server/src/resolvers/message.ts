@@ -259,18 +259,16 @@ export class MessageResolver {
 
         return null
     }
+
+    // important: use middleware for security reasons!
+    @Subscription(() => Message, {
+        topics: ({ context }) => [
+            `MESSAGE_ADDED_${context.req.session.userId}`,
+        ],
+    })
+    @UseMiddleware(isAuth)
+    usrMessageAdded(@Ctx() ctx: MyContext): AsyncIterator<Message> {
+        const userId = ctx.req.session.userId
+        return pubSub.asyncIterator(`MESSAGE_ADDED_${userId}`)
+    }
 }
-
-/*
-
-@Subscription(() => Message, {
-    topics: ({ args }) => [`MESSAGE_ADDED_${args.userId}`],
-})
-messageAdded(
-    @Arg("userId", () => Int) userId: number
-): AsyncIterator<Message> {
-    return pubSub.asyncIterator(`MESSAGE_ADDED_${userId}`)
-}
-
-
-*/
