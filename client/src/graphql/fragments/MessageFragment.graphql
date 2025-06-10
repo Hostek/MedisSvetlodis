@@ -4,4 +4,5 @@ fragment MessageFragment on Message {
     creatorId
     id
     updatedAt
+    channelId
 }

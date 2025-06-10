@@ -92,6 +92,7 @@ export type LoginResponse = {
 
 export type Message = {
   __typename?: 'Message';
+  channelId: Scalars['Int']['output'];
   content: Scalars['String']['output'];
   createdAt: Scalars['String']['output'];
   creator: User;
@@ -123,6 +124,7 @@ export type Mutation = {
   createHoaxUsers?: Maybe<FieldError>;
   createHoaxUsersAndAddToFriends?: Maybe<FieldError>;
   createMessage?: Maybe<FieldError>;
+  createMessageFriend?: Maybe<FieldError>;
   handleFriendRequest?: Maybe<FieldError>;
   login: LoginResponse;
   logout: Scalars['Boolean']['output'];
@@ -172,6 +174,12 @@ export type MutationCreateHoaxUsersAndAddToFriendsArgs = {
 
 export type MutationCreateMessageArgs = {
   content: Scalars['String']['input'];
+};
+
+
+export type MutationCreateMessageFriendArgs = {
+  content: Scalars['String']['input'];
+  friendId: Scalars['Int']['input'];
 };
 
 
@@ -283,6 +291,7 @@ export type QueryGetUserByPublicIdArgs = {
 export type Subscription = {
   __typename?: 'Subscription';
   messageAdded: Message;
+  usrMessageAdded: Message;
 };
 
 export type User = {
@@ -317,9 +326,9 @@ export type FriendRequestTokensFragmentFragment = { __typename?: 'FriendRequestT
 
 export type LoginResponseFragmentFragment = { __typename?: 'LoginResponse', user?: { __typename?: 'User', username: string, updatedAt: string, id: number, email: string, createdAt: string, updateUsernameAttempts: number, identifier: string, generatedDefaultFriendRequestTokens: boolean } | null, errors?: Array<{ __typename?: 'FieldError', message: string }> | null };
 
-export type MessageFragmentFragment = { __typename?: 'Message', content: string, createdAt: string, creatorId: number, id: number, updatedAt: string };
+export type MessageFragmentFragment = { __typename?: 'Message', content: string, createdAt: string, creatorId: number, id: number, updatedAt: string, channelId: number };
 
-export type MessageWithCreatorFragmentFragment = { __typename?: 'Message', content: string, createdAt: string, creatorId: number, id: number, updatedAt: string, creator: { __typename?: 'User', username: string, id: number } };
+export type MessageWithCreatorFragmentFragment = { __typename?: 'Message', content: string, createdAt: string, creatorId: number, id: number, updatedAt: string, channelId: number, creator: { __typename?: 'User', username: string, id: number } };
 
 export type RequestToken_GetFriendRequesFragmentFragment = { __typename?: 'FriendRequestToken', id: number, token: string };
 
@@ -366,6 +375,14 @@ export type CreateMessageMutationVariables = Exact<{
 
 
 export type CreateMessageMutation = { __typename?: 'Mutation', createMessage?: { __typename?: 'FieldError', message: string } | null };
+
+export type CreateMessageFriendMutationVariables = Exact<{
+  friendId: Scalars['Int']['input'];
+  content: Scalars['String']['input'];
+}>;
+
+
+export type CreateMessageFriendMutation = { __typename?: 'Mutation', createMessageFriend?: { __typename?: 'FieldError', message: string } | null };
 
 export type HandleFriendRequestMutationVariables = Exact<{
   actionType: FriendRequestEnum;
@@ -484,7 +501,7 @@ export type GetMessagesQueryVariables = Exact<{
 }>;
 
 
-export type GetMessagesQuery = { __typename?: 'Query', getMessages: { __typename?: 'MessagesConnection', totalCount: number, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean, startCursor?: string | null }, edges: Array<{ __typename?: 'MessageEdge', cursor: string, node: { __typename?: 'Message', content: string, createdAt: string, creatorId: number, id: number, updatedAt: string, creator: { __typename?: 'User', username: string, id: number } } }> } };
+export type GetMessagesQuery = { __typename?: 'Query', getMessages: { __typename?: 'MessagesConnection', totalCount: number, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean, startCursor?: string | null }, edges: Array<{ __typename?: 'MessageEdge', cursor: string, node: { __typename?: 'Message', content: string, createdAt: string, creatorId: number, id: number, updatedAt: string, channelId: number, creator: { __typename?: 'User', username: string, id: number } } }> } };
 
 export type GetUserByPublicIdQueryVariables = Exact<{
   publicId: Scalars['String']['input'];
@@ -501,7 +518,12 @@ export type UserQuery = { __typename?: 'Query', user?: { __typename?: 'User', us
 export type MessageAddedSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MessageAddedSubscription = { __typename?: 'Subscription', messageAdded: { __typename?: 'Message', content: string, createdAt: string, creatorId: number, id: number, updatedAt: string, creator: { __typename?: 'User', username: string, id: number } } };
+export type MessageAddedSubscription = { __typename?: 'Subscription', messageAdded: { __typename?: 'Message', content: string, createdAt: string, creatorId: number, id: number, updatedAt: string, channelId: number, creator: { __typename?: 'User', username: string, id: number } } };
+
+export type UsrMessageAddedSubscriptionVariables = Exact<{ [key: string]: never; }>;
+
+
+export type UsrMessageAddedSubscription = { __typename?: 'Subscription', usrMessageAdded: { __typename?: 'Message', content: string, createdAt: string, creatorId: number, id: number, updatedAt: string, channelId: number, creator: { __typename?: 'User', username: string, id: number } } };
 
 export const FriendRequestTokensFragmentFragmentDoc = gql`
     fragment FriendRequestTokensFragment on FriendRequestToken {
@@ -548,6 +570,7 @@ export const MessageFragmentFragmentDoc = gql`
   creatorId
   id
   updatedAt
+  channelId
 }
     `;
 export const CreatorFragmentFragmentDoc = gql`
@@ -643,6 +666,17 @@ export const CreateMessageDocument = gql`
 
 export function useCreateMessageMutation() {
   return Urql.useMutation<CreateMessageMutation, CreateMessageMutationVariables>(CreateMessageDocument);
+};
+export const CreateMessageFriendDocument = gql`
+    mutation CreateMessageFriend($friendId: Int!, $content: String!) {
+  createMessageFriend(friendId: $friendId, content: $content) {
+    ...ErrorFragment
+  }
+}
+    ${ErrorFragmentFragmentDoc}`;
+
+export function useCreateMessageFriendMutation() {
+  return Urql.useMutation<CreateMessageFriendMutation, CreateMessageFriendMutationVariables>(CreateMessageFriendDocument);
 };
 export const HandleFriendRequestDocument = gql`
     mutation HandleFriendRequest($actionType: FriendRequestEnum!, $friendRequestId: Int!) {
@@ -909,4 +943,15 @@ export const MessageAddedDocument = gql`
 
 export function useMessageAddedSubscription<TData = MessageAddedSubscription>(options?: Omit<Urql.UseSubscriptionArgs<MessageAddedSubscriptionVariables>, 'query'>, handler?: Urql.SubscriptionHandler<MessageAddedSubscription, TData>) {
   return Urql.useSubscription<MessageAddedSubscription, TData, MessageAddedSubscriptionVariables>({ query: MessageAddedDocument, ...options }, handler);
+};
+export const UsrMessageAddedDocument = gql`
+    subscription UsrMessageAdded {
+  usrMessageAdded {
+    ...MessageWithCreatorFragment
+  }
+}
+    ${MessageWithCreatorFragmentFragmentDoc}`;
+
+export function useUsrMessageAddedSubscription<TData = UsrMessageAddedSubscription>(options?: Omit<Urql.UseSubscriptionArgs<UsrMessageAddedSubscriptionVariables>, 'query'>, handler?: Urql.SubscriptionHandler<UsrMessageAddedSubscription, TData>) {
+  return Urql.useSubscription<UsrMessageAddedSubscription, TData, UsrMessageAddedSubscriptionVariables>({ query: UsrMessageAddedDocument, ...options }, handler);
 };

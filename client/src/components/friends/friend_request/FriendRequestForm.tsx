@@ -1,7 +1,7 @@
 "use client"
 import { Button, Form, Input } from "@heroui/react"
 import React, { useCallback, useEffect, useState } from "react"
-import Error from "../helper/Error"
+import Error from "@/components/helper/Error"
 import { useCreateFriendRequestMutation } from "@/generated/graphql"
 import { HandleSubmit } from "@/types"
 import { errors, UUID_Regex } from "@hostek/shared"
