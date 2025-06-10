@@ -376,6 +376,14 @@ export type CreateMessageMutationVariables = Exact<{
 
 export type CreateMessageMutation = { __typename?: 'Mutation', createMessage?: { __typename?: 'FieldError', message: string } | null };
 
+export type CreateMessageFriendMutationVariables = Exact<{
+  friendId: Scalars['Int']['input'];
+  content: Scalars['String']['input'];
+}>;
+
+
+export type CreateMessageFriendMutation = { __typename?: 'Mutation', createMessageFriend?: { __typename?: 'FieldError', message: string } | null };
+
 export type HandleFriendRequestMutationVariables = Exact<{
   actionType: FriendRequestEnum;
   friendRequestId: Scalars['Int']['input'];
@@ -658,6 +666,17 @@ export const CreateMessageDocument = gql`
 
 export function useCreateMessageMutation() {
   return Urql.useMutation<CreateMessageMutation, CreateMessageMutationVariables>(CreateMessageDocument);
+};
+export const CreateMessageFriendDocument = gql`
+    mutation CreateMessageFriend($friendId: Int!, $content: String!) {
+  createMessageFriend(friendId: $friendId, content: $content) {
+    ...ErrorFragment
+  }
+}
+    ${ErrorFragmentFragmentDoc}`;
+
+export function useCreateMessageFriendMutation() {
+  return Urql.useMutation<CreateMessageFriendMutation, CreateMessageFriendMutationVariables>(CreateMessageFriendDocument);
 };
 export const HandleFriendRequestDocument = gql`
     mutation HandleFriendRequest($actionType: FriendRequestEnum!, $friendRequestId: Int!) {

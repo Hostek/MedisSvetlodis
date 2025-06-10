@@ -1,0 +1,5 @@
+mutation CreateMessageFriend($friendId: Int!, $content: String!) {
+    createMessageFriend(friendId: $friendId, content: $content) {
+        ...ErrorFragment
+    }
+}
