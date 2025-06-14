@@ -2,7 +2,6 @@ import { errors, generateChannelId, getMessageError } from "@hostek/shared"
 import {
     Arg,
     Ctx,
-    Int,
     Mutation,
     Query,
     Resolver,
@@ -151,7 +150,8 @@ export class MessageResolver {
     @UseMiddleware(isAuth)
     async createMessageFriend(
         @Arg("content") content: string,
-        @Arg("friendId", () => Int) friendId: number,
+        // @Arg("friendId", () => Int) friendId: number,
+        @Arg("friendIdentifier", () => String) friendIdentifier: string,
         @Ctx() ctx: MyContext
     ): Promise<FieldError | null> {
         try {
@@ -162,9 +162,9 @@ export class MessageResolver {
 
         const creatorId = ctx.req.session.userId
 
-        if (creatorId === friendId) {
-            return { message: "You cannot message yourself." }
-        }
+        // if (creatorId === friendId) {
+        //     return { message: "You cannot message yourself." }
+        // }
 
         const msgError = getMessageError(content)
         if (msgError) {
@@ -183,7 +183,8 @@ export class MessageResolver {
                 relations: ["friends"],
             }),
             userRepo.findOne({
-                where: { id: friendId },
+                // where: { id: friendId },
+                where: { identifier: friendIdentifier },
                 relations: ["friends"],
             }),
         ])
@@ -192,12 +193,16 @@ export class MessageResolver {
             return { message: errors.unknownError }
         }
 
+        if (creator.identifier === friendIdentifier) {
+            return { message: errors.cannotMessageYourself }
+        }
+
         const isFriend =
-            creator.friends.some((f) => f.id === friendId) ||
+            creator.friends.some((f) => f.identifier === friendIdentifier) ||
             friend.friends.some((f) => f.id === creatorId)
 
         if (!isFriend) {
-            return { message: "You can only message your friends." }
+            return { message: errors.youCanOnlyMessageYourFriends }
         }
 
         // Check block in both directions
@@ -206,11 +211,11 @@ export class MessageResolver {
             .where(
                 "(block.blockerId = :creatorId AND block.blockedId = :friendId) OR (block.blockerId = :friendId AND block.blockedId = :creatorId)"
             )
-            .setParameters({ creatorId, friendId })
+            .setParameters({ creatorId, friendId: friend.id })
             .getExists()
 
         if (isBlocked) {
-            return { message: "You cannot message this user." }
+            return { message: errors.youCannotMessageThisUser }
         }
 
         // Determine channel
@@ -218,12 +223,44 @@ export class MessageResolver {
             creator.identifier,
             friend.identifier
         )
-        const channel = await channelRepo.findOne({
+
+        let channel = await channelRepo.findOne({
             where: { uniqueIdentifier: channelIdentifier },
         })
 
         if (!channel) {
-            return { message: errors.unknownError }
+            try {
+                const insertResult = await channelRepo
+                    .createQueryBuilder()
+                    .insert()
+                    .into(Channel)
+                    .values({
+                        uniqueIdentifier: channelIdentifier,
+                    })
+                    .returning("*")
+                    .execute()
+
+                channel = insertResult.raw[0]
+
+                if (!channel) {
+                    return { message: errors.unknownError }
+                }
+            } catch (err: any) {
+                // Check for unique constraint violation
+                if (err.code === "23505") {
+                    // Channel was created by the other user at the same time — fetch it again
+                    channel = await channelRepo.findOne({
+                        where: { uniqueIdentifier: channelIdentifier },
+                    })
+
+                    if (!channel) {
+                        return { message: errors.unknownError }
+                    }
+                } else {
+                    // Some other DB error
+                    return { message: errors.unknownError }
+                }
+            }
         }
 
         // Insert and fetch message in a single transaction
@@ -250,25 +287,40 @@ export class MessageResolver {
         })
 
         if (!message) {
-            throw new Error(errors.unknownError)
+            // throw new Error(errors.unknownError)
+            return { message: errors.unknownError }
         }
+
+        // console.log({ message })
 
         // Publish message events asynchronously
         void pubSub.publish(`MESSAGE_ADDED_${creatorId}`, message)
-        void pubSub.publish(`MESSAGE_ADDED_${friendId}`, message)
+        void pubSub.publish(`MESSAGE_ADDED_${friend.id}`, message)
+
+        // console.log(
+        //     "publishing to topics:",
+        //     `MESSAGE_ADDED_${creatorId}`,
+        //     `MESSAGE_ADDED_${friend.id}`
+        // )
 
         return null
     }
 
     // important: use middleware for security reasons!
     @Subscription(() => Message, {
-        topics: ({ context }) => [
-            `MESSAGE_ADDED_${context.req.session.userId}`,
-        ],
+        topics: ({ context }) => {
+            // console.log({ cookie_ctx: context.req.session.userId })
+            return [`MESSAGE_ADDED_${context.req.session.userId}`]
+        },
     })
     @UseMiddleware(isAuth)
-    usrMessageAdded(@Ctx() ctx: MyContext): AsyncIterator<Message> {
-        const userId = ctx.req.session.userId
-        return pubSub.asyncIterator(`MESSAGE_ADDED_${userId}`)
+    usrMessageAdded(
+        @Root() messagePayload: Message
+        // @Ctx() ctx: MyContext
+    ): Message {
+        // const userId = ctx.req.session.userId
+        // console.log({ l: pubSub.asyncIterator(`MESSAGE_ADDED_${userId}`) })
+        // return pubSub.asyncIterator(`MESSAGE_ADDED_${userId}`)
+        return messagePayload
     }
 }
