@@ -151,7 +151,7 @@ export class MessageResolver {
     async createMessageFriend(
         @Arg("content") content: string,
         // @Arg("friendId", () => Int) friendId: number,
-        @Arg("friendIdentifier", () => String) friendId: string,
+        @Arg("friendIdentifier", () => String) friendIdentifier: string,
         @Ctx() ctx: MyContext
     ): Promise<FieldError | null> {
         try {
@@ -184,7 +184,7 @@ export class MessageResolver {
             }),
             userRepo.findOne({
                 // where: { id: friendId },
-                where: { identifier: friendId },
+                where: { identifier: friendIdentifier },
                 relations: ["friends"],
             }),
         ])
@@ -193,12 +193,12 @@ export class MessageResolver {
             return { message: errors.unknownError }
         }
 
-        if (creator.identifier === friendId) {
+        if (creator.identifier === friendIdentifier) {
             return { message: errors.cannotMessageYourself }
         }
 
         const isFriend =
-            creator.friends.some((f) => f.identifier === friendId) ||
+            creator.friends.some((f) => f.identifier === friendIdentifier) ||
             friend.friends.some((f) => f.id === creatorId)
 
         if (!isFriend) {
@@ -211,7 +211,7 @@ export class MessageResolver {
             .where(
                 "(block.blockerId = :creatorId AND block.blockedId = :friendId) OR (block.blockerId = :friendId AND block.blockedId = :creatorId)"
             )
-            .setParameters({ creatorId, friendId })
+            .setParameters({ creatorId, friendId: friend.id })
             .getExists()
 
         if (isBlocked) {
@@ -223,12 +223,44 @@ export class MessageResolver {
             creator.identifier,
             friend.identifier
         )
-        const channel = await channelRepo.findOne({
+
+        let channel = await channelRepo.findOne({
             where: { uniqueIdentifier: channelIdentifier },
         })
 
         if (!channel) {
-            return { message: errors.unknownError }
+            try {
+                const insertResult = await channelRepo
+                    .createQueryBuilder()
+                    .insert()
+                    .into(Channel)
+                    .values({
+                        uniqueIdentifier: channelIdentifier,
+                    })
+                    .returning("*")
+                    .execute()
+
+                channel = insertResult.raw[0]
+
+                if (!channel) {
+                    return { message: errors.unknownError }
+                }
+            } catch (err: any) {
+                // Check for unique constraint violation
+                if (err.code === "23505") {
+                    // Channel was created by the other user at the same time — fetch it again
+                    channel = await channelRepo.findOne({
+                        where: { uniqueIdentifier: channelIdentifier },
+                    })
+
+                    if (!channel) {
+                        return { message: errors.unknownError }
+                    }
+                } else {
+                    // Some other DB error
+                    return { message: errors.unknownError }
+                }
+            }
         }
 
         // Insert and fetch message in a single transaction
@@ -260,7 +292,7 @@ export class MessageResolver {
 
         // Publish message events asynchronously
         void pubSub.publish(`MESSAGE_ADDED_${creatorId}`, message)
-        void pubSub.publish(`MESSAGE_ADDED_${friendId}`, message)
+        void pubSub.publish(`MESSAGE_ADDED_${friendIdentifier}`, message)
 
         return null
     }
