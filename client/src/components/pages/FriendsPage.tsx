@@ -1,6 +1,7 @@
 "use client"
 import React from "react"
 import FriendsList from "../friends/FriendsList"
+import MessageNotification from "../messages/MessageNotification"
 
 interface FriendsPageProps {}
 
@@ -12,6 +13,7 @@ const FriendsPage: React.FC<FriendsPageProps> = ({}) => {
                     Friends
                 </h2>
                 <FriendsList />
+                <MessageNotification />
             </div>
         </div>
     )
