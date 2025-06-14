@@ -2,7 +2,6 @@ import { errors, generateChannelId, getMessageError } from "@hostek/shared"
 import {
     Arg,
     Ctx,
-    Int,
     Mutation,
     Query,
     Resolver,
@@ -151,7 +150,8 @@ export class MessageResolver {
     @UseMiddleware(isAuth)
     async createMessageFriend(
         @Arg("content") content: string,
-        @Arg("friendId", () => Int) friendId: number,
+        // @Arg("friendId", () => Int) friendId: number,
+        @Arg("friendIdentifier", () => String) friendId: string,
         @Ctx() ctx: MyContext
     ): Promise<FieldError | null> {
         try {
@@ -162,9 +162,9 @@ export class MessageResolver {
 
         const creatorId = ctx.req.session.userId
 
-        if (creatorId === friendId) {
-            return { message: "You cannot message yourself." }
-        }
+        // if (creatorId === friendId) {
+        //     return { message: "You cannot message yourself." }
+        // }
 
         const msgError = getMessageError(content)
         if (msgError) {
@@ -183,7 +183,8 @@ export class MessageResolver {
                 relations: ["friends"],
             }),
             userRepo.findOne({
-                where: { id: friendId },
+                // where: { id: friendId },
+                where: { identifier: friendId },
                 relations: ["friends"],
             }),
         ])
@@ -192,8 +193,12 @@ export class MessageResolver {
             return { message: errors.unknownError }
         }
 
+        if (creator.identifier === friendId) {
+            return { message: "You cannot message yourself." }
+        }
+
         const isFriend =
-            creator.friends.some((f) => f.id === friendId) ||
+            creator.friends.some((f) => f.identifier === friendId) ||
             friend.friends.some((f) => f.id === creatorId)
 
         if (!isFriend) {
