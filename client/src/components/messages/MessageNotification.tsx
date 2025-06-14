@@ -13,8 +13,7 @@ interface MessageNotificationProps {}
  */
 
 const MessageNotification: React.FC<MessageNotificationProps> = ({}) => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [{ data, fetching }] = useUsrMessageAddedSubscription()
+    const [{ data }] = useUsrMessageAddedSubscription()
 
     useEffect(() => {
         if (data?.usrMessageAdded) {
