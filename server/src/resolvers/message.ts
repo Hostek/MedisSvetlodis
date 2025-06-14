@@ -290,22 +290,36 @@ export class MessageResolver {
             throw new Error(errors.unknownError)
         }
 
+        // console.log({ message })
+
         // Publish message events asynchronously
         void pubSub.publish(`MESSAGE_ADDED_${creatorId}`, message)
-        void pubSub.publish(`MESSAGE_ADDED_${friendIdentifier}`, message)
+        void pubSub.publish(`MESSAGE_ADDED_${friend.id}`, message)
+
+        // console.log(
+        //     "publishing to topics:",
+        //     `MESSAGE_ADDED_${creatorId}`,
+        //     `MESSAGE_ADDED_${friend.id}`
+        // )
 
         return null
     }
 
     // important: use middleware for security reasons!
     @Subscription(() => Message, {
-        topics: ({ context }) => [
-            `MESSAGE_ADDED_${context.req.session.userId}`,
-        ],
+        topics: ({ context }) => {
+            // console.log({ cookie_ctx: context.req.session.userId })
+            return [`MESSAGE_ADDED_${context.req.session.userId}`]
+        },
     })
     @UseMiddleware(isAuth)
-    usrMessageAdded(@Ctx() ctx: MyContext): AsyncIterator<Message> {
-        const userId = ctx.req.session.userId
-        return pubSub.asyncIterator(`MESSAGE_ADDED_${userId}`)
+    usrMessageAdded(
+        @Root() messagePayload: Message
+        // @Ctx() ctx: MyContext
+    ): Message {
+        // const userId = ctx.req.session.userId
+        // console.log({ l: pubSub.asyncIterator(`MESSAGE_ADDED_${userId}`) })
+        // return pubSub.asyncIterator(`MESSAGE_ADDED_${userId}`)
+        return messagePayload
     }
 }
