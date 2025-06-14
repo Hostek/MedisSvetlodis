@@ -179,7 +179,7 @@ export type MutationCreateMessageArgs = {
 
 export type MutationCreateMessageFriendArgs = {
   content: Scalars['String']['input'];
-  friendId: Scalars['Int']['input'];
+  friendIdentifier: Scalars['String']['input'];
 };
 
 
@@ -377,7 +377,7 @@ export type CreateMessageMutationVariables = Exact<{
 export type CreateMessageMutation = { __typename?: 'Mutation', createMessage?: { __typename?: 'FieldError', message: string } | null };
 
 export type CreateMessageFriendMutationVariables = Exact<{
-  friendId: Scalars['Int']['input'];
+  friendIdentifier: Scalars['String']['input'];
   content: Scalars['String']['input'];
 }>;
 
@@ -668,8 +668,8 @@ export function useCreateMessageMutation() {
   return Urql.useMutation<CreateMessageMutation, CreateMessageMutationVariables>(CreateMessageDocument);
 };
 export const CreateMessageFriendDocument = gql`
-    mutation CreateMessageFriend($friendId: Int!, $content: String!) {
-  createMessageFriend(friendId: $friendId, content: $content) {
+    mutation CreateMessageFriend($friendIdentifier: String!, $content: String!) {
+  createMessageFriend(friendIdentifier: $friendIdentifier, content: $content) {
     ...ErrorFragment
   }
 }
