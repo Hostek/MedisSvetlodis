@@ -46,6 +46,8 @@ export const errors = {
     youAreBlocked: "User has blocked you",
     invalidPublicId: "Invalid public id",
     cannotMessageYourself: "You cannot message yourself.",
+    youCanOnlyMessageYourFriends: "You can only message your friends.",
+    youCannotMessageThisUser: "You cannot message this user.",
 } as const
 
 export const errors_values = Object.values(errors)

@@ -202,7 +202,7 @@ export class MessageResolver {
             friend.friends.some((f) => f.id === creatorId)
 
         if (!isFriend) {
-            return { message: "You can only message your friends." }
+            return { message: errors.youCanOnlyMessageYourFriends }
         }
 
         // Check block in both directions
@@ -215,7 +215,7 @@ export class MessageResolver {
             .getExists()
 
         if (isBlocked) {
-            return { message: "You cannot message this user." }
+            return { message: errors.youCannotMessageThisUser }
         }
 
         // Determine channel
@@ -287,7 +287,8 @@ export class MessageResolver {
         })
 
         if (!message) {
-            throw new Error(errors.unknownError)
+            // throw new Error(errors.unknownError)
+            return { message: errors.unknownError }
         }
 
         // console.log({ message })
