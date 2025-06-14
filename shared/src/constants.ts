@@ -45,6 +45,7 @@ export const errors = {
     notBlocked: "Cannot unblock because it is not blocked.",
     youAreBlocked: "User has blocked you",
     invalidPublicId: "Invalid public id",
+    cannotMessageYourself: "You cannot message yourself.",
 } as const
 
 export const errors_values = Object.values(errors)

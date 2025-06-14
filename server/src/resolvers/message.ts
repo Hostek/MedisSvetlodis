@@ -194,7 +194,7 @@ export class MessageResolver {
         }
 
         if (creator.identifier === friendId) {
-            return { message: "You cannot message yourself." }
+            return { message: errors.cannotMessageYourself }
         }
 
         const isFriend =
