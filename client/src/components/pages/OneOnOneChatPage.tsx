@@ -123,6 +123,11 @@ const OneOnOneChatPage: React.FC<OneOnOneChatPageProps> = ({
         }
     }, [hasNextPage, fetching, reexecuteGetMessages])
 
+    useEffect(() => {
+        reexecuteGetMessages({ requestPolicy: "network-only" })
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [friendIdentifier])
+
     if (!user) {
         return null
     }
@@ -139,6 +144,10 @@ const OneOnOneChatPage: React.FC<OneOnOneChatPageProps> = ({
                         {fetching ? "Loading..." : "Load older messages"}
                     </Button>
                 </div>
+            )}
+
+            {!fetching && messages.length === 0 && (
+                <div>No conversation history yet. Say hi 👋</div>
             )}
 
             <Messages messages={messages} />
