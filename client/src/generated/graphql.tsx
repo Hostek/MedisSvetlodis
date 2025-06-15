@@ -107,6 +107,12 @@ export type MessageEdge = {
   node: Message;
 };
 
+export type MessageSubscription = {
+  __typename?: 'MessageSubscription';
+  channelIdentifier: Scalars['String']['output'];
+  message: Message;
+};
+
 export type MessagesConnection = {
   __typename?: 'MessagesConnection';
   edges: Array<MessageEdge>;
@@ -292,7 +298,7 @@ export type QueryGetUserByPublicIdArgs = {
 export type Subscription = {
   __typename?: 'Subscription';
   messageAdded: Message;
-  usrMessageAdded: Message;
+  usrMessageAdded: MessageSubscription;
 };
 
 export type User = {
@@ -525,7 +531,7 @@ export type MessageAddedSubscription = { __typename?: 'Subscription', messageAdd
 export type UsrMessageAddedSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
 
-export type UsrMessageAddedSubscription = { __typename?: 'Subscription', usrMessageAdded: { __typename?: 'Message', content: string, createdAt: string, creatorId: number, id: number, updatedAt: string, channelId: number, creator: { __typename?: 'User', username: string, id: number, identifier: string } } };
+export type UsrMessageAddedSubscription = { __typename?: 'Subscription', usrMessageAdded: { __typename?: 'MessageSubscription', channelIdentifier: string, message: { __typename?: 'Message', content: string, createdAt: string, creatorId: number, id: number, updatedAt: string, channelId: number, creator: { __typename?: 'User', username: string, id: number, identifier: string } } } };
 
 export const FriendRequestTokensFragmentFragmentDoc = gql`
     fragment FriendRequestTokensFragment on FriendRequestToken {
@@ -950,7 +956,10 @@ export function useMessageAddedSubscription<TData = MessageAddedSubscription>(op
 export const UsrMessageAddedDocument = gql`
     subscription UsrMessageAdded {
   usrMessageAdded {
-    ...MessageWithCreatorFragment
+    message {
+      ...MessageWithCreatorFragment
+    }
+    channelIdentifier
   }
 }
     ${MessageWithCreatorFragmentFragmentDoc}`;
