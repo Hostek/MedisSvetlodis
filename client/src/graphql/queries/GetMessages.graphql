@@ -1,8 +1,8 @@
 query GetMessagesFromFriend(
     $input: PaginationCursorArgs!
-    $FriendIdentifier: String!
+    $friendIdentifier: String!
 ) {
-    getMessagesFromFriend(input: $input, friendIdentifier: $FriendIdentifier) {
+    getMessagesFromFriend(input: $input, friendIdentifier: $friendIdentifier) {
         totalCount
         pageInfo {
             endCursor

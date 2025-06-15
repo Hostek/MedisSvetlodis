@@ -505,7 +505,7 @@ export type GetFriendsQuery = { __typename?: 'Query', getFriends: { __typename?:
 
 export type GetMessagesFromFriendQueryVariables = Exact<{
   input: PaginationCursorArgs;
-  FriendIdentifier: Scalars['String']['input'];
+  friendIdentifier: Scalars['String']['input'];
 }>;
 
 
@@ -891,8 +891,8 @@ export function useGetFriendsQuery(options: Omit<Urql.UseQueryArgs<GetFriendsQue
   return Urql.useQuery<GetFriendsQuery, GetFriendsQueryVariables>({ query: GetFriendsDocument, ...options });
 };
 export const GetMessagesFromFriendDocument = gql`
-    query GetMessagesFromFriend($input: PaginationCursorArgs!, $FriendIdentifier: String!) {
-  getMessagesFromFriend(input: $input, friendIdentifier: $FriendIdentifier) {
+    query GetMessagesFromFriend($input: PaginationCursorArgs!, $friendIdentifier: String!) {
+  getMessagesFromFriend(input: $input, friendIdentifier: $friendIdentifier) {
     totalCount
     pageInfo {
       endCursor

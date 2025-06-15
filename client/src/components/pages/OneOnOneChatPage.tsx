@@ -48,7 +48,7 @@ const OneOnOneChatPage: React.FC<OneOnOneChatPageProps> = ({
                     after: cursor,
                     first: MESSAGE_PAGE_SIZE,
                 },
-                FriendIdentifier: friendIdentifier,
+                friendIdentifier: friendIdentifier,
             },
             pause: true, // always pause
         })
