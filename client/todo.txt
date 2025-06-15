@@ -1,6 +1,7 @@
 01.06.2025
 
 todo: make these private chats
+-> app notifications (message notifications)
 
 - -- 
 

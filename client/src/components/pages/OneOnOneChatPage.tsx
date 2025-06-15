@@ -2,7 +2,7 @@
 import { useAppContext } from "@/context/AppContext"
 import { useCreateMessageFriendMutation } from "@/generated/graphql"
 import { Button, Divider, Form, Textarea } from "@heroui/react"
-import { errors, getMessageError } from "@hostek/shared"
+import { errors, getMessageError, MAX_MESSAGE_LENGTH } from "@hostek/shared"
 import React, { useCallback, useState } from "react"
 import MessageNotification from "../messages/MessageNotification"
 
@@ -57,13 +57,26 @@ const OneOnOneChatPage: React.FC<OneOnOneChatPageProps> = ({
     }
 
     return (
-        <div className="text-2xl">
+        <div className="max-w-screen-md mx-auto">
             <div>friend id: {friendIdentifier}</div>
-            <div>your id: {user.identifier}</div>
 
-            <Divider />
+            <Divider className="my-3" />
 
             {/* @TODO – show messages .. */}
+
+            <div
+                className={`flex justify-start mt-2 text-sm ${
+                    content.length >= MAX_MESSAGE_LENGTH
+                        ? "text-red-500"
+                        : content.length >= MAX_MESSAGE_LENGTH * 0.9
+                          ? "text-yellow-500"
+                          : "text-gray-300"
+                }`}
+            >
+                <span className="font-mono">{content.length}</span>
+                <span className="text-gray-200 mx-0.5">/</span>
+                <span className="font-mono">{MAX_MESSAGE_LENGTH}</span>
+            </div>
 
             <Form onSubmit={handleSubmit} className="space-y-4">
                 <Textarea
