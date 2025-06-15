@@ -1,6 +1,8 @@
 01.06.2025
 
-todo: make these private chats
+-> fix in private chats -> loading older messages but when messages weren't initialy loaded it can return (and will return) duplicates
+    -> fix by after creating (or receiving) new message set appropriate cursor stuff?
+
 -> app notifications (message notifications)
 
 - -- 
