@@ -188,7 +188,7 @@ const OneOnOneChatPage: React.FC<OneOnOneChatPageProps> = ({
                 </Button>
             </Form>
 
-            <MessageNotification />
+            <MessageNotification channelIdToIgnore={channelIdentifier} />
         </div>
     )
 }
