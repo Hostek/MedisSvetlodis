@@ -2,6 +2,7 @@ import { errors, generateChannelId, getMessageError } from "@hostek/shared"
 import {
     Arg,
     Ctx,
+    Maybe,
     Mutation,
     Query,
     Resolver,
@@ -27,7 +28,6 @@ import { messageRateLimiter } from "../rateLimiters.js"
 
 @Resolver()
 export class MessageResolver {
-    // // @TODO –> add pagination ..
     // @Query(() => [Message])
     // @UseMiddleware(isAuth)
     // async getAllMessages(): Promise<Message[]> {
@@ -38,15 +38,93 @@ export class MessageResolver {
     //     return res
     // }
 
+    private async tryToCreateChannel(channelIdentifier: string): Promise<{
+        channel?: Maybe<Channel>
+        error?: Maybe<FieldError>
+    }> {
+        let channel: Maybe<Channel>
+
+        const channelRepo = AppDataSource.getRepository(Channel)
+
+        try {
+            const insertResult = await channelRepo
+                .createQueryBuilder()
+                .insert()
+                .into(Channel)
+                .values({
+                    uniqueIdentifier: channelIdentifier,
+                })
+                .returning("*")
+                .execute()
+
+            channel = insertResult.raw[0]
+
+            if (!channel) {
+                return {
+                    error: { message: errors.unknownError },
+                }
+            }
+        } catch (err: any) {
+            // Check for unique constraint violation
+            if (err.code === "23505") {
+                // Channel was created by the other user at the same time — fetch it again
+                channel = await channelRepo.findOne({
+                    where: { uniqueIdentifier: channelIdentifier },
+                })
+
+                if (!channel) {
+                    return {
+                        error: { message: errors.unknownError },
+                    }
+                }
+            } else {
+                // Some other DB error
+                return {
+                    error: { message: errors.unknownError },
+                }
+            }
+        }
+
+        return { channel }
+    }
+
     @Query(() => MessagesConnection)
     @UseMiddleware(isAuth)
-    async getMessages(
-        @Arg("input") input: PaginationCursorArgs
+    async getMessagesFromFriend(
+        @Arg("input") input: PaginationCursorArgs,
+        @Arg("friendIdentifier") friendIdentifier: string,
+        @Ctx() ctx: MyContext
     ): Promise<MessagesConnection> {
+        const userId = ctx.req.session.userId
+
+        const user = await User.findOne({ where: { id: userId } })
+
+        if (!user) {
+            throw new Error(errors.unknownError)
+        }
+
+        const channelIdentifier = generateChannelId(
+            user.identifier,
+            friendIdentifier
+        )
+
+        let channel = await Channel.findOne({
+            where: { uniqueIdentifier: channelIdentifier },
+        })
+
+        if (!channel) {
+            const { channel: n_channel, error: n_error } =
+                await this.tryToCreateChannel(channelIdentifier)
+            if (n_error) throw new Error(n_error.message)
+            if (!n_channel) throw new Error(errors.unknownError)
+            channel = n_channel
+        }
+
         const messageQuery = Message.createQueryBuilder("m")
             .leftJoinAndSelect("m.creator", "creator")
             .orderBy("m.id", "DESC")
             .take(input.first + 1)
+            .where('m."channelId" = :chid', { chid: channel.id })
 
         // Apply cursor (if provided)
         if (input.after) {
@@ -63,7 +141,9 @@ export class MessageResolver {
             cursor: encodeCursor(msg.id),
         }))
 
-        const totalCount = await Message.count()
+        const totalCount = await Message.count({
+            where: { channelId: channel.id },
+        })
 
         return {
             edges,
@@ -77,7 +157,6 @@ export class MessageResolver {
     }
 
     /**
-     * @TODO
      * @deprecated please - do not use – it's left for now as archive, will be reused, but pls
      *
      * @param content
@@ -130,7 +209,6 @@ export class MessageResolver {
      *
      * @deprecated see `createMessage` mutation for more details ..
      *
-     * will delete soon this @TODO
      */
     @Subscription(() => Message, {
         topics: "MESSAGE_ADDED",
@@ -229,38 +307,11 @@ export class MessageResolver {
         })
 
         if (!channel) {
-            try {
-                const insertResult = await channelRepo
-                    .createQueryBuilder()
-                    .insert()
-                    .into(Channel)
-                    .values({
-                        uniqueIdentifier: channelIdentifier,
-                    })
-                    .returning("*")
-                    .execute()
-
-                channel = insertResult.raw[0]
-
-                if (!channel) {
-                    return { message: errors.unknownError }
-                }
-            } catch (err: any) {
-                // Check for unique constraint violation
-                if (err.code === "23505") {
-                    // Channel was created by the other user at the same time — fetch it again
-                    channel = await channelRepo.findOne({
-                        where: { uniqueIdentifier: channelIdentifier },
-                    })
-
-                    if (!channel) {
-                        return { message: errors.unknownError }
-                    }
-                } else {
-                    // Some other DB error
-                    return { message: errors.unknownError }
-                }
-            }
+            const { channel: n_channel, error: n_error } =
+                await this.tryToCreateChannel(channelIdentifier)
+            if (n_error) return n_error
+            if (!n_channel) return { message: errors.unknownError }
+            channel = n_channel
         }
 
         // Insert and fetch message in a single transaction
