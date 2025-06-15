@@ -1,4 +1,5 @@
 fragment CreatorFragment on User {
     username
     id
+    identifier
 }

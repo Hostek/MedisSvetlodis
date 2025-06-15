@@ -319,7 +319,7 @@ export type UserResponse = {
   user?: Maybe<User>;
 };
 
-export type CreatorFragmentFragment = { __typename?: 'User', username: string, id: number };
+export type CreatorFragmentFragment = { __typename?: 'User', username: string, id: number, identifier: string };
 
 export type ErrorFragmentFragment = { __typename?: 'FieldError', message: string };
 
@@ -329,7 +329,7 @@ export type LoginResponseFragmentFragment = { __typename?: 'LoginResponse', user
 
 export type MessageFragmentFragment = { __typename?: 'Message', content: string, createdAt: string, creatorId: number, id: number, updatedAt: string, channelId: number };
 
-export type MessageWithCreatorFragmentFragment = { __typename?: 'Message', content: string, createdAt: string, creatorId: number, id: number, updatedAt: string, channelId: number, creator: { __typename?: 'User', username: string, id: number } };
+export type MessageWithCreatorFragmentFragment = { __typename?: 'Message', content: string, createdAt: string, creatorId: number, id: number, updatedAt: string, channelId: number, creator: { __typename?: 'User', username: string, id: number, identifier: string } };
 
 export type RequestToken_GetFriendRequesFragmentFragment = { __typename?: 'FriendRequestToken', id: number, token: string };
 
@@ -503,7 +503,7 @@ export type GetMessagesFromFriendQueryVariables = Exact<{
 }>;
 
 
-export type GetMessagesFromFriendQuery = { __typename?: 'Query', getMessagesFromFriend: { __typename?: 'MessagesConnection', totalCount: number, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean, startCursor?: string | null }, edges: Array<{ __typename?: 'MessageEdge', cursor: string, node: { __typename?: 'Message', content: string, createdAt: string, creatorId: number, id: number, updatedAt: string, channelId: number, creator: { __typename?: 'User', username: string, id: number } } }> } };
+export type GetMessagesFromFriendQuery = { __typename?: 'Query', getMessagesFromFriend: { __typename?: 'MessagesConnection', totalCount: number, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean, startCursor?: string | null }, edges: Array<{ __typename?: 'MessageEdge', cursor: string, node: { __typename?: 'Message', content: string, createdAt: string, creatorId: number, id: number, updatedAt: string, channelId: number, creator: { __typename?: 'User', username: string, id: number, identifier: string } } }> } };
 
 export type GetUserByPublicIdQueryVariables = Exact<{
   publicId: Scalars['String']['input'];
@@ -520,12 +520,12 @@ export type UserQuery = { __typename?: 'Query', user?: { __typename?: 'User', us
 export type MessageAddedSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MessageAddedSubscription = { __typename?: 'Subscription', messageAdded: { __typename?: 'Message', content: string, createdAt: string, creatorId: number, id: number, updatedAt: string, channelId: number, creator: { __typename?: 'User', username: string, id: number } } };
+export type MessageAddedSubscription = { __typename?: 'Subscription', messageAdded: { __typename?: 'Message', content: string, createdAt: string, creatorId: number, id: number, updatedAt: string, channelId: number, creator: { __typename?: 'User', username: string, id: number, identifier: string } } };
 
 export type UsrMessageAddedSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
 
-export type UsrMessageAddedSubscription = { __typename?: 'Subscription', usrMessageAdded: { __typename?: 'Message', content: string, createdAt: string, creatorId: number, id: number, updatedAt: string, channelId: number, creator: { __typename?: 'User', username: string, id: number } } };
+export type UsrMessageAddedSubscription = { __typename?: 'Subscription', usrMessageAdded: { __typename?: 'Message', content: string, createdAt: string, creatorId: number, id: number, updatedAt: string, channelId: number, creator: { __typename?: 'User', username: string, id: number, identifier: string } } };
 
 export const FriendRequestTokensFragmentFragmentDoc = gql`
     fragment FriendRequestTokensFragment on FriendRequestToken {
@@ -579,6 +579,7 @@ export const CreatorFragmentFragmentDoc = gql`
     fragment CreatorFragment on User {
   username
   id
+  identifier
 }
     `;
 export const MessageWithCreatorFragmentFragmentDoc = gql`
