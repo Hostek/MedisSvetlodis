@@ -1,5 +1,8 @@
 subscription UsrMessageAdded {
     usrMessageAdded {
-        ...MessageWithCreatorFragment
+        message {
+            ...MessageWithCreatorFragment
+        }
+        channelIdentifier
     }
 }
