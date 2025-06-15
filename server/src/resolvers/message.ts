@@ -16,6 +16,7 @@ import { pubSub } from "../pubSub.js"
 import {
     FieldError,
     MessagesConnection,
+    MessageSubscription,
     MyContext,
     PaginationCursorArgs,
 } from "../types.js"
@@ -344,9 +345,11 @@ export class MessageResolver {
 
         // console.log({ message })
 
+        const subscriptionObject = { message, channelIdentifier }
+
         // Publish message events asynchronously
-        void pubSub.publish(`MESSAGE_ADDED_${creatorId}`, message)
-        void pubSub.publish(`MESSAGE_ADDED_${friend.id}`, message)
+        void pubSub.publish(`MESSAGE_ADDED_${creatorId}`, subscriptionObject)
+        void pubSub.publish(`MESSAGE_ADDED_${friend.id}`, subscriptionObject)
 
         // console.log(
         //     "publishing to topics:",
@@ -358,7 +361,7 @@ export class MessageResolver {
     }
 
     // important: use middleware for security reasons!
-    @Subscription(() => Message, {
+    @Subscription(() => MessageSubscription, {
         topics: ({ context }) => {
             // console.log({ cookie_ctx: context.req.session.userId })
             return [`MESSAGE_ADDED_${context.req.session.userId}`]
@@ -366,9 +369,9 @@ export class MessageResolver {
     })
     @UseMiddleware(isAuth)
     usrMessageAdded(
-        @Root() messagePayload: Message
+        @Root() messagePayload: MessageSubscription
         // @Ctx() ctx: MyContext
-    ): Message {
+    ): MessageSubscription {
         // const userId = ctx.req.session.userId
         // console.log({ l: pubSub.asyncIterator(`MESSAGE_ADDED_${userId}`) })
         // return pubSub.asyncIterator(`MESSAGE_ADDED_${userId}`)

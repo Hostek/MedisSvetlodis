@@ -128,3 +128,12 @@ class MessageEdge {
     @Field()
     cursor: string
 }
+
+@ObjectType()
+export class MessageSubscription {
+    @Field(() => Message)
+    message: Message
+
+    @Field(() => String)
+    channelIdentifier: string
+}
