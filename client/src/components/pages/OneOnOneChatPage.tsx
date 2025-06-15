@@ -8,8 +8,13 @@ import {
     useUsrMessageAddedSubscription,
 } from "@/generated/graphql"
 import { Button, Divider, Form, Textarea } from "@heroui/react"
-import { errors, getMessageError, MAX_MESSAGE_LENGTH } from "@hostek/shared"
-import React, { useCallback, useEffect, useState } from "react"
+import {
+    errors,
+    generateChannelId,
+    getMessageError,
+    MAX_MESSAGE_LENGTH,
+} from "@hostek/shared"
+import React, { useCallback, useEffect, useMemo, useState } from "react"
 import MessageNotification from "../messages/MessageNotification"
 import Messages from "../messages/Messages"
 
@@ -21,6 +26,11 @@ const OneOnOneChatPage: React.FC<OneOnOneChatPageProps> = ({
     friendIdentifier,
 }) => {
     const { user } = useAppContext()
+
+    const channelIdentifier = useMemo(() => {
+        if (!user) return "empty-string;"
+        return generateChannelId(user.identifier, friendIdentifier)
+    }, [friendIdentifier, user])
 
     const [error, setError] = useState("")
     const [content, setContent] = useState("")
@@ -67,13 +77,11 @@ const OneOnOneChatPage: React.FC<OneOnOneChatPageProps> = ({
         if (
             newMsgData?.usrMessageAdded &&
             user &&
-            (newMsgData.usrMessageAdded.creator.identifier ===
-                friendIdentifier ||
-                newMsgData.usrMessageAdded.creatorId === user.id)
+            newMsgData.usrMessageAdded.channelIdentifier === channelIdentifier
         ) {
-            setMessages((prev) => [...prev, newMsgData.usrMessageAdded])
+            setMessages((prev) => [...prev, newMsgData.usrMessageAdded.message])
         }
-    }, [newMsgData, user, friendIdentifier])
+    }, [newMsgData, user, friendIdentifier, channelIdentifier])
 
     const [{ fetching: creatingFetching }, createMessage] =
         useCreateMessageFriendMutation()
