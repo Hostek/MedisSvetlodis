@@ -1,3 +1,6 @@
+import * as dotenv from "dotenv"
+dotenv.config()
+
 import { DataSource } from "typeorm"
 import { User } from "./entities/User.js"
 import { Message } from "./entities/Message.js"
@@ -13,7 +16,8 @@ export const AppDataSource = new DataSource({
     username: process.env.DB_USER,
     password: process.env.DB_PASS,
     logging: true,
-    synchronize: true,
+    // synchronize: true,
+    migrations: ["dist/migrations/**/*.js"],
     entities: [
         User,
         Message,
