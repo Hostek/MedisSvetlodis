@@ -17,6 +17,11 @@ const BasicNavbar: React.FC<BasicNavbarProps> = ({}) => {
     return (
         <Navbar className="flex justify-center items-center mb-4">
             <NavbarContent className="text-foreground">
+                <NavbarItem className="mr-6">
+                    <Link href="/" className="font-bold text-3xl">
+                        MEDIS SVETLODIS
+                    </Link>
+                </NavbarItem>
                 <NavbarItem>
                     <span className="font-medium">User: </span>
                     {user.username}
