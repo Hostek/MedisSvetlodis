@@ -1,0 +1,110 @@
+----------- START MEDISSVETLODIS ----------
+
+TODO-FAST:
+
+E2E
+
+-> friends with new activity at top
+
+-> alert user about new msg
+  
+-> if friendship already exists auto-delete friend request..
+
+-> number of pending friend requests
+
+-> reuse code for banning user
+
+–––FRIEND–REQUEST–TOKEN–––––  
+Hybrid Approach:
+–> add limit of how many tokens may regenated per day
+
+–> Allow users to toggle between public (searchable by name, unique id) and private (ID-only) modes.
+
+–> Warn users to treat their ID like a password (avoid public sharing).
+–> Provide clear instructions for securely sharing IDs (e.g., via encrypted messaging).
+
+–>Integrate with phone contacts/social platforms for users who prefer convenience.
+
+-> add rate limiting everywhere (almost)
+
+9. live chat with websockets
+-> apka do randkowania
+-> zoom <- (online classroom ? ) maybe combined with livechat?
+-> discord clone (NoTREEshTalk ; SencheroAlbero ; MedisSvetlodis -> make site in green colors, with glowing !! (tagline: Where ancient bark hums with tomorrow’s light.) )
+-> try to make voice chat the way it's done in telegram
+-> can login with qr code from mobile app
+-> automatic logout of inactive sessions
+----messages
+Text messages with markdown support (bold, italic, links).
+Message status indicators (sent ✅, delivered ✅, read 👁️).
+Typing indicators (showing when someone is typing).
+Edit/delete messages (with "edited" label for transparency).
+Message replies (quoting specific messages).
+Reactions (emoji responses to messages).
+
+---- chat management
+One-on-one chats and group chats.
+Chat titles, descriptions, and avatars.
+Invite links for groups.
+Admin controls (for group chats).
+Mute notifications for specific chats.
+
+-> users can have specific roles (and some servers may be readonly for some roles, for some may be secret, and for some may be writable)
+
+–> also chat servers with branches, etc.
+like maybe somewhat orginized system with filesystem-like handling? (file, folder)
+
+Chat folders (e.g., "Work," "Friends").
+
+Pinned messages in groups.
+
+Search messages by keyword (with filters for date/chat).
+
+Hashtag support for organizing topics.
+----
+Security & Privacy
+
+End-to-end encryption (e.g., using libsodium or WebCrypto).
+
+Self-destructing messages (disappear after a timer).
+
+Secret chats (separate from regular chats with stricter encryption).
+
+Block users and report spam.
+
+Rate limiting for spam prevention.
+---
+
+Notifications
+
+Custom notification sounds/themes.
+
+Do Not Disturb mode.
+
+Badge counters for unread messages.
+
+-----
+
+Online/last seen status.
+
+User profiles (bio, profile photo, username).
+
+Mention users with @username.
+
+Link previews (for URLs).
+
+Dark/light theme toggle.
+
+-----
+
+Custom mobile app (as it is not supported to server-side rendering)
+
+-----
+
+handle internationalization (multiple languages – probably not gonna do this, because reasons😉️, but no like for real – in organizator it is already implemented so, yea, i don't think it is needed here (of course for full app implementation i'd like to have multiple language support, but u know it's just some side project))
+
+
+–> last stuff :
+    -> add title and desc for every page..
+
+----------- END MEDISSVETLODIS ----------
