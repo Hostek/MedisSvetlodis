@@ -9897,10 +9897,10 @@ sweetalert2-react-content@^5.1.0:
   resolved "https://registry.yarnpkg.com/sweetalert2-react-content/-/sweetalert2-react-content-5.1.0.tgz#d57f8fe61ec090738373442e427c65a78ac2850b"
   integrity sha512-SBh41SdyHDY9NzwrIG6LACbClCMxIlEFP86tGVr/B4zGD4H2gGXB8o7UAJRc/RtBd/iQL9hIvuCAkrk0AgKEMA==
 
-sweetalert2@^11.17.2:
-  version "11.17.2"
-  resolved "https://registry.yarnpkg.com/sweetalert2/-/sweetalert2-11.17.2.tgz#a11852713c8eea274d9e1d233522322cc63cf5be"
-  integrity sha512-HKxDr1IyV3Lxr3W6sb61qm/p2epFIEdr5EKwteRFHnIg6f8nHFl2kX++DBVz16Mac+fFiU3hMpjq1L6yE2Ge5w==
+sweetalert2@^11.22.4:
+  version "11.22.4"
+  resolved "https://registry.yarnpkg.com/sweetalert2/-/sweetalert2-11.22.4.tgz#772e6448cef4e753c6c429e96d233b7e701210ed"
+  integrity sha512-JwcRODfozxiKmspFp+xctZ2izAmLAKbRPcoLMEW7LdugN/YmNrX1LT7hdBW87qsgupEO1ukBBuB17KzKFKW0tg==
 
 sync-fetch@0.6.0-2:
   version "0.6.0-2"
