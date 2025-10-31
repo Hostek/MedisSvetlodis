@@ -44,7 +44,7 @@
         "rate-limiter-flexible": "^6.1.0",
         "reflect-metadata": "^0.2.2",
         "type-graphql": "^1.1.1",
-        "typeorm": "^0.3.20",
+        "typeorm": "^0.3.26",
         "uuid": "^11.1.0",
         "ws": "^8.18.1",
         "xss": "^1.0.15"
