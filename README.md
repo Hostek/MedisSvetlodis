@@ -66,3 +66,55 @@ Now, run the project!
 ```sh
 yarn dev
 ```
+
+Should be running on `http://localhost:3000/`.
+
+### Setup `server`
+
+In `/server` directory copy `.env.example` file into `.env` file:
+```sh
+cp .env.example .env
+```
+
+Make sure to have PostgreSQL and Redis running in the background.
+
+For development use these env vars:
+```sh
+PORT=3001
+CLIENT_URL=http://localhost:3000/
+COOKIE_DOMAIN=localhost
+REDIS_URL=redis://localhost:6379
+```
+
+Fill in your DB data: (for development it can be these; make sure that there exists DB with name `medissvetlodis`)
+```sh
+DB_USER=your_db_username
+DB_PASS=your_db_password
+DB_NAME=medissvetlodis
+DB_PORT=5432
+DB_HOST=localhost
+```
+
+**Important!**: `OAUTH_PROOF_SECRET` variable should be the same as in `/client/.env.local`!
+
+You can generate `COOKIE_SESSION_SECRET` and `PRIVATE_SERVER_KEY` with this: (they should be different values, so run below command multiple times)
+```sh
+openssl rand -base64 32
+```
+
+`HOAX_USER_PASSWORD` you can set to `12345678` or `qwertyuiop`. It's used only in dev. So the hoax users would all have this password.
+
+Now compile the server:
+```sh
+yarn watch
+```
+
+Run migrations (to setup db tables)
+```sh
+./generate-migration.sh -r 
+```
+
+And then start the server!
+```sh
+yarn start
+```
