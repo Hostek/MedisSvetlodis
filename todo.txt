@@ -1,5 +1,7 @@
 ----------- START MEDISSVETLODIS ----------
 
+replace .env logic; instead of doing it by hand add env.py script that would do this automatically.
+
 TODO-FAST:
 
 E2E
