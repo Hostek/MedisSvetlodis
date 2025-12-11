@@ -81,7 +81,7 @@ Make sure to have PostgreSQL and Redis running in the background.
 For development use these env vars:
 ```sh
 PORT=3001
-CLIENT_URL=http://localhost:3000/
+CLIENT_URL=http://localhost:3000
 COOKIE_DOMAIN=localhost
 REDIS_URL=redis://localhost:6379
 ```
