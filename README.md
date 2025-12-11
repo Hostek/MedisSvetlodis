@@ -17,6 +17,15 @@ First, install all dependencies with:
 yarn install
 ```
 
+### Setup `shared`
+
+In `/shared` directory there is stuff that is used both on `client` and `server`.
+
+We need to compile this first before running `client` or `server`.
+```sh
+yarn watch
+``` 
+
 ### Setup `client`
 
 In `/client` directory copy `.env.example` file into `.env.local` file:
