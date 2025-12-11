@@ -21,7 +21,6 @@
         "emitDecoratorMetadata": true,
         "experimentalDecorators": true,
         "resolveJsonModule": true,
-        "baseUrl": ".",
         "declaration": true,
         "declarationDir": "./dist/types"
     },
